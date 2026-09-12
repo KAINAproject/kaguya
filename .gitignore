@@ -1,6 +1,8 @@
 /.direnv/
 /.envrc
 /node_modules/
+/examples/hello-xr/node_modules/
+/examples/hello-xr/dist/
 .DS_Store
 _build/
 target/
