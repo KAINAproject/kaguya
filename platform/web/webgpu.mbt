@@ -9,14 +9,16 @@ async fn initialize() -> Unit {
   status.set_message("WebGPU device を取得しています…", "info")
   let device = adapter.request_device().wait()
   let context = canvas.get_context()
-  context.configure(device, gpu.preferred_canvas_format())
+  let format = gpu.preferred_canvas_format()
+  context.configure(device, format)
+  let triangle_pipeline = @webgpu.create_triangle_pipeline(device, format)
 
   let render = () => {
     ignore(canvas.resize())
-    @webgpu.clear(device, context)
+    @webgpu.draw_triangle(device, context, triangle_pipeline)
   }
   let dimensions = canvas.resize()
-  @webgpu.clear(device, context)
+  @webgpu.draw_triangle(device, context, triangle_pipeline)
   canvas.on_resize(render)
   device.on_lost(message => status.set_message(message, "error"))
   status.set_message("WebGPU initialized (\{dimensions})", "success")

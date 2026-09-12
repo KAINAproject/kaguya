@@ -41,6 +41,8 @@ pub fn CommandEncoder::finish(Self) -> CommandBuffer
 #external
 pub type Device
 pub fn Device::create_command_encoder(Self) -> CommandEncoder
+pub fn Device::create_render_pipeline(Self, ShaderModule, String) -> RenderPipeline
+pub fn Device::create_shader_module(Self, String) -> ShaderModule
 pub fn Device::on_lost(Self, (String) -> Unit) -> Unit
 pub fn Device::submit(Self, CommandBuffer) -> Unit
 
@@ -51,7 +53,15 @@ pub fn Gpu::request_adapter(Self) -> @js_async.Promise[Adapter]
 
 #external
 pub type RenderPassEncoder
+pub fn RenderPassEncoder::draw(Self, Int) -> Unit
 pub fn RenderPassEncoder::end(Self) -> Unit
+pub fn RenderPassEncoder::set_pipeline(Self, RenderPipeline) -> Unit
+
+#external
+pub type RenderPipeline
+
+#external
+pub type ShaderModule
 
 #external
 pub type StatusElement

@@ -8,6 +8,10 @@ import {
 // Values
 pub fn clear(@ffi.Device, @ffi.CanvasContext) -> Unit
 
+pub fn create_triangle_pipeline(@ffi.Device, String) -> @ffi.RenderPipeline
+
+pub fn draw_triangle(@ffi.Device, @ffi.CanvasContext, @ffi.RenderPipeline) -> Unit
+
 // Errors
 
 // Types and methods
