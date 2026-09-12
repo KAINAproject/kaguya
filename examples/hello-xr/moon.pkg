@@ -2,7 +2,7 @@
 
 import {
   "moonbitlang/async/js_async",
-  "username/kaguya/platform/web",
+  "KAINAproject/kaguya/platform/web",
 }
 
 pkgtype(kind: "foreign_library")
