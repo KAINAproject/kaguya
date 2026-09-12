@@ -43,6 +43,14 @@ pub type Texture
 pub type TextureView
 
 ///|
+#external
+pub type ShaderModule
+
+///|
+#external
+pub type RenderPipeline
+
+///|
 extern "js" fn document_canvas() -> Canvas =
   #| () => {
   #|   const canvas = document.querySelector("#canvas")
@@ -160,6 +168,35 @@ pub extern "js" fn Device::create_command_encoder(
   #| (device) => device.createCommandEncoder()
 
 ///|
+pub extern "js" fn Device::create_shader_module(
+  self : Device,
+  code : String,
+) -> ShaderModule =
+  #| (device, code) => device.createShaderModule({ code })
+
+///|
+pub extern "js" fn Device::create_render_pipeline(
+  self : Device,
+  shader_module : ShaderModule,
+  format : String,
+) -> RenderPipeline =
+  #| (device, shaderModule, format) => device.createRenderPipeline({
+  #|   layout: "auto",
+  #|   vertex: {
+  #|     module: shaderModule,
+  #|     entryPoint: "vs_main",
+  #|   },
+  #|   fragment: {
+  #|     module: shaderModule,
+  #|     entryPoint: "fs_main",
+  #|     targets: [{ format }],
+  #|   },
+  #|   primitive: {
+  #|     topology: "triangle-list",
+  #|   },
+  #| })
+
+///|
 pub extern "js" fn Device::submit(
   self : Device,
   command_buffer : CommandBuffer,
@@ -197,6 +234,20 @@ pub extern "js" fn CommandEncoder::begin_clear_pass(
 ///|
 pub extern "js" fn RenderPassEncoder::end(self : RenderPassEncoder) -> Unit =
   #| (pass) => pass.end()
+
+///|
+pub extern "js" fn RenderPassEncoder::set_pipeline(
+  self : RenderPassEncoder,
+  pipeline : RenderPipeline,
+) -> Unit =
+  #| (pass, pipeline) => pass.setPipeline(pipeline)
+
+///|
+pub extern "js" fn RenderPassEncoder::draw(
+  self : RenderPassEncoder,
+  vertex_count : Int,
+) -> Unit =
+  #| (pass, vertexCount) => pass.draw(vertexCount)
 
 ///|
 pub extern "js" fn CommandEncoder::finish(
