@@ -4,6 +4,7 @@
 /examples/hello-xr/node_modules/
 /examples/hello-xr/dist/
 /examples/hello-xr/.moonbit-build/
+/examples/hello-xr/.moonbit-tools/
 .DS_Store
 _build/
 target/
