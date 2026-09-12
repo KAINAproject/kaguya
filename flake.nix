@@ -17,7 +17,11 @@
           };
         in {
           devShells.default = pkgs.mkShell {
-            packages = [ pkgs.moonbit-bin.moonbit.latest ];
+            packages = [
+              pkgs.moonbit-bin.moonbit.latest
+              pkgs.nodejs-slim_24
+              pkgs.pnpm
+            ];
           };
         };
 
