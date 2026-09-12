@@ -4,6 +4,13 @@
     "useDefineForClassFields": true,
     "module": "ESNext",
     "moduleResolution": "Bundler",
+    "baseUrl": ".",
+    "paths": {
+      "@kaguya/runtime": [
+        "./.moonbit-build/js/release/build/examples/hello-xr/hello-xr.d.ts"
+      ],
+      "moonbitlang/async/js_async": ["./src/moonbit-async"]
+    },
     "strict": true,
     "noEmit": true,
     "types": ["vite/client", "@webgpu/types"],

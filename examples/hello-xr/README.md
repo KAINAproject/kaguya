@@ -6,10 +6,13 @@ WebGPU の初期化と、MoonBit で実装した Canvas への clear 描画を�
 
 ```sh
 pnpm install
+pnpm run setup:types
 pnpm dev
 ```
 
-`pnpm dev` の前に MoonBit の JS backend module を自動でビルドし、`src/kaguya.generated.js` に配置します。MoonBit が PATH にない場合は、リポジトリルートで `nix develop` に入ってから実行してください。
+`setup:types` は初回だけ実行してください。mizchi/ts の `mbt2ts` を `.moonbit-tools/` にインストールします。
+
+`pnpm dev` の前に MoonBit の JS backend module と TypeScript 宣言を自動でビルドし、`.moonbit-build/` に生成します。実行時の JS module は Vite の alias 経由で、型は `mbt2ts` が生成した `.d.ts` 経由で読み込みます。MoonBit が PATH にない場合は、リポジトリルートで `nix develop` に入ってから実行してください。
 
 表示された `https://` URL を、WebGPU 対応ブラウザで開いてください。basic SSL が生成する自己署名証明書のため、初回だけ証明書警告が表示されます。開発環境なので警告を進めると、LAN 上の別デバイスからもアクセスできます。
 
