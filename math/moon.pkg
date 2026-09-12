@@ -1,1 +1,5 @@
 // Shared math types for scene, rendering, and XR packages.
+
+import {
+  "moonbitlang/core/math" @coremath,
+}

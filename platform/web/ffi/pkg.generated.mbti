@@ -10,6 +10,8 @@ pub fn canvas() -> Canvas
 
 pub fn gpu() -> Gpu
 
+pub fn start_animation_frame((Double) -> Unit) -> Unit
+
 pub fn status() -> StatusElement
 
 // Errors
@@ -20,9 +22,14 @@ pub type Adapter
 pub fn Adapter::request_device(Self) -> @js_async.Promise[Device]
 
 #external
+pub type BindGroup
+
+#external
 pub type Canvas
 pub fn Canvas::get_context(Self) -> CanvasContext
 pub fn Canvas::on_resize(Self, () -> Unit) -> Unit
+pub fn Canvas::pixel_height(Self) -> Int
+pub fn Canvas::pixel_width(Self) -> Int
 pub fn Canvas::resize(Self) -> String
 
 #external
@@ -36,15 +43,22 @@ pub type CommandBuffer
 #external
 pub type CommandEncoder
 pub fn CommandEncoder::begin_clear_pass(Self, TextureView, Double, Double, Double, Double) -> RenderPassEncoder
+pub fn CommandEncoder::begin_depth_pass(Self, TextureView, TextureView, Double, Double, Double, Double) -> RenderPassEncoder
 pub fn CommandEncoder::finish(Self) -> CommandBuffer
 
 #external
 pub type Device
+pub fn Device::create_bind_group(Self, RenderPipeline, GpuBuffer) -> BindGroup
 pub fn Device::create_command_encoder(Self) -> CommandEncoder
+pub fn Device::create_depth_texture(Self, Int, Int) -> Texture
+pub fn Device::create_mesh_render_pipeline(Self, ShaderModule, String) -> RenderPipeline
 pub fn Device::create_render_pipeline(Self, ShaderModule, String) -> RenderPipeline
 pub fn Device::create_shader_module(Self, String) -> ShaderModule
+pub fn Device::create_uniform_buffer(Self, Int) -> GpuBuffer
+pub fn Device::create_vertex_buffer(Self, FixedArray[Double]) -> GpuBuffer
 pub fn Device::on_lost(Self, (String) -> Unit) -> Unit
 pub fn Device::submit(Self, CommandBuffer) -> Unit
+pub fn Device::write_buffer(Self, GpuBuffer, FixedArray[Double]) -> Unit
 
 #external
 pub type Gpu
@@ -52,10 +66,15 @@ pub fn Gpu::preferred_canvas_format(Self) -> String
 pub fn Gpu::request_adapter(Self) -> @js_async.Promise[Adapter]
 
 #external
+pub type GpuBuffer
+
+#external
 pub type RenderPassEncoder
 pub fn RenderPassEncoder::draw(Self, Int) -> Unit
 pub fn RenderPassEncoder::end(Self) -> Unit
+pub fn RenderPassEncoder::set_bind_group(Self, Int, BindGroup) -> Unit
 pub fn RenderPassEncoder::set_pipeline(Self, RenderPipeline) -> Unit
+pub fn RenderPassEncoder::set_vertex_buffer(Self, Int, GpuBuffer) -> Unit
 
 #external
 pub type RenderPipeline
@@ -70,6 +89,7 @@ pub fn StatusElement::set_message(Self, String, String) -> Unit
 #external
 pub type Texture
 pub fn Texture::create_view(Self) -> TextureView
+pub fn Texture::destroy(Self) -> Unit
 
 #external
 pub type TextureView

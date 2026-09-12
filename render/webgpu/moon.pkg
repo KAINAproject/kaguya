@@ -2,6 +2,7 @@
 
 import {
   "KAINAproject/kaguya/platform/web/ffi" @web,
+  "KAINAproject/kaguya/math",
 }
 
 supported_targets = "js"
