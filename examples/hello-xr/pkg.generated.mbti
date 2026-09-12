@@ -2,11 +2,11 @@
 package "username/kaguya/examples/hello-xr"
 
 import {
-  "username/kaguya/platform/web/ffi",
+  "moonbitlang/async/js_async",
 }
 
 // Values
-pub fn render_clear(@ffi.Device, @ffi.CanvasContext) -> Unit
+pub fn start() -> @js_async.Promise[Unit]
 
 // Errors
 

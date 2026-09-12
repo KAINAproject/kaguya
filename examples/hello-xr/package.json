@@ -4,11 +4,11 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "build:wasm": "cd ../.. && moon build examples/hello-xr --target wasm --release",
-    "prepare:wasm": "pnpm build:wasm && mkdir -p public && cp ../../_build/wasm/release/build/examples/hello-xr/hello-xr.wasm public/kaguya.wasm",
-    "predev": "pnpm prepare:wasm",
+    "build:moonbit": "cd ../.. && moon build examples/hello-xr --target js --release",
+    "prepare:moonbit": "pnpm build:moonbit && cp ../../_build/js/release/build/examples/hello-xr/hello-xr.js src/kaguya.generated.js",
+    "predev": "pnpm prepare:moonbit",
     "dev": "vite --host",
-    "build": "tsc --noEmit && pnpm prepare:wasm && vite build",
+    "build": "pnpm prepare:moonbit && tsc --noEmit && vite build",
     "preview": "vite preview"
   },
   "devDependencies": {

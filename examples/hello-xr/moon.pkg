@@ -1,10 +1,10 @@
 // Minimal browser example for the WebGPU backend.
 
 import {
-  "username/kaguya/platform/web/ffi" @web,
-  "username/kaguya/render/webgpu",
+  "moonbitlang/async/js_async",
+  "username/kaguya/platform/web",
 }
 
 pkgtype(kind: "foreign_library")
 
-supported_targets = "wasm"
+supported_targets = "js"

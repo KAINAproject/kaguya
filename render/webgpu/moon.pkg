@@ -4,4 +4,4 @@ import {
   "username/kaguya/platform/web/ffi" @web,
 }
 
-supported_targets = "wasm"
+supported_targets = "+js+wasm"

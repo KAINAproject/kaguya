@@ -1,13 +1,33 @@
 // Generated using `moon info`, DON'T EDIT IT
 package "username/kaguya/platform/web/ffi"
 
+import {
+  "moonbitlang/async/js_async",
+}
+
 // Values
+pub fn canvas() -> Canvas
+
+pub fn gpu() -> Gpu
+
+pub fn status() -> StatusElement
 
 // Errors
 
 // Types and methods
 #external
+pub type Adapter
+pub fn Adapter::request_device(Self) -> @js_async.Promise[Device]
+
+#external
+pub type Canvas
+pub fn Canvas::get_context(Self) -> CanvasContext
+pub fn Canvas::on_resize(Self, () -> Unit) -> Unit
+pub fn Canvas::resize(Self) -> String
+
+#external
 pub type CanvasContext
+pub fn CanvasContext::configure(Self, Device, String) -> Unit
 pub fn CanvasContext::get_current_texture(Self) -> Texture
 
 #external
@@ -21,11 +41,21 @@ pub fn CommandEncoder::finish(Self) -> CommandBuffer
 #external
 pub type Device
 pub fn Device::create_command_encoder(Self) -> CommandEncoder
+pub fn Device::on_lost(Self, (String) -> Unit) -> Unit
 pub fn Device::submit(Self, CommandBuffer) -> Unit
+
+#external
+pub type Gpu
+pub fn Gpu::preferred_canvas_format(Self) -> String
+pub fn Gpu::request_adapter(Self) -> @js_async.Promise[Adapter]
 
 #external
 pub type RenderPassEncoder
 pub fn RenderPassEncoder::end(Self) -> Unit
+
+#external
+pub type StatusElement
+pub fn StatusElement::set_message(Self, String, String) -> Unit
 
 #external
 pub type Texture
