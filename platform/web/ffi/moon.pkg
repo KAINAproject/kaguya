@@ -4,8 +4,4 @@ import {
   "moonbitlang/async/js_async",
 }
 
-supported_targets = "+js+wasm"
-
-options(
-  targets: { "webgpu.mbt": [ "wasm" ], "webgpu_js.mbt": [ "js" ] },
-)
+supported_targets = "js"
