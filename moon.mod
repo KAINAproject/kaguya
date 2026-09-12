@@ -9,7 +9,7 @@
 //   "moonbitlang/x@0.4.6",
 // }
 
-name = "username/kaguya"
+name = "KAINAproject/kaguya"
 
 version = "0.1.0"
 

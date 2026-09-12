@@ -1,5 +1,5 @@
 // Generated using `moon info`, DON'T EDIT IT
-package "username/kaguya/platform/web/ffi"
+package "KAINAproject/kaguya/platform/web/ffi"
 
 import {
   "moonbitlang/async/js_async",

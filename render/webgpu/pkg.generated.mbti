@@ -1,8 +1,8 @@
 // Generated using `moon info`, DON'T EDIT IT
-package "username/kaguya/render/webgpu"
+package "KAINAproject/kaguya/render/webgpu"
 
 import {
-  "username/kaguya/platform/web/ffi",
+  "KAINAproject/kaguya/platform/web/ffi",
 }
 
 // Values

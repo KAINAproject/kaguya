@@ -2,8 +2,8 @@
 
 import {
   "moonbitlang/async/js_async",
-  "username/kaguya/platform/web/ffi",
-  "username/kaguya/render/webgpu",
+  "KAINAproject/kaguya/platform/web/ffi",
+  "KAINAproject/kaguya/render/webgpu",
 }
 
 supported_targets = "js"

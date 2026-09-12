@@ -1,5 +1,5 @@
 // import {
-//   "username/kaguya" @lib,
+//   "KAINAproject/kaguya" @lib,
 // }
 
 pkgtype(kind: "executable")
