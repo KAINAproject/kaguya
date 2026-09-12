@@ -1,7 +1,12 @@
 // Generated using `moon info`, DON'T EDIT IT
 package "username/kaguya/examples/hello-xr"
 
+import {
+  "moonbitlang/async/js_async",
+}
+
 // Values
+pub fn start() -> @js_async.Promise[Unit]
 
 // Errors
 

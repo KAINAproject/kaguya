@@ -1,1 +1,10 @@
 // Minimal browser example for the WebGPU backend.
+
+import {
+  "moonbitlang/async/js_async",
+  "username/kaguya/platform/web",
+}
+
+pkgtype(kind: "foreign_library")
+
+supported_targets = "js"

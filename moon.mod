@@ -21,6 +21,10 @@ license = "Apache-2.0"
 
 keywords = [ ]
 
-preferred_target = "wasm"
+preferred_target = "js"
 
 description = ""
+
+import {
+  "moonbitlang/async@0.21.3",
+}

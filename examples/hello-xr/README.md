@@ -1,6 +1,6 @@
 # hello-xr
 
-WebGPU の初期化と Canvas への clear 描画を確認する最小ブラウザ example です。
+WebGPU の初期化と、MoonBit で実装した Canvas への clear 描画を確認する最小ブラウザ example です。
 
 ## 起動
 
@@ -8,6 +8,8 @@ WebGPU の初期化と Canvas への clear 描画を確認する最小ブラウ�
 pnpm install
 pnpm dev
 ```
+
+`pnpm dev` の前に MoonBit の JS backend module を自動でビルドし、`src/kaguya.generated.js` に配置します。MoonBit が PATH にない場合は、リポジトリルートで `nix develop` に入ってから実行してください。
 
 表示された `https://` URL を、WebGPU 対応ブラウザで開いてください。basic SSL が生成する自己署名証明書のため、初回だけ証明書警告が表示されます。開発環境なので警告を進めると、LAN 上の別デバイスからもアクセスできます。
 
@@ -19,4 +21,4 @@ pnpm dev
 pnpm build
 ```
 
-`tsc --noEmit` による型チェックと、Vite の production build を実行します。
+`tsc --noEmit` による型チェック、MoonBit の JS build、Vite の production build を実行します。

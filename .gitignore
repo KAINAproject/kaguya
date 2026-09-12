@@ -3,6 +3,7 @@
 /node_modules/
 /examples/hello-xr/node_modules/
 /examples/hello-xr/dist/
+/examples/hello-xr/src/kaguya.generated.js
 .DS_Store
 _build/
 target/
