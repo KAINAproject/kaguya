@@ -1,7 +1,12 @@
 // Generated using `moon info`, DON'T EDIT IT
 package "username/kaguya/render/webgpu"
 
+import {
+  "username/kaguya/platform/web/ffi",
+}
+
 // Values
+pub fn clear(@ffi.Device, @ffi.CanvasContext) -> Unit
 
 // Errors
 

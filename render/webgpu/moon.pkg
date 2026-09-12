@@ -1,1 +1,7 @@
 // WebGPU rendering backend.
+
+import {
+  "username/kaguya/platform/web/ffi" @web,
+}
+
+supported_targets = "wasm"

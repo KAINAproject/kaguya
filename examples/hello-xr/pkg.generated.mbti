@@ -1,7 +1,12 @@
 // Generated using `moon info`, DON'T EDIT IT
 package "username/kaguya/examples/hello-xr"
 
+import {
+  "username/kaguya/platform/web/ffi",
+}
+
 // Values
+pub fn render_clear(@ffi.Device, @ffi.CanvasContext) -> Unit
 
 // Errors
 

@@ -1,4 +1,9 @@
 import "./style.css"
+import { webgpuImports } from "./webgpu-ffi"
+
+type MoonBitRenderer = {
+  kaguya_render_clear(device: GPUDevice, context: GPUCanvasContext): void
+}
 
 const canvasElement = document.querySelector<HTMLCanvasElement>("#canvas")
 const statusElement = document.querySelector<HTMLElement>("#status")
@@ -52,22 +57,19 @@ async function initializeWebGPU() {
     alphaMode: "opaque",
   })
 
+  setStatus("MoonBit renderer をロードしています…")
+  const wasmResponse = await fetch("/kaguya.wasm")
+  if (!wasmResponse.ok) {
+    throw new Error(`MoonBit renderer を取得できませんでした (${wasmResponse.status})`)
+  }
+  const { instance } = await WebAssembly.instantiateStreaming(wasmResponse, {
+    webgpu: webgpuImports,
+  })
+  const renderer = instance.exports as unknown as MoonBitRenderer
+
   const render = () => {
     resizeCanvas()
-
-    const commandEncoder = device.createCommandEncoder()
-    const passEncoder = commandEncoder.beginRenderPass({
-      colorAttachments: [
-        {
-          view: context.getCurrentTexture().createView(),
-          clearValue: { r: 0.05, g: 0.08, b: 0.16, a: 1 },
-          loadOp: "clear",
-          storeOp: "store",
-        },
-      ],
-    })
-    passEncoder.end()
-    device.queue.submit([commandEncoder.finish()])
+    renderer.kaguya_render_clear(device, context)
   }
 
   render()
