@@ -4,8 +4,4 @@ import {
   "KAINAproject/kaguya/platform/web/ffi" @web,
 }
 
-supported_targets = "+js+wasm"
-
-options(
-  targets: { "triangle.mbt": [ "js" ] },
-)
+supported_targets = "js"
