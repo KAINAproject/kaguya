@@ -3,6 +3,7 @@
 import {
   "moonbitlang/async/js_async",
   "KAINAproject/kaguya/platform/web/ffi",
+  "KAINAproject/kaguya/math",
   "KAINAproject/kaguya/render/webgpu",
 }
 

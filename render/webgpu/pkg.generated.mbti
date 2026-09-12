@@ -2,15 +2,28 @@
 package "KAINAproject/kaguya/render/webgpu"
 
 import {
+  "KAINAproject/kaguya/math",
   "KAINAproject/kaguya/platform/web/ffi",
 }
 
 // Values
 pub fn clear(@ffi.Device, @ffi.CanvasContext) -> Unit
 
+pub fn create_cube_bind_group(@ffi.Device, @ffi.RenderPipeline, @ffi.GpuBuffer) -> @ffi.BindGroup
+
+pub fn create_cube_pipeline(@ffi.Device, String) -> @ffi.RenderPipeline
+
+pub fn create_cube_uniform_buffer(@ffi.Device) -> @ffi.GpuBuffer
+
+pub fn create_cube_vertex_buffer(@ffi.Device) -> @ffi.GpuBuffer
+
 pub fn create_triangle_pipeline(@ffi.Device, String) -> @ffi.RenderPipeline
 
+pub fn draw_cube(@ffi.Device, @ffi.CanvasContext, @ffi.RenderPipeline, @ffi.GpuBuffer, @ffi.BindGroup, @ffi.TextureView) -> Unit
+
 pub fn draw_triangle(@ffi.Device, @ffi.CanvasContext, @ffi.RenderPipeline) -> Unit
+
+pub fn update_cube_uniform(@ffi.Device, @ffi.GpuBuffer, @math.Mat4) -> Unit
 
 // Errors
 

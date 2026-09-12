@@ -51,6 +51,14 @@ pub type ShaderModule
 pub type RenderPipeline
 
 ///|
+#external
+pub type GpuBuffer
+
+///|
+#external
+pub type BindGroup
+
+///|
 extern "js" fn document_canvas() -> Canvas =
   #| () => {
   #|   const canvas = document.querySelector("#canvas")
@@ -99,11 +107,29 @@ pub extern "js" fn Canvas::resize(self : Canvas) -> String =
   #| }
 
 ///|
+pub extern "js" fn Canvas::pixel_width(self : Canvas) -> Int =
+  #| (canvas) => canvas.width
+
+///|
+pub extern "js" fn Canvas::pixel_height(self : Canvas) -> Int =
+  #| (canvas) => canvas.height
+
+///|
 pub extern "js" fn Canvas::on_resize(
   self : Canvas,
   callback : () -> Unit,
 ) -> Unit =
   #| (_canvas, callback) => window.addEventListener("resize", callback)
+
+///|
+pub extern "js" fn start_animation_frame(callback : (Double) -> Unit) -> Unit =
+  #| (callback) => {
+  #|   const frame = (time) => {
+  #|     callback(time)
+  #|     requestAnimationFrame(frame)
+  #|   }
+  #|   requestAnimationFrame(frame)
+  #| }
 
 ///|
 extern "js" fn navigator_gpu() -> Gpu =
@@ -197,6 +223,85 @@ pub extern "js" fn Device::create_render_pipeline(
   #| })
 
 ///|
+pub extern "js" fn Device::create_mesh_render_pipeline(
+  self : Device,
+  shader_module : ShaderModule,
+  format : String,
+) -> RenderPipeline =
+  #| (device, shaderModule, format) => device.createRenderPipeline({
+  #|   layout: "auto",
+  #|   vertex: {
+  #|     module: shaderModule,
+  #|     entryPoint: "vs_main",
+  #|     buffers: [{
+  #|       arrayStride: 24,
+  #|       attributes: [
+  #|         { shaderLocation: 0, offset: 0, format: "float32x3" },
+  #|         { shaderLocation: 1, offset: 12, format: "float32x3" },
+  #|       ],
+  #|     }],
+  #|   },
+  #|   fragment: {
+  #|     module: shaderModule,
+  #|     entryPoint: "fs_main",
+  #|     targets: [{ format }],
+  #|   },
+  #|   primitive: {
+  #|     topology: "triangle-list",
+  #|     cullMode: "back",
+  #|   },
+  #|   depthStencil: {
+  #|     format: "depth24plus",
+  #|     depthWriteEnabled: true,
+  #|     depthCompare: "less",
+  #|   },
+  #| })
+
+///|
+pub extern "js" fn Device::create_vertex_buffer(
+  self : Device,
+  data : FixedArray[Double],
+) -> GpuBuffer =
+  #| (device, data) => {
+  #|   const values = new Float32Array(data)
+  #|   const buffer = device.createBuffer({
+  #|     size: values.byteLength,
+  #|     usage: GPUBufferUsage.VERTEX | GPUBufferUsage.COPY_DST,
+  #|   })
+  #|   device.queue.writeBuffer(buffer, 0, values)
+  #|   return buffer
+  #| }
+
+///|
+pub extern "js" fn Device::create_uniform_buffer(
+  self : Device,
+  size : Int,
+) -> GpuBuffer =
+  #| (device, size) => device.createBuffer({
+  #|   size,
+  #|   usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
+  #| })
+
+///|
+pub extern "js" fn Device::write_buffer(
+  self : Device,
+  buffer : GpuBuffer,
+  data : FixedArray[Double],
+) -> Unit =
+  #| (device, buffer, data) => device.queue.writeBuffer(buffer, 0, new Float32Array(data))
+
+///|
+pub extern "js" fn Device::create_bind_group(
+  self : Device,
+  pipeline : RenderPipeline,
+  buffer : GpuBuffer,
+) -> BindGroup =
+  #| (device, pipeline, buffer) => device.createBindGroup({
+  #|   layout: pipeline.getBindGroupLayout(0),
+  #|   entries: [{ binding: 0, resource: { buffer } }],
+  #| })
+
+///|
 pub extern "js" fn Device::submit(
   self : Device,
   command_buffer : CommandBuffer,
@@ -212,6 +317,22 @@ pub extern "js" fn CanvasContext::get_current_texture(
 ///|
 pub extern "js" fn Texture::create_view(self : Texture) -> TextureView =
   #| (texture) => texture.createView()
+
+///|
+pub extern "js" fn Texture::destroy(self : Texture) -> Unit =
+  #| (texture) => texture.destroy()
+
+///|
+pub extern "js" fn Device::create_depth_texture(
+  self : Device,
+  width : Int,
+  height : Int,
+) -> Texture =
+  #| (device, width, height) => device.createTexture({
+  #|   size: { width, height, depthOrArrayLayers: 1 },
+  #|   format: "depth24plus",
+  #|   usage: GPUTextureUsage.RENDER_ATTACHMENT,
+  #| })
 
 ///|
 pub extern "js" fn CommandEncoder::begin_clear_pass(
@@ -232,6 +353,31 @@ pub extern "js" fn CommandEncoder::begin_clear_pass(
   #| })
 
 ///|
+pub extern "js" fn CommandEncoder::begin_depth_pass(
+  self : CommandEncoder,
+  view : TextureView,
+  depth_view : TextureView,
+  red : Double,
+  green : Double,
+  blue : Double,
+  alpha : Double,
+) -> RenderPassEncoder =
+  #| (encoder, view, depthView, red, green, blue, alpha) => encoder.beginRenderPass({
+  #|   colorAttachments: [{
+  #|     view,
+  #|     clearValue: { r: red, g: green, b: blue, a: alpha },
+  #|     loadOp: "clear",
+  #|     storeOp: "store",
+  #|   }],
+  #|   depthStencilAttachment: {
+  #|     view: depthView,
+  #|     depthClearValue: 1,
+  #|     depthLoadOp: "clear",
+  #|     depthStoreOp: "store",
+  #|   },
+  #| })
+
+///|
 pub extern "js" fn RenderPassEncoder::end(self : RenderPassEncoder) -> Unit =
   #| (pass) => pass.end()
 
@@ -241,6 +387,22 @@ pub extern "js" fn RenderPassEncoder::set_pipeline(
   pipeline : RenderPipeline,
 ) -> Unit =
   #| (pass, pipeline) => pass.setPipeline(pipeline)
+
+///|
+pub extern "js" fn RenderPassEncoder::set_bind_group(
+  self : RenderPassEncoder,
+  index : Int,
+  bind_group : BindGroup,
+) -> Unit =
+  #| (pass, index, bindGroup) => pass.setBindGroup(index, bindGroup)
+
+///|
+pub extern "js" fn RenderPassEncoder::set_vertex_buffer(
+  self : RenderPassEncoder,
+  slot : Int,
+  buffer : GpuBuffer,
+) -> Unit =
+  #| (pass, slot, buffer) => pass.setVertexBuffer(slot, buffer)
 
 ///|
 pub extern "js" fn RenderPassEncoder::draw(
