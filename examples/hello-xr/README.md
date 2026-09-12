@@ -9,7 +9,7 @@ pnpm install
 pnpm dev
 ```
 
-`pnpm dev` の前に MoonBit の JS backend module を自動でビルドし、`src/kaguya.generated.js` に配置します。MoonBit が PATH にない場合は、リポジトリルートで `nix develop` に入ってから実行してください。
+`pnpm dev` の前に MoonBit の JS backend module を自動でビルドし、`.moonbit-build/` に生成された module を Vite の alias 経由で読み込みます。MoonBit が PATH にない場合は、リポジトリルートで `nix develop` に入ってから実行してください。
 
 表示された `https://` URL を、WebGPU 対応ブラウザで開いてください。basic SSL が生成する自己署名証明書のため、初回だけ証明書警告が表示されます。開発環境なので警告を進めると、LAN 上の別デバイスからもアクセスできます。
 

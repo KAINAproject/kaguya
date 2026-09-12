@@ -4,11 +4,12 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "build:moonbit": "cd ../.. && moon build examples/hello-xr --target js --release",
-    "prepare:moonbit": "pnpm build:moonbit && cp ../../_build/js/release/build/examples/hello-xr/hello-xr.js src/kaguya.generated.js",
-    "predev": "pnpm prepare:moonbit",
+    "build:moonbit": "moon build . --target js --release --target-dir .moonbit-build",
+    "predev": "pnpm run build:moonbit",
     "dev": "vite --host",
-    "build": "pnpm prepare:moonbit && tsc --noEmit && vite build",
+    "prebuild": "pnpm run build:moonbit",
+    "typecheck": "tsc --noEmit",
+    "build": "pnpm run typecheck && vite build",
     "preview": "vite preview"
   },
   "devDependencies": {
