@@ -12,9 +12,12 @@
     "prebuild": "pnpm run build:moonbit && pnpm run build:types",
     "typecheck": "tsc --noEmit",
     "build": "pnpm run typecheck && vite build",
+    "test:e2e": "playwright test",
+    "test:e2e:ui": "playwright test --ui",
     "preview": "vite preview"
   },
   "devDependencies": {
+    "@playwright/test": "^1.63.0",
     "@vitejs/plugin-basic-ssl": "^2.3.0",
     "@webgpu/types": "^0.1.72",
     "typescript": "^5.9.3",
