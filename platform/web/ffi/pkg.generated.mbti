@@ -14,6 +14,8 @@ pub fn has_xr() -> Bool
 
 pub fn has_xr_button() -> Bool
 
+pub fn has_xr_gpu() -> Bool
+
 pub fn start_animation_frame((Double) -> Unit) -> Unit
 
 pub fn status() -> StatusElement
@@ -77,7 +79,7 @@ pub fn Device::write_buffer(Self, GpuBuffer, FixedArray[Double]) -> Unit
 #external
 pub type Gpu
 pub fn Gpu::preferred_canvas_format(Self) -> String
-pub fn Gpu::request_adapter(Self) -> @js_async.Promise[Adapter]
+pub fn Gpu::request_adapter(Self, Bool) -> @js_async.Promise[Adapter]
 
 #external
 pub type GpuBuffer
@@ -89,6 +91,7 @@ pub fn RenderPassEncoder::end(Self) -> Unit
 pub fn RenderPassEncoder::set_bind_group(Self, Int, BindGroup) -> Unit
 pub fn RenderPassEncoder::set_pipeline(Self, RenderPipeline) -> Unit
 pub fn RenderPassEncoder::set_vertex_buffer(Self, Int, GpuBuffer) -> Unit
+pub fn RenderPassEncoder::set_viewport(Self, Double, Double, Double, Double) -> Unit
 
 #external
 pub type RenderPipeline
@@ -109,18 +112,36 @@ pub fn Texture::destroy(Self) -> Unit
 pub type TextureView
 
 #external
+pub type XRGPUBinding
+pub fn XRGPUBinding::create_projection_layer(Self, String, String) -> XRProjectionLayer
+pub fn XRGPUBinding::get_preferred_color_format(Self) -> String
+pub fn XRGPUBinding::get_view_sub_image(Self, XRProjectionLayer, XRView) -> XRGPUSubImage
+
+#external
+pub type XRGPUSubImage
+pub fn XRGPUSubImage::color_view(Self) -> TextureView
+pub fn XRGPUSubImage::depth_view(Self) -> TextureView
+pub fn XRGPUSubImage::viewport_value(Self, Int) -> Double
+
+#external
+pub type XRProjectionLayer
+
+#external
 pub type XRReferenceSpace
 
 #external
 pub type XRSession
+pub fn XRSession::create_gpu_binding(Self, Device) -> XRGPUBinding
 pub fn XRSession::on_end(Self, () -> Unit) -> Unit
 pub fn XRSession::request_animation_frame(Self, XRReferenceSpace, (Double, XRViewerPose) -> Unit) -> Unit
 pub fn XRSession::request_reference_space(Self) -> @js_async.Promise[XRReferenceSpace]
+pub fn XRSession::update_render_state(Self, XRProjectionLayer) -> Unit
 
 #external
 pub type XRSystem
 pub fn XRSystem::is_session_supported(Self, String) -> @js_async.Promise[Bool]
 pub fn XRSystem::request_immersive_vr_session(Self) -> @js_async.Promise[XRSession]
+pub fn XRSystem::request_immersive_vr_webgpu_session(Self) -> @js_async.Promise[XRSession]
 
 #external
 pub type XRView

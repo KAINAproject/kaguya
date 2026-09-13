@@ -23,6 +23,18 @@ pub type XRViewerPose
 pub type XRView
 
 ///|
+#external
+pub type XRGPUBinding
+
+///|
+#external
+pub type XRProjectionLayer
+
+///|
+#external
+pub type XRGPUSubImage
+
+///|
 extern "js" fn document_xr_button() -> Button =
   #| () => {
   #|   const button = document.querySelector("#enter-xr")
@@ -59,6 +71,11 @@ pub extern "js" fn has_xr() -> Bool =
   #| () => typeof navigator !== "undefined" && "xr" in navigator && navigator.xr != null
 
 ///|
+pub extern "js" fn has_xr_gpu() -> Bool =
+  #| () => typeof navigator !== "undefined" && navigator.gpu != null &&
+  #|   typeof globalThis.XRGPUBinding !== "undefined"
+
+///|
 extern "js" fn navigator_xr() -> XRSystem =
   #| () => {
   #|   if (!navigator.xr) throw new Error("このブラウザでは WebXR が利用できません")
@@ -82,6 +99,15 @@ pub extern "js" fn XRSystem::request_immersive_vr_session(
   self : XRSystem,
 ) -> @js_async.Promise[XRSession] =
   #| (xr) => xr.requestSession("immersive-vr", {
+  #|   optionalFeatures: ["local-floor"],
+  #| })
+
+///|
+pub extern "js" fn XRSystem::request_immersive_vr_webgpu_session(
+  self : XRSystem,
+) -> @js_async.Promise[XRSession] =
+  #| (xr) => xr.requestSession("immersive-vr", {
+  #|   requiredFeatures: ["webgpu"],
   #|   optionalFeatures: ["local-floor"],
   #| })
 
@@ -143,3 +169,69 @@ pub extern "js" fn XRView::projection_value(
 ///|
 pub extern "js" fn XRView::view_value(self : XRView, index : Int) -> Double =
   #| (view, index) => view.transform.inverse.matrix[index]
+
+///|
+pub extern "js" fn XRSession::create_gpu_binding(
+  self : XRSession,
+  device : Device,
+) -> XRGPUBinding =
+  #| (session, device) => new globalThis.XRGPUBinding(session, device)
+
+///|
+pub extern "js" fn XRSession::update_render_state(
+  self : XRSession,
+  layer : XRProjectionLayer,
+) -> Unit =
+  #| (session, layer) => session.updateRenderState({ layers: [layer] })
+
+///|
+pub extern "js" fn XRGPUBinding::get_preferred_color_format(
+  self : XRGPUBinding,
+) -> String =
+  #| (binding) => binding.getPreferredColorFormat()
+
+///|
+pub extern "js" fn XRGPUBinding::create_projection_layer(
+  self : XRGPUBinding,
+  color_format : String,
+  depth_stencil_format : String,
+) -> XRProjectionLayer =
+  #| (binding, colorFormat, depthStencilFormat) => binding.createProjectionLayer({
+  #|   colorFormat,
+  #|   depthStencilFormat,
+  #| })
+
+///|
+pub extern "js" fn XRGPUBinding::get_view_sub_image(
+  self : XRGPUBinding,
+  layer : XRProjectionLayer,
+  view : XRView,
+) -> XRGPUSubImage =
+  #| (binding, layer, view) => binding.getViewSubImage(layer, view)
+
+///|
+pub extern "js" fn XRGPUSubImage::color_view(
+  self : XRGPUSubImage,
+) -> TextureView =
+  #| (subImage) => subImage.colorTexture.createView(subImage.getViewDescriptor())
+
+///|
+pub extern "js" fn XRGPUSubImage::depth_view(
+  self : XRGPUSubImage,
+) -> TextureView =
+  #| (subImage) => subImage.depthStencilTexture.createView(subImage.getViewDescriptor())
+
+///|
+pub extern "js" fn XRGPUSubImage::viewport_value(
+  self : XRGPUSubImage,
+  index : Int,
+) -> Double =
+  #| (subImage, index) => {
+  #|   const viewport = subImage.viewport
+  #|   switch (index) {
+  #|     case 0: return viewport.x
+  #|     case 1: return viewport.y
+  #|     case 2: return viewport.width
+  #|     default: return viewport.height
+  #|   }
+  #| }

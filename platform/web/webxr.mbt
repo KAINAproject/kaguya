@@ -1,11 +1,11 @@
 ///|
 async fn check_xr_support(button : @ffi.Button) -> Unit {
   try {
-    if !@webxr.is_available() {
-      button.set_label("WebXR は利用できません")
+    if !@webxr.is_available() || !@ffi.has_xr_gpu() {
+      button.set_label("WebXR/WebGPU は利用できません")
       return
     }
-    let supported = @webxr.is_session_supported().wait()
+    let supported = @ffi.xr().is_session_supported("immersive-vr").wait()
     if supported {
       button.set_label("VR を開始")
       button.set_enabled(true)
@@ -17,6 +17,108 @@ async fn check_xr_support(button : @ffi.Button) -> Unit {
   } noraise {
     _ => ()
   }
+}
+
+///|
+async fn start_native_async(
+  device : @ffi.Device,
+  on_frame : (
+    Double,
+    @ffi.XRGPUBinding,
+    @ffi.XRProjectionLayer,
+    @ffi.XRViewerPose,
+  ) -> Unit,
+  on_end : () -> Unit,
+) -> Unit {
+  let session = @ffi.xr().request_immersive_vr_webgpu_session().wait()
+  let reference_space = session.request_reference_space().wait()
+  let binding = session.create_gpu_binding(device)
+  let layer = binding.create_projection_layer(
+    binding.get_preferred_color_format(),
+    "depth24plus",
+  )
+  session.update_render_state(layer)
+  session.on_end(on_end)
+  session.request_animation_frame(reference_space, fn(time, pose) {
+    on_frame(time, binding, layer, pose)
+  })
+}
+
+///|
+async fn enter_xr_with_renderer(
+  button : @ffi.Button,
+  device : @ffi.Device,
+  on_frame : (
+    Double,
+    @ffi.XRGPUBinding,
+    @ffi.XRProjectionLayer,
+    @ffi.XRViewerPose,
+  ) -> Unit,
+  on_started : () -> Unit,
+  on_ended : () -> Unit,
+) -> Unit {
+  let status = @ffi.status()
+  button.set_enabled(false)
+  button.set_label("VR セッションを開始しています…")
+  on_started()
+  let mut first_frame = true
+  try
+    start_native_async(
+      device,
+      fn(time, binding, layer, pose) {
+        if first_frame {
+          first_frame = false
+          status.set_message(
+            "WebXR session active (\{pose.view_count()} views)",
+            "success",
+          )
+        }
+        on_frame(time, binding, layer, pose)
+      },
+      fn() {
+        on_ended()
+        button.set_label("VR を開始")
+        button.set_enabled(true)
+        status.set_message("WebXR session ended", "info")
+      },
+    )
+  catch {
+    error => {
+      on_ended()
+      button.set_label("VR を開始")
+      button.set_enabled(true)
+      status.set_message(error.to_string(), "error")
+    }
+  } noraise {
+    _ => ()
+  }
+}
+
+///|
+fn setup_xr_button_with_renderer(
+  device : @ffi.Device,
+  on_frame : (
+    Double,
+    @ffi.XRGPUBinding,
+    @ffi.XRProjectionLayer,
+    @ffi.XRViewerPose,
+  ) -> Unit,
+  on_started : () -> Unit,
+  on_ended : () -> Unit,
+) -> Unit {
+  if !@ffi.has_xr_button() {
+    return
+  }
+  let button = @ffi.xr_button()
+  button.set_enabled(false)
+  button.on_click(fn() {
+    ignore(
+      @js_async.Promise::from_async(() => {
+        enter_xr_with_renderer(button, device, on_frame, on_started, on_ended)
+      }),
+    )
+  })
+  ignore(@js_async.Promise::from_async(() => check_xr_support(button)))
 }
 
 ///|

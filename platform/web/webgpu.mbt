@@ -1,28 +1,46 @@
 ///|
+fn read_xr_matrix(view : @ffi.XRView, projection : Bool) -> Array[Double] {
+  Array::makei(16, fn(index) {
+    if projection {
+      view.projection_value(index)
+    } else {
+      view.view_value(index)
+    }
+  })
+}
+
+///|
 async fn initialize() -> Unit {
   let canvas = @ffi.canvas()
   let status = @ffi.status()
   status.set_message("WebGPU adapter を取得しています…", "info")
 
   let gpu = @ffi.gpu()
-  let adapter = gpu.request_adapter().wait()
+  let adapter = gpu.request_adapter(true).wait()
   status.set_message("WebGPU device を取得しています…", "info")
   let device = adapter.request_device().wait()
   let context = canvas.get_context()
   let format = gpu.preferred_canvas_format()
   context.configure(device, format)
-  let cube_pipeline = @webgpu.create_cube_pipeline(device, format)
+  let canvas_pipeline = @webgpu.create_cube_pipeline(device, format)
   let cube_vertex_buffer = @webgpu.create_cube_vertex_buffer(device)
   let cube_uniform_buffer = @webgpu.create_cube_uniform_buffer(device)
-  let cube_bind_group = @webgpu.create_cube_bind_group(
-    device, cube_pipeline, cube_uniform_buffer,
+  let canvas_bind_group = @webgpu.create_cube_bind_group(
+    device, canvas_pipeline, cube_uniform_buffer,
   )
+  let mut active_pipeline = canvas_pipeline
+  let mut active_bind_group = canvas_bind_group
+  let mut active_format = format
+  let mut in_xr = false
   let dimensions = canvas.resize()
   let mut depth_width = canvas.pixel_width()
   let mut depth_height = canvas.pixel_height()
   let mut depth_texture = device.create_depth_texture(depth_width, depth_height)
   let mut depth_view = depth_texture.create_view()
   let render = (timestamp : Double) => {
+    if in_xr {
+      return
+    }
     ignore(canvas.resize())
     let width = canvas.pixel_width()
     let height = canvas.pixel_height()
@@ -45,17 +63,67 @@ async fn initialize() -> Unit {
     let mvp = projection.mul(view.mul(model))
     @webgpu.update_cube_uniform(device, cube_uniform_buffer, mvp)
     @webgpu.draw_cube(
-      device, context, cube_pipeline, cube_vertex_buffer, cube_bind_group, depth_view,
+      device, context, active_pipeline, cube_vertex_buffer, active_bind_group, depth_view,
     )
   }
   @ffi.start_animation_frame(render)
   device.on_lost(message => status.set_message(message, "error"))
   status.set_message("WebGPU initialized (\{dimensions})", "success")
+  let draw_xr = fn(
+    timestamp : Double,
+    binding : @ffi.XRGPUBinding,
+    layer : @ffi.XRProjectionLayer,
+    pose : @ffi.XRViewerPose,
+  ) {
+    let xr_format = binding.get_preferred_color_format()
+    if active_format != xr_format {
+      active_pipeline = @webgpu.create_cube_pipeline(device, xr_format)
+      active_bind_group = @webgpu.create_cube_bind_group(
+        device, active_pipeline, cube_uniform_buffer,
+      )
+      active_format = xr_format
+    }
+    let model = @math.Mat4::rotation_y(timestamp / 2000.0)
+    for index = 0; index < pose.view_count(); index = index + 1 {
+      let xr_view = pose.view(index)
+      let projection = @math.Mat4::from_array(read_xr_matrix(xr_view, true))
+      let view = @math.Mat4::from_array(read_xr_matrix(xr_view, false))
+      let mvp = projection.mul(view.mul(model))
+      @webgpu.update_cube_uniform(device, cube_uniform_buffer, mvp)
+      let encoder = device.create_command_encoder()
+      let sub_image = binding.get_view_sub_image(layer, xr_view)
+      let pass = encoder.begin_depth_pass(
+        sub_image.color_view(),
+        sub_image.depth_view(),
+        0.05,
+        0.08,
+        0.16,
+        1.0,
+      )
+      pass.set_viewport(
+        sub_image.viewport_value(0),
+        sub_image.viewport_value(1),
+        sub_image.viewport_value(2),
+        sub_image.viewport_value(3),
+      )
+      pass.set_pipeline(active_pipeline)
+      pass.set_bind_group(0, active_bind_group)
+      pass.set_vertex_buffer(0, cube_vertex_buffer)
+      pass.draw(36)
+      pass.end()
+      device.submit(encoder.finish())
+    }
+  }
+  setup_xr_button_with_renderer(device, draw_xr, fn() { in_xr = true }, fn() {
+    in_xr = false
+    active_pipeline = canvas_pipeline
+    active_bind_group = canvas_bind_group
+    active_format = format
+  })
 }
 
 ///|
 async fn start_async() -> Unit {
-  setup_xr_button()
   try initialize() catch {
     error => {
       let status = @ffi.status()

@@ -65,6 +65,11 @@ fn Mat4::from_values(values : Array[Double]) -> Mat4 {
 }
 
 ///|
+pub fn Mat4::from_array(values : Array[Double]) -> Mat4 {
+  Mat4::from_values(values)
+}
+
+///|
 pub fn Mat4::identity() -> Mat4 {
   Mat4::from_values([
     1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0,
