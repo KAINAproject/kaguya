@@ -22,6 +22,9 @@ pnpm dev
 
 ```sh
 pnpm build
+pnpm exec playwright install chromium
+pnpm test:e2e
 ```
 
 `tsc --noEmit` による型チェック、MoonBit の JS build、Vite の production build を実行します。
+`test:e2e` は Vite を起動して、Canvas の表示、WebGPU 初期化状態、ページエラーの有無を Chromium で確認します。

@@ -5,6 +5,8 @@
 /examples/hello-xr/dist/
 /examples/hello-xr/.moonbit-build/
 /examples/hello-xr/.moonbit-tools/
+/examples/hello-xr/playwright-report/
+/examples/hello-xr/test-results/
 .DS_Store
 _build/
 target/
