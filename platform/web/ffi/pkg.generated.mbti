@@ -10,9 +10,17 @@ pub fn canvas() -> Canvas
 
 pub fn gpu() -> Gpu
 
+pub fn has_xr() -> Bool
+
+pub fn has_xr_button() -> Bool
+
 pub fn start_animation_frame((Double) -> Unit) -> Unit
 
 pub fn status() -> StatusElement
+
+pub fn xr() -> XRSystem
+
+pub fn xr_button() -> Button
 
 // Errors
 
@@ -23,6 +31,12 @@ pub fn Adapter::request_device(Self) -> @js_async.Promise[Device]
 
 #external
 pub type BindGroup
+
+#external
+pub type Button
+pub fn Button::on_click(Self, () -> Unit) -> Unit
+pub fn Button::set_enabled(Self, Bool) -> Unit
+pub fn Button::set_label(Self, String) -> Unit
 
 #external
 pub type Canvas
@@ -93,6 +107,31 @@ pub fn Texture::destroy(Self) -> Unit
 
 #external
 pub type TextureView
+
+#external
+pub type XRReferenceSpace
+
+#external
+pub type XRSession
+pub fn XRSession::on_end(Self, () -> Unit) -> Unit
+pub fn XRSession::request_animation_frame(Self, XRReferenceSpace, (Double, XRViewerPose) -> Unit) -> Unit
+pub fn XRSession::request_reference_space(Self) -> @js_async.Promise[XRReferenceSpace]
+
+#external
+pub type XRSystem
+pub fn XRSystem::is_session_supported(Self, String) -> @js_async.Promise[Bool]
+pub fn XRSystem::request_immersive_vr_session(Self) -> @js_async.Promise[XRSession]
+
+#external
+pub type XRView
+pub fn XRView::eye(Self) -> String
+pub fn XRView::projection_value(Self, Int) -> Double
+pub fn XRView::view_value(Self, Int) -> Double
+
+#external
+pub type XRViewerPose
+pub fn XRViewerPose::view(Self, Int) -> XRView
+pub fn XRViewerPose::view_count(Self) -> Int
 
 // Type aliases
 

@@ -57,6 +57,21 @@ canvas {
   box-shadow: 0 24px 80px rgb(0 0 0 / 35%);
 }
 
+button {
+  margin: 0 0 16px;
+  padding: 10px 16px;
+  border: 1px solid #475569;
+  border-radius: 999px;
+  color: #e2e8f0;
+  background: #1e293b;
+  cursor: pointer;
+}
+
+button:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
 .status {
   margin: 16px 0 0;
   color: #9ca3af;

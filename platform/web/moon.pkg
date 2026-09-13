@@ -5,6 +5,7 @@ import {
   "KAINAproject/kaguya/platform/web/ffi",
   "KAINAproject/kaguya/math",
   "KAINAproject/kaguya/render/webgpu",
+  "KAINAproject/kaguya/xr/webxr",
 }
 
 supported_targets = "js"
