@@ -55,6 +55,7 @@ async fn initialize() -> Unit {
 
 ///|
 async fn start_async() -> Unit {
+  setup_xr_button()
   try initialize() catch {
     error => {
       let status = @ffi.status()

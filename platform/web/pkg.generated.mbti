@@ -6,6 +6,8 @@ import {
 }
 
 // Values
+pub fn setup_xr_button() -> Unit
+
 pub fn start() -> @js_async.Promise[Unit]
 
 // Errors
