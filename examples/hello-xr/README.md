@@ -30,3 +30,5 @@ pnpm test:e2e
 
 `tsc --noEmit` による型チェック、MoonBit の JS build、Vite の production build を実行します。
 `test:e2e` は Vite を起動して、Canvas の表示、WebGPU 初期化状態、ページエラーの有無を Chromium で確認します。
+
+NixOS では `nix develop` に入ると、devShell が提供する Nix の Chromium を Playwright が使用します。Ubuntu の依存を入れる `playwright install --with-deps` は不要です。

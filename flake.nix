@@ -21,7 +21,11 @@
               pkgs.moonbit-bin.moonbit.latest
               pkgs.nodejs-slim_24
               pkgs.pnpm
-            ];
+            ] ++ pkgs.lib.optional pkgs.stdenv.hostPlatform.isLinux pkgs.chromium;
+
+            shellHook = pkgs.lib.optionalString pkgs.stdenv.hostPlatform.isLinux ''
+              export PLAYWRIGHT_EXECUTABLE_PATH="${pkgs.chromium}/bin/chromium"
+            '';
           };
         };
 
