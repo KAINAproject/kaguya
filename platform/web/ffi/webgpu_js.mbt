@@ -146,8 +146,9 @@ pub fn gpu() -> Gpu {
 ///|
 pub extern "js" fn Gpu::request_adapter(
   self : Gpu,
+  xr_compatible : Bool,
 ) -> @js_async.Promise[Adapter] =
-  #| (gpu) => gpu.requestAdapter().then((adapter) => {
+  #| (gpu, xrCompatible) => gpu.requestAdapter({ xrCompatible }).then((adapter) => {
   #|   if (!adapter) throw new Error("WebGPU adapter を取得できませんでした")
   #|   return adapter
   #| })
@@ -410,6 +411,16 @@ pub extern "js" fn RenderPassEncoder::draw(
   vertex_count : Int,
 ) -> Unit =
   #| (pass, vertexCount) => pass.draw(vertexCount)
+
+///|
+pub extern "js" fn RenderPassEncoder::set_viewport(
+  self : RenderPassEncoder,
+  x : Double,
+  y : Double,
+  width : Double,
+  height : Double,
+) -> Unit =
+  #| (pass, x, y, width, height) => pass.setViewport(x, y, width, height, 0, 1)
 
 ///|
 pub extern "js" fn CommandEncoder::finish(

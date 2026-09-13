@@ -18,7 +18,7 @@ pnpm dev
 
 成功すると Canvas に濃紺背景と、色付きで回転する立方体が描画され、下部に初期化済みの解像度が表示されます。
 
-WebXR 対応ブラウザでは「VR を開始」ボタンから immersive VR session を開始し、viewer pose の view 数を確認できます。現在は session と view の取得までで、XR compositor への WebGPU 描画は次の段階です。
+WebXR と WebXR/WebGPU Binding に対応したブラウザでは、「VR を開始」ボタンから immersive VR session を開始できます。XR 中は各 eye の projection layer に pose の行列を使って、回転する立方体をステレオ描画します。WebXR/WebGPU Binding は実験的なブラウザ API のため、対応状況によってボタンが利用できない場合があります。
 
 ## 検証
 
