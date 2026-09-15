@@ -6,11 +6,10 @@ WebGPU の初期化と、MoonBit で実装した MVP 行列付きの立方体描
 
 ```sh
 pnpm install
-pnpm run setup:types
 pnpm dev
 ```
 
-`setup:types` は初回だけ実行してください。mizchi/ts の `mbt2ts` を `.moonbit-tools/` にインストールします。
+`pnpm dev` と `pnpm build` は、必要な場合に `setup:types` を自動実行して mizchi/ts の `mbt2ts` を `.moonbit-tools/` にインストールします。
 
 `pnpm dev` の前に MoonBit の JS backend module と TypeScript 宣言を自動でビルドし、`.moonbit-build/` に生成します。実行時の JS module は Vite の alias 経由で、型は `mbt2ts` が生成した `.d.ts` 経由で読み込みます。MoonBit が PATH にない場合は、リポジトリルートで `nix develop` に入ってから実行してください。
 
