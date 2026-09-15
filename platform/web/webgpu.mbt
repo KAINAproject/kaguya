@@ -32,6 +32,7 @@ async fn initialize() -> Unit {
   let mut active_bind_group = canvas_bind_group
   let mut active_format = format
   let mut in_xr = false
+  let mut select_pressed = false
   let dimensions = canvas.resize()
   let mut depth_width = canvas.pixel_width()
   let mut depth_height = canvas.pixel_height()
@@ -92,12 +93,15 @@ async fn initialize() -> Unit {
       @webgpu.update_cube_uniform(device, cube_uniform_buffer, mvp)
       let encoder = device.create_command_encoder()
       let sub_image = binding.get_view_sub_image(layer, xr_view)
+      let clear_red = if select_pressed { 0.65 } else { 0.05 }
+      let clear_green = if select_pressed { 0.12 } else { 0.08 }
+      let clear_blue = if select_pressed { 0.08 } else { 0.16 }
       let pass = encoder.begin_depth_pass(
         sub_image.color_view(),
         sub_image.depth_view(),
-        0.05,
-        0.08,
-        0.16,
+        clear_red,
+        clear_green,
+        clear_blue,
         1.0,
       )
       pass.set_viewport(
@@ -117,12 +121,23 @@ async fn initialize() -> Unit {
   let on_started = fn() { in_xr = true }
   let on_ended = fn() {
     in_xr = false
+    select_pressed = false
     active_pipeline = canvas_pipeline
     active_bind_group = canvas_bind_group
     active_format = format
   }
+  let on_select = fn(handedness, pressed) {
+    select_pressed = pressed
+    if pressed {
+      status.set_message("XR selectstart (\{handedness})", "success")
+    } else {
+      status.set_message("XR selectend (\{handedness})", "info")
+    }
+  }
   if @ffi.has_xr_gpu() {
-    setup_xr_button_with_renderer(device, draw_xr, on_started, on_ended)
+    setup_xr_button_with_renderer(
+      device, draw_xr, on_select, on_started, on_ended,
+    )
   } else if @ffi.has_xr_webgl() {
     let renderer = @webgpu.create_cube_webgl_xr_renderer()
     let draw_xr_webgl = fn(
@@ -136,11 +151,11 @@ async fn initialize() -> Unit {
         let projection = @math.Mat4::from_array(read_xr_matrix(xr_view, true))
         let view = @math.Mat4::from_array(read_xr_matrix(xr_view, false))
         let mvp = projection.mul(view.mul(model))
-        renderer.draw_cube(layer, xr_view, mvp.to_fixed_array())
+        renderer.draw_cube(layer, xr_view, mvp.to_fixed_array(), select_pressed)
       }
     }
     setup_xr_button_with_webgl_renderer(
-      renderer, draw_xr_webgl, on_started, on_ended,
+      renderer, draw_xr_webgl, on_select, on_started, on_ended,
     )
   } else {
     setup_xr_button()

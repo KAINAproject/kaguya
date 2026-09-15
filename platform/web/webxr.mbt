@@ -27,6 +27,7 @@ async fn check_xr_support(button : @ffi.Button) -> Unit {
 async fn start_webgl_async(
   renderer : @ffi.WebGLXRRenderer,
   on_frame : (Double, @ffi.XRWebGLLayer, @ffi.XRViewerPose) -> Unit,
+  on_select : (String, Bool) -> Unit,
   on_end : () -> Unit,
 ) -> Unit {
   let session = @ffi.xr().request_immersive_vr_session().wait()
@@ -34,6 +35,7 @@ async fn start_webgl_async(
   let layer = session.create_webgl_layer(renderer.context())
   session.update_render_state_webgl(layer)
   session.on_end(on_end)
+  session.on_select(on_select)
   session.request_animation_frame(reference_space, fn(time, pose) {
     on_frame(time, layer, pose)
   })
@@ -44,6 +46,7 @@ async fn enter_xr_with_webgl_renderer(
   button : @ffi.Button,
   renderer : @ffi.WebGLXRRenderer,
   on_frame : (Double, @ffi.XRWebGLLayer, @ffi.XRViewerPose) -> Unit,
+  on_select : (String, Bool) -> Unit,
   on_started : () -> Unit,
   on_ended : () -> Unit,
 ) -> Unit {
@@ -65,6 +68,7 @@ async fn enter_xr_with_webgl_renderer(
         }
         on_frame(time, layer, pose)
       },
+      on_select,
       fn() {
         on_ended()
         button.set_label("VR を開始（WebGL）")
@@ -88,6 +92,7 @@ async fn enter_xr_with_webgl_renderer(
 fn setup_xr_button_with_webgl_renderer(
   renderer : @ffi.WebGLXRRenderer,
   on_frame : (Double, @ffi.XRWebGLLayer, @ffi.XRViewerPose) -> Unit,
+  on_select : (String, Bool) -> Unit,
   on_started : () -> Unit,
   on_ended : () -> Unit,
 ) -> Unit {
@@ -100,7 +105,7 @@ fn setup_xr_button_with_webgl_renderer(
     ignore(
       @js_async.Promise::from_async(() => {
         enter_xr_with_webgl_renderer(
-          button, renderer, on_frame, on_started, on_ended,
+          button, renderer, on_frame, on_select, on_started, on_ended,
         )
       }),
     )
@@ -117,6 +122,7 @@ async fn start_native_async(
     @ffi.XRProjectionLayer,
     @ffi.XRViewerPose,
   ) -> Unit,
+  on_select : (String, Bool) -> Unit,
   on_end : () -> Unit,
 ) -> Unit {
   let session = @ffi.xr().request_immersive_vr_webgpu_session().wait()
@@ -128,6 +134,7 @@ async fn start_native_async(
   )
   session.update_render_state(layer)
   session.on_end(on_end)
+  session.on_select(on_select)
   session.request_animation_frame(reference_space, fn(time, pose) {
     on_frame(time, binding, layer, pose)
   })
@@ -143,6 +150,7 @@ async fn enter_xr_with_renderer(
     @ffi.XRProjectionLayer,
     @ffi.XRViewerPose,
   ) -> Unit,
+  on_select : (String, Bool) -> Unit,
   on_started : () -> Unit,
   on_ended : () -> Unit,
 ) -> Unit {
@@ -164,6 +172,7 @@ async fn enter_xr_with_renderer(
         }
         on_frame(time, binding, layer, pose)
       },
+      on_select,
       fn() {
         on_ended()
         button.set_label("VR を開始")
@@ -192,6 +201,7 @@ fn setup_xr_button_with_renderer(
     @ffi.XRProjectionLayer,
     @ffi.XRViewerPose,
   ) -> Unit,
+  on_select : (String, Bool) -> Unit,
   on_started : () -> Unit,
   on_ended : () -> Unit,
 ) -> Unit {
@@ -203,7 +213,9 @@ fn setup_xr_button_with_renderer(
   button.on_click(fn() {
     ignore(
       @js_async.Promise::from_async(() => {
-        enter_xr_with_renderer(button, device, on_frame, on_started, on_ended)
+        enter_xr_with_renderer(
+          button, device, on_frame, on_select, on_started, on_ended,
+        )
       }),
     )
   })

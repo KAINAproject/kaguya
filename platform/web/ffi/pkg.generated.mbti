@@ -121,7 +121,7 @@ pub type WebGLContext
 #external
 pub type WebGLXRRenderer
 pub fn WebGLXRRenderer::context(Self) -> WebGLContext
-pub fn WebGLXRRenderer::draw_cube(Self, XRWebGLLayer, XRView, FixedArray[Double]) -> Unit
+pub fn WebGLXRRenderer::draw_cube(Self, XRWebGLLayer, XRView, FixedArray[Double], Bool) -> Unit
 
 #external
 pub type XRGPUBinding
@@ -146,6 +146,7 @@ pub type XRSession
 pub fn XRSession::create_gpu_binding(Self, Device) -> XRGPUBinding
 pub fn XRSession::create_webgl_layer(Self, WebGLContext) -> XRWebGLLayer
 pub fn XRSession::on_end(Self, () -> Unit) -> Unit
+pub fn XRSession::on_select(Self, (String, Bool) -> Unit) -> Unit
 pub fn XRSession::request_animation_frame(Self, XRReferenceSpace, (Double, XRViewerPose) -> Unit) -> Unit
 pub fn XRSession::request_reference_space(Self) -> @js_async.Promise[XRReferenceSpace]
 pub fn XRSession::update_render_state(Self, XRProjectionLayer) -> Unit

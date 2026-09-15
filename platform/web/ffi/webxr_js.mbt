@@ -136,6 +136,20 @@ pub extern "js" fn XRSession::on_end(
   #| (session, callback) => session.addEventListener("end", callback, { once: true })
 
 ///|
+pub extern "js" fn XRSession::on_select(
+  self : XRSession,
+  callback : (String, Bool) -> Unit,
+) -> Unit =
+  #| (session, callback) => {
+  #|   const handleSelect = (event) => {
+  #|     const handedness = event.inputSource?.handedness || "none"
+  #|     callback(handedness, event.type === "selectstart")
+  #|   }
+  #|   session.addEventListener("selectstart", handleSelect)
+  #|   session.addEventListener("selectend", handleSelect)
+  #| }
+
+///|
 pub extern "js" fn XRSession::request_animation_frame(
   self : XRSession,
   reference_space : XRReferenceSpace,

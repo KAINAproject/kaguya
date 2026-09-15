@@ -73,9 +73,16 @@ test("renders a mocked stereo WebXR frame", async ({ page }) => {
     class MockXRSession {
       frameScheduled = false
       listeners: Array<() => void> = []
+      selectListeners: Array<(event: {
+        type: string
+        inputSource: { handedness: string }
+      }) => void> = []
 
-      addEventListener(type: string, listener: () => void) {
+      addEventListener(type: string, listener: any) {
         if (type === "end") this.listeners.push(listener)
+        if (type === "selectstart" || type === "selectend") {
+          this.selectListeners.push(listener)
+        }
       }
 
       requestReferenceSpace() {
@@ -89,6 +96,22 @@ test("renders a mocked stereo WebXR frame", async ({ page }) => {
         this.frameScheduled = true
         window.setTimeout(() => {
           callback(performance.now(), { getViewerPose: () => pose })
+          window.setTimeout(() => {
+            this.selectListeners.forEach((listener) => {
+              listener({
+                type: "selectstart",
+                inputSource: { handedness: "right" },
+              })
+            })
+            window.setTimeout(() => {
+              this.selectListeners.forEach((listener) => {
+                listener({
+                  type: "selectend",
+                  inputSource: { handedness: "right" },
+                })
+              })
+            }, 20)
+          }, 20)
         }, 0)
       }
     }
@@ -166,6 +189,8 @@ test("renders a mocked stereo WebXR frame", async ({ page }) => {
   await button.click()
 
   await expect(page.locator("#status")).toContainText("WebXR session active (2 views)")
+  await expect(page.locator("#status")).toContainText("XR selectstart (right)")
+  await expect(page.locator("#status")).toContainText("XR selectend (right)")
   expect(pageErrors).toHaveLength(0)
 })
 
@@ -268,9 +293,16 @@ test("falls back to WebGL for browsers without the WebGPU XR binding", async ({ 
     class MockXRSession {
       frameScheduled = false
       listeners: Array<() => void> = []
+      selectListeners: Array<(event: {
+        type: string
+        inputSource: { handedness: string }
+      }) => void> = []
 
-      addEventListener(type: string, listener: () => void) {
+      addEventListener(type: string, listener: any) {
         if (type === "end") this.listeners.push(listener)
+        if (type === "selectstart" || type === "selectend") {
+          this.selectListeners.push(listener)
+        }
       }
 
       requestReferenceSpace() {
@@ -284,6 +316,22 @@ test("falls back to WebGL for browsers without the WebGPU XR binding", async ({ 
         this.frameScheduled = true
         window.setTimeout(() => {
           callback(performance.now(), { getViewerPose: () => pose })
+          window.setTimeout(() => {
+            this.selectListeners.forEach((listener) => {
+              listener({
+                type: "selectstart",
+                inputSource: { handedness: "right" },
+              })
+            })
+            window.setTimeout(() => {
+              this.selectListeners.forEach((listener) => {
+                listener({
+                  type: "selectend",
+                  inputSource: { handedness: "right" },
+                })
+              })
+            }, 20)
+          }, 20)
         }, 0)
       }
     }
@@ -338,5 +386,7 @@ test("falls back to WebGL for browsers without the WebGPU XR binding", async ({ 
   await button.click()
 
   await expect(page.locator("#status")).toContainText("WebXR session active (2 views, WebGL)")
+  await expect(page.locator("#status")).toContainText("XR selectstart (right)")
+  await expect(page.locator("#status")).toContainText("XR selectend (right)")
   expect(pageErrors).toHaveLength(0)
 })
