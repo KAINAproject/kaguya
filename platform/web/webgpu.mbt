@@ -114,12 +114,37 @@ async fn initialize() -> Unit {
       device.submit(encoder.finish())
     }
   }
-  setup_xr_button_with_renderer(device, draw_xr, fn() { in_xr = true }, fn() {
+  let on_started = fn() { in_xr = true }
+  let on_ended = fn() {
     in_xr = false
     active_pipeline = canvas_pipeline
     active_bind_group = canvas_bind_group
     active_format = format
-  })
+  }
+  if @ffi.has_xr_gpu() {
+    setup_xr_button_with_renderer(device, draw_xr, on_started, on_ended)
+  } else if @ffi.has_xr_webgl() {
+    let renderer = @webgpu.create_cube_webgl_xr_renderer()
+    let draw_xr_webgl = fn(
+      timestamp : Double,
+      layer : @ffi.XRWebGLLayer,
+      pose : @ffi.XRViewerPose,
+    ) {
+      let model = @math.Mat4::rotation_y(timestamp / 2000.0)
+      for index = 0; index < pose.view_count(); index = index + 1 {
+        let xr_view = pose.view(index)
+        let projection = @math.Mat4::from_array(read_xr_matrix(xr_view, true))
+        let view = @math.Mat4::from_array(read_xr_matrix(xr_view, false))
+        let mvp = projection.mul(view.mul(model))
+        renderer.draw_cube(layer, xr_view, mvp.to_fixed_array())
+      }
+    }
+    setup_xr_button_with_webgl_renderer(
+      renderer, draw_xr_webgl, on_started, on_ended,
+    )
+  } else {
+    setup_xr_button()
+  }
 }
 
 ///|

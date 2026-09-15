@@ -17,6 +17,8 @@ pub fn create_cube_uniform_buffer(@ffi.Device) -> @ffi.GpuBuffer
 
 pub fn create_cube_vertex_buffer(@ffi.Device) -> @ffi.GpuBuffer
 
+pub fn create_cube_webgl_xr_renderer() -> @ffi.WebGLXRRenderer
+
 pub fn create_triangle_pipeline(@ffi.Device, String) -> @ffi.RenderPipeline
 
 pub fn draw_cube(@ffi.Device, @ffi.CanvasContext, @ffi.RenderPipeline, @ffi.GpuBuffer, @ffi.BindGroup, @ffi.TextureView) -> Unit

@@ -35,6 +35,10 @@ pub type XRProjectionLayer
 pub type XRGPUSubImage
 
 ///|
+#external
+pub type XRWebGLLayer
+
+///|
 extern "js" fn document_xr_button() -> Button =
   #| () => {
   #|   const button = document.querySelector("#enter-xr")
@@ -74,6 +78,11 @@ pub extern "js" fn has_xr() -> Bool =
 pub extern "js" fn has_xr_gpu() -> Bool =
   #| () => typeof navigator !== "undefined" && navigator.gpu != null &&
   #|   typeof globalThis.XRGPUBinding !== "undefined"
+
+///|
+pub extern "js" fn has_xr_webgl() -> Bool =
+  #| () => typeof navigator !== "undefined" && navigator.xr != null &&
+  #|   typeof globalThis.XRWebGLLayer !== "undefined"
 
 ///|
 extern "js" fn navigator_xr() -> XRSystem =
@@ -183,6 +192,26 @@ pub extern "js" fn XRSession::update_render_state(
   layer : XRProjectionLayer,
 ) -> Unit =
   #| (session, layer) => session.updateRenderState({ layers: [layer] })
+
+///|
+pub extern "js" fn XRSession::create_webgl_layer(
+  self : XRSession,
+  context : WebGLContext,
+) -> XRWebGLLayer =
+  #| (session, context) => new globalThis.XRWebGLLayer(session, context, {
+  #|   alpha: false,
+  #|   antialias: false,
+  #|   depth: false,
+  #|   ignoreDepthValues: true,
+  #|   stencil: false,
+  #| })
+
+///|
+pub extern "js" fn XRSession::update_render_state_webgl(
+  self : XRSession,
+  layer : XRWebGLLayer,
+) -> Unit =
+  #| (session, layer) => session.updateRenderState({ baseLayer: layer })
 
 ///|
 pub extern "js" fn XRGPUBinding::get_preferred_color_format(
