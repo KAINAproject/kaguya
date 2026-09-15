@@ -200,7 +200,9 @@ pub extern "js" fn XRSession::create_webgl_layer(
 ) -> XRWebGLLayer =
   #| (session, context) => new globalThis.XRWebGLLayer(session, context, {
   #|   alpha: false,
-  #|   depth: true,
+  #|   antialias: false,
+  #|   depth: false,
+  #|   ignoreDepthValues: true,
   #|   stencil: false,
   #| })
 

@@ -15,8 +15,16 @@ pub extern "js" fn create_webgl_xr_renderer(
   #| (vertices) => {
   #|   const canvas = document.querySelector("#xr-canvas")
   #|   if (!canvas) throw new Error("xr-canvas が見つかりません")
-  #|   const gl = canvas.getContext("webgl2", { xrCompatible: true }) ||
-  #|     canvas.getContext("webgl", { xrCompatible: true })
+  #|   const contextAttributes = {
+  #|     alpha: false,
+  #|     antialias: false,
+  #|     depth: false,
+  #|     stencil: false,
+  #|     xrCompatible: true,
+  #|   }
+  #|   // Quest Browser has a more reliable XRWebGLLayer path with WebGL 1.
+  #|   const gl = canvas.getContext("webgl", contextAttributes) ||
+  #|     canvas.getContext("webgl2", contextAttributes)
   #|   if (!gl) throw new Error("WebGL context を取得できませんでした")
   #|
   #|   const compileShader = (type, source) => {
@@ -88,10 +96,8 @@ pub extern "js" fn WebGLXRRenderer::draw_cube(
   #|   gl.scissor(viewport.x, viewport.y, viewport.width, viewport.height)
   #|   gl.viewport(viewport.x, viewport.y, viewport.width, viewport.height)
   #|   gl.clearColor(0.05, 0.08, 0.16, 1.0)
-  #|   gl.clearDepth(1.0)
-  #|   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
-  #|   gl.enable(gl.DEPTH_TEST)
-  #|   gl.depthFunc(gl.LESS)
+  #|   gl.clear(gl.COLOR_BUFFER_BIT)
+  #|   gl.disable(gl.DEPTH_TEST)
   #|   gl.enable(gl.CULL_FACE)
   #|   gl.cullFace(gl.BACK)
   #|   gl.useProgram(program)

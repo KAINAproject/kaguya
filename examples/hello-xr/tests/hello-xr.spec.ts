@@ -216,6 +216,7 @@ test("falls back to WebGL for browsers without the WebGPU XR binding", async ({ 
       cullFace: () => {},
       depthFunc: () => {},
       drawArrays: () => {},
+      disable: () => {},
       enable: () => {},
       enableVertexAttribArray: () => {},
       getAttribLocation: () => 0,
