@@ -1,13 +1,17 @@
 ///|
 async fn check_xr_support(button : @ffi.Button) -> Unit {
   try {
-    if !@webxr.is_available() || !@ffi.has_xr_gpu() {
-      button.set_label("WebXR/WebGPU は利用できません")
+    if !@webxr.is_available() || (!@ffi.has_xr_gpu() && !@ffi.has_xr_webgl()) {
+      button.set_label("WebXR は利用できません")
       return
     }
     let supported = @ffi.xr().is_session_supported("immersive-vr").wait()
     if supported {
-      button.set_label("VR を開始")
+      if @ffi.has_xr_gpu() {
+        button.set_label("VR を開始")
+      } else {
+        button.set_label("VR を開始（WebGL）")
+      }
       button.set_enabled(true)
     } else {
       button.set_label("VR は利用できません")
@@ -17,6 +21,91 @@ async fn check_xr_support(button : @ffi.Button) -> Unit {
   } noraise {
     _ => ()
   }
+}
+
+///|
+async fn start_webgl_async(
+  renderer : @ffi.WebGLXRRenderer,
+  on_frame : (Double, @ffi.XRWebGLLayer, @ffi.XRViewerPose) -> Unit,
+  on_end : () -> Unit,
+) -> Unit {
+  let session = @ffi.xr().request_immersive_vr_session().wait()
+  let reference_space = session.request_reference_space().wait()
+  let layer = session.create_webgl_layer(renderer.context())
+  session.update_render_state_webgl(layer)
+  session.on_end(on_end)
+  session.request_animation_frame(reference_space, fn(time, pose) {
+    on_frame(time, layer, pose)
+  })
+}
+
+///|
+async fn enter_xr_with_webgl_renderer(
+  button : @ffi.Button,
+  renderer : @ffi.WebGLXRRenderer,
+  on_frame : (Double, @ffi.XRWebGLLayer, @ffi.XRViewerPose) -> Unit,
+  on_started : () -> Unit,
+  on_ended : () -> Unit,
+) -> Unit {
+  let status = @ffi.status()
+  button.set_enabled(false)
+  button.set_label("VR セッションを開始しています…")
+  on_started()
+  let mut first_frame = true
+  try
+    start_webgl_async(
+      renderer,
+      fn(time, layer, pose) {
+        if first_frame {
+          first_frame = false
+          status.set_message(
+            "WebXR session active (\{pose.view_count()} views, WebGL)",
+            "success",
+          )
+        }
+        on_frame(time, layer, pose)
+      },
+      fn() {
+        on_ended()
+        button.set_label("VR を開始（WebGL）")
+        button.set_enabled(true)
+        status.set_message("WebXR session ended", "info")
+      },
+    )
+  catch {
+    error => {
+      on_ended()
+      button.set_label("VR を開始（WebGL）")
+      button.set_enabled(true)
+      status.set_message(error.to_string(), "error")
+    }
+  } noraise {
+    _ => ()
+  }
+}
+
+///|
+fn setup_xr_button_with_webgl_renderer(
+  renderer : @ffi.WebGLXRRenderer,
+  on_frame : (Double, @ffi.XRWebGLLayer, @ffi.XRViewerPose) -> Unit,
+  on_started : () -> Unit,
+  on_ended : () -> Unit,
+) -> Unit {
+  if !@ffi.has_xr_button() {
+    return
+  }
+  let button = @ffi.xr_button()
+  button.set_enabled(false)
+  button.on_click(fn() {
+    ignore(
+      @js_async.Promise::from_async(() => {
+        enter_xr_with_webgl_renderer(
+          button, renderer, on_frame, on_started, on_ended,
+        )
+      }),
+    )
+  })
+  ignore(@js_async.Promise::from_async(() => check_xr_support(button)))
 }
 
 ///|

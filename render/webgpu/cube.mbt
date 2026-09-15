@@ -99,6 +99,11 @@ pub fn create_cube_bind_group(
 }
 
 ///|
+pub fn create_cube_webgl_xr_renderer() -> @web.WebGLXRRenderer {
+  @web.create_webgl_xr_renderer(cube_vertices())
+}
+
+///|
 pub fn draw_cube(
   device : @web.Device,
   context : @web.CanvasContext,

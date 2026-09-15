@@ -8,6 +8,8 @@ import {
 // Values
 pub fn canvas() -> Canvas
 
+pub fn create_webgl_xr_renderer(FixedArray[Double]) -> WebGLXRRenderer
+
 pub fn gpu() -> Gpu
 
 pub fn has_xr() -> Bool
@@ -15,6 +17,8 @@ pub fn has_xr() -> Bool
 pub fn has_xr_button() -> Bool
 
 pub fn has_xr_gpu() -> Bool
+
+pub fn has_xr_webgl() -> Bool
 
 pub fn start_animation_frame((Double) -> Unit) -> Unit
 
@@ -112,6 +116,14 @@ pub fn Texture::destroy(Self) -> Unit
 pub type TextureView
 
 #external
+pub type WebGLContext
+
+#external
+pub type WebGLXRRenderer
+pub fn WebGLXRRenderer::context(Self) -> WebGLContext
+pub fn WebGLXRRenderer::draw_cube(Self, XRWebGLLayer, XRView, FixedArray[Double]) -> Unit
+
+#external
 pub type XRGPUBinding
 pub fn XRGPUBinding::create_projection_layer(Self, String, String) -> XRProjectionLayer
 pub fn XRGPUBinding::get_preferred_color_format(Self) -> String
@@ -132,10 +144,12 @@ pub type XRReferenceSpace
 #external
 pub type XRSession
 pub fn XRSession::create_gpu_binding(Self, Device) -> XRGPUBinding
+pub fn XRSession::create_webgl_layer(Self, WebGLContext) -> XRWebGLLayer
 pub fn XRSession::on_end(Self, () -> Unit) -> Unit
 pub fn XRSession::request_animation_frame(Self, XRReferenceSpace, (Double, XRViewerPose) -> Unit) -> Unit
 pub fn XRSession::request_reference_space(Self) -> @js_async.Promise[XRReferenceSpace]
 pub fn XRSession::update_render_state(Self, XRProjectionLayer) -> Unit
+pub fn XRSession::update_render_state_webgl(Self, XRWebGLLayer) -> Unit
 
 #external
 pub type XRSystem
@@ -153,6 +167,9 @@ pub fn XRView::view_value(Self, Int) -> Double
 pub type XRViewerPose
 pub fn XRViewerPose::view(Self, Int) -> XRView
 pub fn XRViewerPose::view_count(Self) -> Int
+
+#external
+pub type XRWebGLLayer
 
 // Type aliases
 
