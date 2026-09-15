@@ -24,6 +24,16 @@ test "Mat4 multiplication preserves identity and translation" {
 }
 
 ///|
+test "Mat4 scale transforms points" {
+  let result = @math.Mat4::scale(2.0, 3.0, 4.0).transform_point(
+    @math.Vec3::new(1.0, 1.0, 1.0),
+  )
+  assert_eq(result.x, 2.0)
+  assert_eq(result.y, 3.0)
+  assert_eq(result.z, 4.0)
+}
+
+///|
 test "Mat4 perspective maps WebGPU depth to zero through one" {
   let projection = @math.Mat4::perspective(
     3.141592653589793 / 2.0,

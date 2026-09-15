@@ -10,6 +10,11 @@ fn read_xr_matrix(view : @ffi.XRView, projection : Bool) -> Array[Double] {
 }
 
 ///|
+fn read_controller_matrix(controller : @ffi.XRControllerPose) -> Array[Double] {
+  Array::makei(16, fn(index) { controller.matrix_value(index) })
+}
+
+///|
 async fn initialize() -> Unit {
   let canvas = @ffi.canvas()
   let status = @ffi.status()
@@ -75,6 +80,7 @@ async fn initialize() -> Unit {
     binding : @ffi.XRGPUBinding,
     layer : @ffi.XRProjectionLayer,
     pose : @ffi.XRViewerPose,
+    controller : @ffi.XRControllerPose,
   ) {
     let xr_format = binding.get_preferred_color_format()
     if active_format != xr_format {
@@ -84,7 +90,13 @@ async fn initialize() -> Unit {
       )
       active_format = xr_format
     }
-    let model = @math.Mat4::rotation_y(timestamp / 2000.0)
+    let model = if controller.is_valid() {
+      @math.Mat4::from_array(read_controller_matrix(controller)).mul(
+        @math.Mat4::scale(0.08, 0.08, 0.08),
+      )
+    } else {
+      @math.Mat4::rotation_y(timestamp / 2000.0)
+    }
     for index = 0; index < pose.view_count(); index = index + 1 {
       let xr_view = pose.view(index)
       let projection = @math.Mat4::from_array(read_xr_matrix(xr_view, true))
@@ -144,8 +156,15 @@ async fn initialize() -> Unit {
       timestamp : Double,
       layer : @ffi.XRWebGLLayer,
       pose : @ffi.XRViewerPose,
+      controller : @ffi.XRControllerPose,
     ) {
-      let model = @math.Mat4::rotation_y(timestamp / 2000.0)
+      let model = if controller.is_valid() {
+        @math.Mat4::from_array(read_controller_matrix(controller)).mul(
+          @math.Mat4::scale(0.08, 0.08, 0.08),
+        )
+      } else {
+        @math.Mat4::rotation_y(timestamp / 2000.0)
+      }
       for index = 0; index < pose.view_count(); index = index + 1 {
         let xr_view = pose.view(index)
         let projection = @math.Mat4::from_array(read_xr_matrix(xr_view, true))

@@ -84,6 +84,13 @@ pub fn Mat4::translation(x : Double, y : Double, z : Double) -> Mat4 {
 }
 
 ///|
+pub fn Mat4::scale(x : Double, y : Double, z : Double) -> Mat4 {
+  Mat4::from_values([
+    x, 0.0, 0.0, 0.0, 0.0, y, 0.0, 0.0, 0.0, 0.0, z, 0.0, 0.0, 0.0, 0.0, 1.0,
+  ])
+}
+
+///|
 pub fn Mat4::rotation_y(angle : Double) -> Mat4 {
   let c = @coremath.cos(angle)
   let s = @coremath.sin(angle)

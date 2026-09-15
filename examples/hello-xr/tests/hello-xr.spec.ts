@@ -31,6 +31,16 @@ test("renders a mocked stereo WebXR frame", async ({ page }) => {
         transform: { inverse: { matrix } },
       })),
     }
+    const controller = {
+      valid: true,
+      handedness: "right",
+      matrix: [
+        1, 0, 0, 0,
+        0, 1, 0, 0,
+        0, 0, 1, 0,
+        0.4, 0, -1, 1,
+      ],
+    }
 
     const makeTexture = () => ({
       createView: () => ({}),
@@ -95,7 +105,13 @@ test("renders a mocked stereo WebXR frame", async ({ page }) => {
         if (this.frameScheduled) return
         this.frameScheduled = true
         window.setTimeout(() => {
-          callback(performance.now(), { getViewerPose: () => pose })
+          callback(performance.now(), {
+            getViewerPose: () => pose,
+            session: {
+              inputSources: [{ handedness: "right", gripSpace: {} }],
+            },
+            getPose: () => ({ transform: { matrix: controller.matrix } }),
+          })
           window.setTimeout(() => {
             this.selectListeners.forEach((listener) => {
               listener({
@@ -189,6 +205,7 @@ test("renders a mocked stereo WebXR frame", async ({ page }) => {
   await button.click()
 
   await expect(page.locator("#status")).toContainText("WebXR session active (2 views)")
+  await expect(page.locator("#status")).toContainText("controller: right")
   await expect(page.locator("#status")).toContainText("XR selectstart (right)")
   await expect(page.locator("#status")).toContainText("XR selectend (right)")
   expect(pageErrors).toHaveLength(0)
@@ -208,6 +225,16 @@ test("falls back to WebGL for browsers without the WebGPU XR binding", async ({ 
         projectionMatrix: matrix,
         transform: { inverse: { matrix } },
       })),
+    }
+    const controller = {
+      valid: true,
+      handedness: "right",
+      matrix: [
+        1, 0, 0, 0,
+        0, 1, 0, 0,
+        0, 0, 1, 0,
+        0.4, 0, -1, 1,
+      ],
     }
 
     const fakeGl = {
@@ -315,7 +342,13 @@ test("falls back to WebGL for browsers without the WebGPU XR binding", async ({ 
         if (this.frameScheduled) return
         this.frameScheduled = true
         window.setTimeout(() => {
-          callback(performance.now(), { getViewerPose: () => pose })
+          callback(performance.now(), {
+            getViewerPose: () => pose,
+            session: {
+              inputSources: [{ handedness: "right", gripSpace: {} }],
+            },
+            getPose: () => ({ transform: { matrix: controller.matrix } }),
+          })
           window.setTimeout(() => {
             this.selectListeners.forEach((listener) => {
               listener({
@@ -386,6 +419,7 @@ test("falls back to WebGL for browsers without the WebGPU XR binding", async ({ 
   await button.click()
 
   await expect(page.locator("#status")).toContainText("WebXR session active (2 views, WebGL)")
+  await expect(page.locator("#status")).toContainText("controller: right")
   await expect(page.locator("#status")).toContainText("XR selectstart (right)")
   await expect(page.locator("#status")).toContainText("XR selectend (right)")
   expect(pageErrors).toHaveLength(0)

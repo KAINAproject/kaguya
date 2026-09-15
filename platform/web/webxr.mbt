@@ -26,7 +26,12 @@ async fn check_xr_support(button : @ffi.Button) -> Unit {
 ///|
 async fn start_webgl_async(
   renderer : @ffi.WebGLXRRenderer,
-  on_frame : (Double, @ffi.XRWebGLLayer, @ffi.XRViewerPose) -> Unit,
+  on_frame : (
+    Double,
+    @ffi.XRWebGLLayer,
+    @ffi.XRViewerPose,
+    @ffi.XRControllerPose,
+  ) -> Unit,
   on_select : (String, Bool) -> Unit,
   on_end : () -> Unit,
 ) -> Unit {
@@ -36,8 +41,8 @@ async fn start_webgl_async(
   session.update_render_state_webgl(layer)
   session.on_end(on_end)
   session.on_select(on_select)
-  session.request_animation_frame(reference_space, fn(time, pose) {
-    on_frame(time, layer, pose)
+  session.request_animation_frame(reference_space, fn(time, pose, controller) {
+    on_frame(time, layer, pose, controller)
   })
 }
 
@@ -45,7 +50,12 @@ async fn start_webgl_async(
 async fn enter_xr_with_webgl_renderer(
   button : @ffi.Button,
   renderer : @ffi.WebGLXRRenderer,
-  on_frame : (Double, @ffi.XRWebGLLayer, @ffi.XRViewerPose) -> Unit,
+  on_frame : (
+    Double,
+    @ffi.XRWebGLLayer,
+    @ffi.XRViewerPose,
+    @ffi.XRControllerPose,
+  ) -> Unit,
   on_select : (String, Bool) -> Unit,
   on_started : () -> Unit,
   on_ended : () -> Unit,
@@ -58,15 +68,15 @@ async fn enter_xr_with_webgl_renderer(
   try
     start_webgl_async(
       renderer,
-      fn(time, layer, pose) {
+      fn(time, layer, pose, controller) {
         if first_frame {
           first_frame = false
           status.set_message(
-            "WebXR session active (\{pose.view_count()} views, WebGL)",
+            "WebXR session active (\{pose.view_count()} views, WebGL), controller: \{controller.handedness()}",
             "success",
           )
         }
-        on_frame(time, layer, pose)
+        on_frame(time, layer, pose, controller)
       },
       on_select,
       fn() {
@@ -91,7 +101,12 @@ async fn enter_xr_with_webgl_renderer(
 ///|
 fn setup_xr_button_with_webgl_renderer(
   renderer : @ffi.WebGLXRRenderer,
-  on_frame : (Double, @ffi.XRWebGLLayer, @ffi.XRViewerPose) -> Unit,
+  on_frame : (
+    Double,
+    @ffi.XRWebGLLayer,
+    @ffi.XRViewerPose,
+    @ffi.XRControllerPose,
+  ) -> Unit,
   on_select : (String, Bool) -> Unit,
   on_started : () -> Unit,
   on_ended : () -> Unit,
@@ -121,6 +136,7 @@ async fn start_native_async(
     @ffi.XRGPUBinding,
     @ffi.XRProjectionLayer,
     @ffi.XRViewerPose,
+    @ffi.XRControllerPose,
   ) -> Unit,
   on_select : (String, Bool) -> Unit,
   on_end : () -> Unit,
@@ -135,8 +151,8 @@ async fn start_native_async(
   session.update_render_state(layer)
   session.on_end(on_end)
   session.on_select(on_select)
-  session.request_animation_frame(reference_space, fn(time, pose) {
-    on_frame(time, binding, layer, pose)
+  session.request_animation_frame(reference_space, fn(time, pose, controller) {
+    on_frame(time, binding, layer, pose, controller)
   })
 }
 
@@ -149,6 +165,7 @@ async fn enter_xr_with_renderer(
     @ffi.XRGPUBinding,
     @ffi.XRProjectionLayer,
     @ffi.XRViewerPose,
+    @ffi.XRControllerPose,
   ) -> Unit,
   on_select : (String, Bool) -> Unit,
   on_started : () -> Unit,
@@ -162,15 +179,15 @@ async fn enter_xr_with_renderer(
   try
     start_native_async(
       device,
-      fn(time, binding, layer, pose) {
+      fn(time, binding, layer, pose, controller) {
         if first_frame {
           first_frame = false
           status.set_message(
-            "WebXR session active (\{pose.view_count()} views)",
+            "WebXR session active (\{pose.view_count()} views), controller: \{controller.handedness()}",
             "success",
           )
         }
-        on_frame(time, binding, layer, pose)
+        on_frame(time, binding, layer, pose, controller)
       },
       on_select,
       fn() {
@@ -200,6 +217,7 @@ fn setup_xr_button_with_renderer(
     @ffi.XRGPUBinding,
     @ffi.XRProjectionLayer,
     @ffi.XRViewerPose,
+    @ffi.XRControllerPose,
   ) -> Unit,
   on_select : (String, Bool) -> Unit,
   on_started : () -> Unit,
