@@ -6,10 +6,11 @@
   "scripts": {
     "build:moonbit": "moon build . --target js --release --target-dir .moonbit-build",
     "setup:types": "moon install mizchi/ts/cmd/mbt2ts --bin .moonbit-tools",
+    "ensure:types": "test -x .moonbit-tools/mbt2ts || pnpm run setup:types",
     "build:types": ".moonbit-tools/mbt2ts decl pkg.generated.mbti .moonbit-build/js/release/build/examples/hello-xr/hello-xr.d.ts",
-    "predev": "pnpm run build:moonbit && pnpm run build:types",
+    "predev": "pnpm run ensure:types && pnpm run build:moonbit && pnpm run build:types",
     "dev": "vite --host",
-    "prebuild": "pnpm run build:moonbit && pnpm run build:types",
+    "prebuild": "pnpm run ensure:types && pnpm run build:moonbit && pnpm run build:types",
     "typecheck": "tsc --noEmit",
     "build": "pnpm run typecheck && vite build",
     "test:e2e": "playwright test",

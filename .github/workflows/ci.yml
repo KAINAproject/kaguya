@@ -37,24 +37,19 @@ jobs:
         run: moon test
 
       - name: Install example dependencies
-        working-directory: examples/hello-xr
         run: pnpm install --frozen-lockfile
 
       - name: Install MoonBit TypeScript tooling
-        working-directory: examples/hello-xr
-        run: pnpm run setup:types
+        run: pnpm --filter @kaguya/hello-xr-example run setup:types
 
       - name: Build example
-        working-directory: examples/hello-xr
-        run: pnpm build
+        run: pnpm --filter @kaguya/hello-xr-example run build
 
       - name: Install Playwright browser
-        working-directory: examples/hello-xr
-        run: pnpm exec playwright install --with-deps chromium
+        run: pnpm --filter @kaguya/hello-xr-example exec playwright install --with-deps chromium
 
       - name: Run Playwright tests
-        working-directory: examples/hello-xr
-        run: pnpm test:e2e
+        run: pnpm --filter @kaguya/hello-xr-example run test:e2e
 
       - name: Upload Playwright artifacts
         if: ${{ !cancelled() }}
