@@ -6,7 +6,9 @@ settings:
 
 importers:
 
-  .:
+  .: {}
+
+  examples/hello-xr:
     devDependencies:
       '@playwright/test':
         specifier: ^1.63.0

@@ -4,6 +4,8 @@ WebGPU の初期化と、MoonBit で実装した MVP 行列付きの立方体描
 
 ## 起動
 
+リポジトリルートで実行します。
+
 ```sh
 pnpm install
 pnpm dev
@@ -23,7 +25,7 @@ WebXR と WebXR/WebGPU Binding に対応したブラウザでは、「VR を開�
 
 ```sh
 pnpm build
-pnpm exec playwright install chromium
+pnpm --filter @kaguya/hello-xr-example exec playwright install chromium
 pnpm test:e2e
 ```
 
