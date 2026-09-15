@@ -20,6 +20,10 @@ pub type XRViewerPose
 
 ///|
 #external
+pub type XRControllerPose
+
+///|
+#external
 pub type XRView
 
 ///|
@@ -153,7 +157,7 @@ pub extern "js" fn XRSession::on_select(
 pub extern "js" fn XRSession::request_animation_frame(
   self : XRSession,
   reference_space : XRReferenceSpace,
-  callback : (Double, XRViewerPose) -> Unit,
+  callback : (Double, XRViewerPose, XRControllerPose) -> Unit,
 ) -> Unit =
   #| (session, referenceSpace, callback) => {
   #|   let active = true
@@ -161,11 +165,47 @@ pub extern "js" fn XRSession::request_animation_frame(
   #|   const frame = (time, xrFrame) => {
   #|     if (!active) return
   #|     const pose = xrFrame.getViewerPose(referenceSpace)
-  #|     if (pose) callback(time, pose)
+  #|     if (pose) {
+  #|       let controller = {
+  #|         valid: false,
+  #|         handedness: "none",
+  #|         matrix: [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1],
+  #|       }
+  #|       for (const inputSource of xrFrame.session.inputSources) {
+  #|         const inputSpace = inputSource.gripSpace || inputSource.targetRaySpace
+  #|         if (!inputSpace) continue
+  #|         const inputPose = xrFrame.getPose(inputSpace, referenceSpace)
+  #|         if (!inputPose) continue
+  #|         controller = {
+  #|           valid: true,
+  #|           handedness: inputSource.handedness || "none",
+  #|           matrix: inputPose.transform.matrix,
+  #|         }
+  #|         break
+  #|       }
+  #|       callback(time, pose, controller)
+  #|     }
   #|     if (active) session.requestAnimationFrame(frame)
   #|   }
   #|   session.requestAnimationFrame(frame)
   #| }
+
+///|
+pub extern "js" fn XRControllerPose::is_valid(self : XRControllerPose) -> Bool =
+  #| (pose) => pose.valid
+
+///|
+pub extern "js" fn XRControllerPose::handedness(
+  self : XRControllerPose,
+) -> String =
+  #| (pose) => pose.handedness
+
+///|
+pub extern "js" fn XRControllerPose::matrix_value(
+  self : XRControllerPose,
+  index : Int,
+) -> Double =
+  #| (pose, index) => pose.matrix[index]
 
 ///|
 pub extern "js" fn XRViewerPose::view_count(self : XRViewerPose) -> Int =
