@@ -1,19 +1,22 @@
 # hello-xr
 
-WebGPU の初期化と、MoonBit で実装した MVP 行列付きの立方体描画を確認する最小ブラウザ example です。
+WebGPU の初期化と、MoonBit で実装した MVP 行列付きの立方体描画を確認する最小ブラウザ example です。pnpm workspace のパッケージとして、リポジトリルートから起動できます。
 
 ## 起動
 
-リポジトリルートで実行します。
+MoonBit が PATH にない場合は、先にリポジトリルートで `nix develop` に入ってください。
 
 ```sh
+# リポジトリルートで実行
 pnpm install
 pnpm dev
 ```
 
-`pnpm dev` と `pnpm build` は、必要な場合に `setup:types` を自動実行して mizchi/ts の `mbt2ts` を `.moonbit-tools/` にインストールします。
+ルートの `pnpm dev` はこのパッケージを起動します。パッケージディレクトリから直接起動する場合は、`pnpm dev` も引き続き利用できます。
 
-`pnpm dev` の前に MoonBit の JS backend module と TypeScript 宣言を自動でビルドし、`.moonbit-build/` に生成します。実行時の JS module は Vite の alias 経由で、型は `mbt2ts` が生成した `.d.ts` 経由で読み込みます。MoonBit が PATH にない場合は、リポジトリルートで `nix develop` に入ってから実行してください。
+`mbt2ts` は `pnpm install` ではなく、`pnpm dev` と `pnpm build` の実行時に必要な場合だけ `mizchi/ts` から `.moonbit-tools/` へ自動インストールされます。
+
+`pnpm dev` の前に MoonBit の JS backend module と TypeScript 宣言を自動でビルドし、`.moonbit-build/` に生成します。実行時の JS module は Vite の alias 経由で、型は `mbt2ts` が生成した `.d.ts` 経由で読み込みます。
 
 表示された `https://` URL を、WebGPU 対応ブラウザで開いてください。basic SSL が生成する自己署名証明書のため、初回だけ証明書警告が表示されます。開発環境なので警告を進めると、LAN 上の別デバイスからもアクセスできます。
 
@@ -24,6 +27,7 @@ WebXR と WebXR/WebGPU Binding に対応したブラウザでは、「VR を開�
 ## 検証
 
 ```sh
+# リポジトリルートで実行
 pnpm build
 pnpm --filter @kaguya/hello-xr-example exec playwright install chromium
 pnpm test:e2e
