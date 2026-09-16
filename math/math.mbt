@@ -238,6 +238,53 @@ pub fn Mat4::mul(self : Mat4, other : Mat4) -> Mat4 {
 }
 
 ///|
+pub fn Mat4::without_translation(self : Mat4) -> Mat4 {
+  Mat4::from_values([
+    self.values[0],
+    self.values[1],
+    self.values[2],
+    0.0,
+    self.values[4],
+    self.values[5],
+    self.values[6],
+    0.0,
+    self.values[8],
+    self.values[9],
+    self.values[10],
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    1.0,
+  ])
+}
+
+///|
+pub fn Mat4::inverse_rigid(self : Mat4) -> Mat4 {
+  let x = self.values[12]
+  let y = self.values[13]
+  let z = self.values[14]
+  Mat4::from_values([
+    self.values[0],
+    self.values[4],
+    self.values[8],
+    0.0,
+    self.values[1],
+    self.values[5],
+    self.values[9],
+    0.0,
+    self.values[2],
+    self.values[6],
+    self.values[10],
+    0.0,
+    -(self.values[0] * x + self.values[1] * y + self.values[2] * z),
+    -(self.values[4] * x + self.values[5] * y + self.values[6] * z),
+    -(self.values[8] * x + self.values[9] * y + self.values[10] * z),
+    1.0,
+  ])
+}
+
+///|
 pub fn Mat4::to_fixed_array(self : Mat4) -> FixedArray[Double] {
   FixedArray::makei(self.values.length(), fn(i) { self.values[i] })
 }
