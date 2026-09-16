@@ -1,40 +1,4 @@
 ///|
-fn update_interaction(
-  interaction : @dom.Element,
-  state : String,
-  controller : String,
-  label : String,
-  detail : String,
-) -> Unit {
-  interaction_set_state(interaction, state, controller, label, detail)
-}
-
-///|
-async fn enter_xr(
-  button : @dom.HTMLButtonElement,
-  manager : @three_xr.WebXRManager,
-  status : @dom.Element,
-) -> Unit {
-  button_set_enabled(button, false)
-  button_set_label(button, "VR セッションを開始しています…")
-  try {
-    let session = @three_xr.request_immersive_vr_session().wait()
-    manager.set_session(session).wait()
-    status_set_message(
-      status, "WebXR session active (three.js WebGLRenderer)", "success",
-    )
-  } catch {
-    error => {
-      button_set_label(button, "VR を開始")
-      button_set_enabled(button, true)
-      status_set_message(status, error.to_string(), "error")
-    }
-  } noraise {
-    _ => ()
-  }
-}
-
-///|
 async fn initialize() -> Unit {
   let button = enter_button()
   let status = status_element()
@@ -217,9 +181,4 @@ async fn initialize() -> Unit {
   } noraise {
     _ => ()
   }
-}
-
-///|
-pub fn start() -> @js_async.Promise[Unit] {
-  @js_async.Promise::from_async(initialize)
 }
