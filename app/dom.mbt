@@ -1,86 +1,107 @@
 ///|
-#external
-priv type Button
+fn required_element(selector : String) -> @dom.Element {
+  match @dom.document().querySelector(selector) {
+    Some(element) => element
+    None => {
+      @core.throw_error("{selector} が見つかりません")
+      @core.identity(@core.undefined())
+    }
+  }
+}
 
 ///|
-#external
-priv type StatusElement
+fn enter_button() -> @dom.HTMLButtonElement {
+  @dom.HTMLButtonElement::cast_from_element(required_element("#enter-xr"))
+}
 
 ///|
-#external
-priv type InteractionElement
+fn status_element() -> @dom.Element {
+  required_element("#status")
+}
 
 ///|
-extern "js" fn enter_button() -> Button =
-  #| () => {
-  #|   const button = document.querySelector("#enter-xr")
-  #|   if (!button) throw new Error("enter-xr button が見つかりません")
-  #|   return button
-  #| }
+fn interaction_element() -> @dom.Element {
+  required_element("#interaction")
+}
 
 ///|
-extern "js" fn status_element() -> StatusElement =
-  #| () => {
-  #|   const status = document.querySelector("#status")
-  #|   if (!status) throw new Error("status element が見つかりません")
-  #|   return status
-  #| }
+fn canvas_size() -> Int {
+  let canvas = @dom.HTMLCanvasElement::cast_from_element(
+    required_element("#canvas"),
+  )
+  let client_width = canvas.clientWidth()
+  if client_width > 0 {
+    client_width
+  } else if canvas.width > 0 {
+    canvas.width
+  } else {
+    1
+  }
+}
 
 ///|
-extern "js" fn interaction_element() -> InteractionElement =
-  #| () => {
-  #|   const interaction = document.querySelector("#interaction")
-  #|   if (!interaction) throw new Error("interaction element が見つかりません")
-  #|   return interaction
-  #| }
+fn button_on_click(
+  button : @dom.HTMLButtonElement,
+  callback : () -> Unit,
+) -> Unit {
+  button.addEventListener("click", fn(_event) { callback() })
+}
 
 ///|
-extern "js" fn canvas_size(canvas : @three.Canvas) -> Int =
-  #| canvas => Math.max(canvas.clientWidth || canvas.width || 1, 1)
+fn button_set_enabled(button : @dom.HTMLButtonElement, enabled : Bool) -> Unit {
+  button.disabled = !enabled
+}
 
 ///|
-extern "js" fn Button::on_click(self : Button, callback : () -> Unit) -> Unit =
-  #| (button, callback) => button.addEventListener("click", callback)
+fn button_set_label(button : @dom.HTMLButtonElement, label : String) -> Unit {
+  button.setTextContent(label)
+}
 
 ///|
-extern "js" fn Button::set_enabled(self : Button, enabled : Bool) -> Unit =
-  #| (button, enabled) => { button.disabled = !enabled }
+fn set_data(element : @dom.Element, key : String, value : String) -> Unit {
+  let dataset = element.as_any()._get("dataset")
+  dataset._set(key, @core.any(value))
+}
 
 ///|
-extern "js" fn Button::set_label(self : Button, label : String) -> Unit =
-  #| (button, label) => { button.textContent = label }
-
-///|
-extern "js" fn StatusElement::set_message(
-  self : StatusElement,
+fn status_set_message(
+  status : @dom.Element,
   message : String,
   kind : String,
-) -> Unit =
-  #| (status, message, kind) => {
-  #|   status.textContent = message
-  #|   status.dataset.kind = kind
-  #| }
+) -> Unit {
+  status.setTextContent(message)
+  set_data(status, "kind", kind)
+}
 
 ///|
-extern "js" fn InteractionElement::set_state(
-  self : InteractionElement,
+fn interaction_set_state(
+  interaction : @dom.Element,
   state : String,
   controller : String,
   label : String,
   detail : String,
-) -> Unit =
-  #| (interaction, state, controller, label, detail) => {
-  #|   interaction.dataset.state = state
-  #|   interaction.dataset.controller = controller
-  #|   const stateElement = interaction.querySelector("#interaction-state")
-  #|   const detailElement = interaction.querySelector("#interaction-detail")
-  #|   const controllerElement = interaction.querySelector("#interaction-controller")
-  #|   if (stateElement) stateElement.textContent = label
-  #|   if (detailElement) detailElement.textContent = detail
-  #|   if (controllerElement) {
-  #|     const controllerLabel = controller === "left"
-  #|       ? "左コントローラー"
-  #|       : controller === "right" ? "右コントローラー" : "コントローラー —"
-  #|     controllerElement.textContent = controllerLabel
-  #|   }
-  #| }
+) -> Unit {
+  set_data(interaction, "state", state)
+  set_data(interaction, "controller", controller)
+  match interaction.querySelector("#interaction-state") {
+    Some(element) => element.setTextContent(label)
+    None => ()
+  }
+  match interaction.querySelector("#interaction-detail") {
+    Some(element) => element.setTextContent(detail)
+    None => ()
+  }
+  match interaction.querySelector("#interaction-controller") {
+    Some(element) => {
+      let controller_label = if controller == "left" {
+        "左コントローラー"
+      } else if controller == "right" {
+        "右コントローラー"
+      } else {
+        "コントローラー —"
+      }
+      element.setTextContent(controller_label)
+    }
+    None => ()
+  }
+}

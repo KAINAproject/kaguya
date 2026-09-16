@@ -28,4 +28,6 @@ description = ""
 import {
   "moonbitlang/async@0.21.3",
   "mizchi/three@0.1.3",
+  "mizchi/js_browser@0.13.0",
+  "mizchi/js_core@0.13.0",
 }
