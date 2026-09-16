@@ -72,6 +72,66 @@ button:disabled {
   opacity: 0.6;
 }
 
+.interaction-panel {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 4px 16px;
+  margin-top: 24px;
+  padding: 16px 18px;
+  border: 1px solid #27334d;
+  border-radius: 14px;
+  background: rgb(17 24 39 / 72%);
+}
+
+.panel-label {
+  grid-column: 1 / -1;
+  margin: 0 0 4px;
+  color: #64748b;
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+}
+
+.interaction-state,
+.interaction-detail,
+.interaction-controller {
+  margin: 0;
+}
+
+.interaction-state {
+  color: #f9fafb;
+  font-weight: 700;
+}
+
+.interaction-detail {
+  color: #9ca3af;
+  font-size: 0.875rem;
+}
+
+.interaction-controller {
+  grid-column: 1 / -1;
+  color: #64748b;
+  font-size: 0.75rem;
+}
+
+.interaction-panel[data-state="hover"] {
+  border-color: #8b9cff;
+}
+
+.interaction-panel[data-state="selected"],
+.interaction-panel[data-state="grabbed"] {
+  border-color: #6ee7b7;
+  background: rgb(6 78 59 / 24%);
+}
+
+.interaction-panel[data-state="released"] {
+  border-color: #fbbf24;
+}
+
+.interaction-panel[data-state="error"] {
+  border-color: #fda4af;
+}
+
 .status {
   margin: 16px 0 0;
   color: #9ca3af;

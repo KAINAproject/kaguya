@@ -9,6 +9,12 @@ test("WebGPU example boots and reports its initialization state", async ({ page 
   await expect(page).toHaveTitle("Kaguya WebGPU Example")
   await expect(page.locator("#canvas")).toBeVisible()
   await expect(page.locator("#enter-xr")).toBeVisible()
+  await expect(page.locator("#interaction")).toBeVisible()
+  await expect(page.locator("#interaction")).toHaveAttribute(
+    "data-state",
+    /^(ready|error)$/,
+  )
+  await expect(page.locator("#interaction-state")).toHaveText(/^(準備完了|エラー)$/)
 
   const status = page.locator("#status")
   await expect(status).toHaveAttribute("data-kind", /^(success|error)$/)
@@ -111,6 +117,15 @@ test("renders a mocked stereo WebXR frame", async ({ page }) => {
 
       updateRenderState() {}
 
+      emitSelect(pressed: boolean) {
+        this.selectListeners.forEach((listener) => {
+          listener({
+            type: pressed ? "selectstart" : "selectend",
+            inputSource: { handedness: "right" },
+          })
+        })
+      }
+
       requestAnimationFrame(callback: (time: number, frame: unknown) => void) {
         if (this.frameScheduled) return
         this.frameScheduled = true
@@ -141,22 +156,10 @@ test("renders a mocked stereo WebXR frame", async ({ page }) => {
               },
             }),
           })
-          window.setTimeout(() => {
-            this.selectListeners.forEach((listener) => {
-              listener({
-                type: "selectstart",
-                inputSource: { handedness: "right" },
-              })
-            })
-            window.setTimeout(() => {
-              this.selectListeners.forEach((listener) => {
-                listener({
-                  type: "selectend",
-                  inputSource: { handedness: "right" },
-                })
-              })
-            }, 20)
-          }, 20)
+          Object.defineProperty(globalThis, "triggerSelect", {
+            configurable: true,
+            value: (pressed: boolean) => this.emitSelect(pressed),
+          })
         }, 0)
       }
     }
@@ -234,12 +237,27 @@ test("renders a mocked stereo WebXR frame", async ({ page }) => {
   await button.click()
 
   await expect(page.locator("#status")).toContainText("WebXR session active (2 views)")
+  await expect(page.locator("#interaction")).toHaveAttribute("data-state", "hover")
+  await expect(page.locator("#interaction-controller")).toHaveText("右コントローラー")
   await expect(page.locator("#status")).toContainText("controller: right")
+  await page.evaluate(() => {
+    (globalThis as unknown as { triggerSelect: (pressed: boolean) => void })
+      .triggerSelect(true)
+  })
   await expect(page.locator("#status")).toContainText("XR selectstart (right)")
   await expect(page.locator("#status")).toContainText("Cube selected")
   await expect(page.locator("#status")).toContainText("Cube grabbed")
+  await expect(page.locator("#interaction")).toHaveAttribute("data-state", "grabbed")
+  await expect(page.locator("#interaction")).toHaveAttribute("data-controller", "right")
+  await expect(page.locator("#interaction-controller")).toHaveText("右コントローラー")
+  await page.evaluate(() => {
+    (globalThis as unknown as { triggerSelect: (pressed: boolean) => void })
+      .triggerSelect(false)
+  })
   await expect(page.locator("#status")).toContainText("XR selectend (right)")
   await expect(page.locator("#status")).toContainText("Cube released")
+  await expect(page.locator("#interaction")).toHaveAttribute("data-state", "released")
+  await expect(page.locator("#interaction-state")).toHaveText("配置完了")
   expect(pageErrors).toHaveLength(0)
 })
 
@@ -380,6 +398,15 @@ test("falls back to WebGL for browsers without the WebGPU XR binding", async ({ 
 
       updateRenderState() {}
 
+      emitSelect(pressed: boolean) {
+        this.selectListeners.forEach((listener) => {
+          listener({
+            type: pressed ? "selectstart" : "selectend",
+            inputSource: { handedness: "right" },
+          })
+        })
+      }
+
       requestAnimationFrame(callback: (time: number, frame: unknown) => void) {
         if (this.frameScheduled) return
         this.frameScheduled = true
@@ -406,22 +433,10 @@ test("falls back to WebGL for browsers without the WebGPU XR binding", async ({ 
               },
             }),
           })
-          window.setTimeout(() => {
-            this.selectListeners.forEach((listener) => {
-              listener({
-                type: "selectstart",
-                inputSource: { handedness: "right" },
-              })
-            })
-            window.setTimeout(() => {
-              this.selectListeners.forEach((listener) => {
-                listener({
-                  type: "selectend",
-                  inputSource: { handedness: "right" },
-                })
-              })
-            }, 20)
-          }, 20)
+          Object.defineProperty(globalThis, "triggerSelect", {
+            configurable: true,
+            value: (pressed: boolean) => this.emitSelect(pressed),
+          })
         }, 0)
       }
     }
@@ -476,11 +491,26 @@ test("falls back to WebGL for browsers without the WebGPU XR binding", async ({ 
   await button.click()
 
   await expect(page.locator("#status")).toContainText("WebXR session active (2 views, WebGL)")
+  await expect(page.locator("#interaction")).toHaveAttribute("data-state", "hover")
+  await expect(page.locator("#interaction-controller")).toHaveText("右コントローラー")
   await expect(page.locator("#status")).toContainText("controller: right")
+  await page.evaluate(() => {
+    (globalThis as unknown as { triggerSelect: (pressed: boolean) => void })
+      .triggerSelect(true)
+  })
   await expect(page.locator("#status")).toContainText("XR selectstart (right)")
   await expect(page.locator("#status")).toContainText("Cube selected")
   await expect(page.locator("#status")).toContainText("Cube grabbed")
+  await expect(page.locator("#interaction")).toHaveAttribute("data-state", "grabbed")
+  await expect(page.locator("#interaction")).toHaveAttribute("data-controller", "right")
+  await expect(page.locator("#interaction-controller")).toHaveText("右コントローラー")
+  await page.evaluate(() => {
+    (globalThis as unknown as { triggerSelect: (pressed: boolean) => void })
+      .triggerSelect(false)
+  })
   await expect(page.locator("#status")).toContainText("XR selectend (right)")
   await expect(page.locator("#status")).toContainText("Cube released")
+  await expect(page.locator("#interaction")).toHaveAttribute("data-state", "released")
+  await expect(page.locator("#interaction-state")).toHaveText("配置完了")
   expect(pageErrors).toHaveLength(0)
 })

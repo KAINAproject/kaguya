@@ -20,6 +20,8 @@ pub fn has_xr_gpu() -> Bool
 
 pub fn has_xr_webgl() -> Bool
 
+pub fn interaction() -> InteractionElement
+
 pub fn start_animation_frame((Double) -> Unit) -> Unit
 
 pub fn status() -> StatusElement
@@ -87,6 +89,10 @@ pub fn Gpu::request_adapter(Self, Bool) -> @js_async.Promise[Adapter]
 
 #external
 pub type GpuBuffer
+
+#external
+pub type InteractionElement
+pub fn InteractionElement::set_state(Self, String, String, String, String) -> Unit
 
 #external
 pub type RenderPassEncoder

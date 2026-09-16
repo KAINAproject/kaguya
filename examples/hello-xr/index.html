@@ -14,6 +14,23 @@
         WebGPU を初期化し、MoonBit の renderer で回転する立方体を描画する最小 example です。
       </p>
       <button id="enter-xr" type="button" disabled>WebXR を確認しています…</button>
+      <section
+        id="interaction"
+        class="interaction-panel"
+        data-state="initializing"
+        data-controller="none"
+        aria-live="polite"
+        aria-label="XR インタラクションの状態"
+      >
+        <p class="panel-label">INTERACTION</p>
+        <p id="interaction-state" class="interaction-state">準備中</p>
+        <p id="interaction-detail" class="interaction-detail">
+          XR セッションを確認しています…
+        </p>
+        <p id="interaction-controller" class="interaction-controller">
+          コントローラー —
+        </p>
+      </section>
       <canvas id="canvas" aria-label="WebGPU canvas"></canvas>
       <canvas id="xr-canvas" width="1" height="1" hidden aria-hidden="true"></canvas>
       <p id="status" class="status" role="status" aria-live="polite">

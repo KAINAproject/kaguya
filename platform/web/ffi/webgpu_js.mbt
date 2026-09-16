@@ -8,6 +8,10 @@ pub type StatusElement
 
 ///|
 #external
+pub type InteractionElement
+
+///|
+#external
 pub type Gpu
 
 ///|
@@ -75,6 +79,14 @@ extern "js" fn document_status() -> StatusElement =
   #| }
 
 ///|
+extern "js" fn document_interaction() -> InteractionElement =
+  #| () => {
+  #|   const interaction = document.querySelector("#interaction")
+  #|   if (!interaction) throw new Error("interaction element が見つかりません")
+  #|   return interaction
+  #| }
+
+///|
 pub fn canvas() -> Canvas {
   document_canvas()
 }
@@ -82,6 +94,11 @@ pub fn canvas() -> Canvas {
 ///|
 pub fn status() -> StatusElement {
   document_status()
+}
+
+///|
+pub fn interaction() -> InteractionElement {
+  document_interaction()
 }
 
 ///|
@@ -93,6 +110,30 @@ pub extern "js" fn StatusElement::set_message(
   #| (status, message, kind) => {
   #|   status.textContent = message
   #|   status.dataset.kind = kind
+  #| }
+
+///|
+pub extern "js" fn InteractionElement::set_state(
+  self : InteractionElement,
+  state : String,
+  controller : String,
+  label : String,
+  detail : String,
+) -> Unit =
+  #| (interaction, state, controller, label, detail) => {
+  #|   interaction.dataset.state = state
+  #|   interaction.dataset.controller = controller
+  #|   const stateElement = interaction.querySelector("#interaction-state")
+  #|   const detailElement = interaction.querySelector("#interaction-detail")
+  #|   const controllerElement = interaction.querySelector("#interaction-controller")
+  #|   if (stateElement) stateElement.textContent = label
+  #|   if (detailElement) detailElement.textContent = detail
+  #|   if (controllerElement) {
+  #|     const controllerLabel = controller === "left"
+  #|       ? "左コントローラー"
+  #|       : controller === "right" ? "右コントローラー" : "コントローラー —"
+  #|     controllerElement.textContent = controllerLabel
+  #|   }
   #| }
 
 ///|
