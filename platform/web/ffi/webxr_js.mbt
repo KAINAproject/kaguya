@@ -147,6 +147,7 @@ pub extern "js" fn XRSession::on_select(
   #| (session, callback) => {
   #|   const handleSelect = (event) => {
   #|     const handedness = event.inputSource?.handedness || "none"
+  #|     if (handedness !== "none") session.__kaguyaPreferredHandedness = handedness
   #|     callback(handedness, event.type === "selectstart")
   #|   }
   #|   session.addEventListener("selectstart", handleSelect)
@@ -170,18 +171,32 @@ pub extern "js" fn XRSession::request_animation_frame(
   #|         valid: false,
   #|         handedness: "none",
   #|         matrix: [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1],
+  #|         rayMatrix: [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1],
   #|       }
+  #|       let fallbackController = null
+  #|       const preferredHandedness = session.__kaguyaPreferredHandedness || "right"
   #|       for (const inputSource of xrFrame.session.inputSources) {
   #|         const inputSpace = inputSource.gripSpace || inputSource.targetRaySpace
-  #|         if (!inputSpace) continue
-  #|         const inputPose = xrFrame.getPose(inputSpace, referenceSpace)
-  #|         if (!inputPose) continue
-  #|         controller = {
+  #|         const raySpace = inputSource.targetRaySpace || inputSpace
+  #|         if (!inputSpace && !raySpace) continue
+  #|         const inputPose = inputSpace ? xrFrame.getPose(inputSpace, referenceSpace) : null
+  #|         const rayPose = raySpace ? xrFrame.getPose(raySpace, referenceSpace) : null
+  #|         const controllerPose = inputPose || rayPose
+  #|         if (!controllerPose) continue
+  #|         const candidate = {
   #|           valid: true,
   #|           handedness: inputSource.handedness || "none",
-  #|           matrix: inputPose.transform.matrix,
+  #|           matrix: controllerPose.transform.matrix,
+  #|           rayMatrix: (rayPose || controllerPose).transform.matrix,
   #|         }
-  #|         break
+  #|         if (!fallbackController) fallbackController = candidate
+  #|         if (candidate.handedness === preferredHandedness) {
+  #|           controller = candidate
+  #|           break
+  #|         }
+  #|       }
+  #|       if (controller.valid === false && fallbackController) {
+  #|         controller = fallbackController
   #|       }
   #|       callback(time, pose, controller)
   #|     }
@@ -206,6 +221,13 @@ pub extern "js" fn XRControllerPose::matrix_value(
   index : Int,
 ) -> Double =
   #| (pose, index) => pose.matrix[index]
+
+///|
+pub extern "js" fn XRControllerPose::ray_matrix_value(
+  self : XRControllerPose,
+  index : Int,
+) -> Double =
+  #| (pose, index) => pose.rayMatrix[index]
 
 ///|
 pub extern "js" fn XRViewerPose::view_count(self : XRViewerPose) -> Int =

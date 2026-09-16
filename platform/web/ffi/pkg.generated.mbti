@@ -121,13 +121,14 @@ pub type WebGLContext
 #external
 pub type WebGLXRRenderer
 pub fn WebGLXRRenderer::context(Self) -> WebGLContext
-pub fn WebGLXRRenderer::draw_cube(Self, XRWebGLLayer, XRView, FixedArray[Double], Bool) -> Unit
+pub fn WebGLXRRenderer::draw_cube(Self, XRWebGLLayer, XRView, FixedArray[Double], Bool, Bool) -> Unit
 
 #external
 pub type XRControllerPose
 pub fn XRControllerPose::handedness(Self) -> String
 pub fn XRControllerPose::is_valid(Self) -> Bool
 pub fn XRControllerPose::matrix_value(Self, Int) -> Double
+pub fn XRControllerPose::ray_matrix_value(Self, Int) -> Double
 
 #external
 pub type XRGPUBinding
