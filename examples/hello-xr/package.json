@@ -20,8 +20,11 @@
   "devDependencies": {
     "@playwright/test": "^1.63.0",
     "@vitejs/plugin-basic-ssl": "^2.3.0",
-    "@webgpu/types": "^0.1.72",
     "typescript": "^5.9.3",
     "vite": "^8.2.2"
+  },
+  "dependencies": {
+    "@mizchi/three-mbt": "link:../../.mooncakes/mizchi/three/js",
+    "three": "0.185.1"
   }
 }

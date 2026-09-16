@@ -13,7 +13,7 @@
     },
     "strict": true,
     "noEmit": true,
-    "types": ["vite/client", "@webgpu/types"],
+    "types": ["vite/client"],
     "skipLibCheck": true
   },
   "include": ["src", "vite.config.ts"]

@@ -1,9 +1,0 @@
-// WebXR adapter for the platform-independent XR API.
-
-import {
-  "moonbitlang/async/js_async",
-  "KAINAproject/kaguya/platform/web/ffi",
-  "KAINAproject/kaguya/xr",
-}
-
-supported_targets = "js"

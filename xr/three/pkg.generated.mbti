@@ -1,0 +1,49 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "KAINAproject/kaguya/xr/three"
+
+import {
+  "moonbitlang/async/js_async",
+}
+
+// Values
+pub fn is_available() -> Bool
+
+pub fn is_session_supported() -> @js_async.Promise[Bool]
+
+pub fn manager(@mizchi/three.WebGLRenderer) -> WebXRManager
+
+pub fn on_controller_connected(@mizchi/three.Group, (String) -> Unit) -> @mizchi/three.EventSubscription
+
+pub fn on_controller_disconnected(@mizchi/three.Group, () -> Unit) -> @mizchi/three.EventSubscription
+
+pub fn on_select_end(@mizchi/three.Group, (String) -> Unit) -> @mizchi/three.EventSubscription
+
+pub fn on_select_start(@mizchi/three.Group, (String) -> Unit) -> @mizchi/three.EventSubscription
+
+pub fn request_immersive_vr_session() -> @js_async.Promise[XRSession]
+
+// Errors
+
+// Types and methods
+#external
+pub type WebXRManager
+pub fn WebXRManager::get_controller(Self, Int) -> @mizchi/three.Group
+pub fn WebXRManager::get_controller_grip(Self, Int) -> @mizchi/three.Group
+pub fn WebXRManager::get_hand(Self, Int) -> @mizchi/three.Group
+pub fn WebXRManager::is_presenting(Self) -> Bool
+pub fn WebXRManager::on_session_end(Self, () -> Unit) -> @mizchi/three.EventSubscription
+pub fn WebXRManager::set_enabled(Self, Bool) -> Unit
+pub fn WebXRManager::set_reference_space_type(Self, String) -> Unit
+pub fn WebXRManager::set_session(Self, XRSession) -> @js_async.Promise[Unit]
+
+#external
+pub type XRSession
+
+#external
+pub type XRSystem
+pub fn XRSystem::is_session_supported(Self, String) -> @js_async.Promise[Bool]
+pub fn XRSystem::request_immersive_vr_session(Self) -> @js_async.Promise[XRSession]
+
+// Type aliases
+
+// Traits

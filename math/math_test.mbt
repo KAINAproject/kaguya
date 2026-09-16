@@ -65,7 +65,7 @@ test "Mat4 scale transforms points" {
 }
 
 ///|
-test "Mat4 perspective maps WebGPU depth to zero through one" {
+test "Mat4 perspective maps depth to zero through one" {
   let projection = @math.Mat4::perspective(
     3.141592653589793 / 2.0,
     1.0,

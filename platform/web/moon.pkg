@@ -1,11 +1,9 @@
 // Browser platform integration.
 
 import {
+  "KAINAproject/kaguya/xr/three" @xr_three,
+  "mizchi/three",
   "moonbitlang/async/js_async",
-  "KAINAproject/kaguya/platform/web/ffi",
-  "KAINAproject/kaguya/math",
-  "KAINAproject/kaguya/render/webgpu",
-  "KAINAproject/kaguya/xr/webxr",
 }
 
 supported_targets = "js"

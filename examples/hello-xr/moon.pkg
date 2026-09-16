@@ -1,4 +1,4 @@
-// Minimal browser example for the WebGPU backend.
+// Minimal browser example for the Three.js WebXR integration.
 
 import {
   "moonbitlang/async/js_async",

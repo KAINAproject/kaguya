@@ -4,14 +4,14 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="theme-color" content="#111827" />
-    <title>Kaguya WebGPU Example</title>
+    <title>Kaguya Three.js WebXR Example</title>
   </head>
   <body>
     <main>
       <p class="eyebrow">KAGUYA / HELLO-XR</p>
-      <h1>WebGPU Canvas</h1>
+      <h1>Three.js WebXR</h1>
       <p class="description">
-        WebGPU を初期化し、MoonBit の renderer で回転する立方体を描画する最小 example です。
+        three-mbt の scene graph と WebGLRenderer を使い、MoonBit から WebXR を開始する最小 example です。
       </p>
       <button id="enter-xr" type="button" disabled>WebXR を確認しています…</button>
       <section
@@ -31,10 +31,9 @@
           コントローラー —
         </p>
       </section>
-      <canvas id="canvas" aria-label="WebGPU canvas"></canvas>
-      <canvas id="xr-canvas" width="1" height="1" hidden aria-hidden="true"></canvas>
+      <canvas id="canvas" aria-label="Three.js canvas"></canvas>
       <p id="status" class="status" role="status" aria-live="polite">
-        WebGPU を初期化しています…
+        Three.js を初期化しています…
       </p>
     </main>
     <script type="module" src="/src/main.ts"></script>
