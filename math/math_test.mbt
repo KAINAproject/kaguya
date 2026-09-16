@@ -42,6 +42,19 @@ test "Mat4 multiplication preserves identity and translation" {
 }
 
 ///|
+test "Mat4 rigid inverse preserves a rotated point" {
+  let transform = @math.Mat4::translation(1.0, 2.0, 3.0).mul(
+    @math.Mat4::rotation_y(3.141592653589793 / 2.0),
+  )
+  let result = transform
+    .mul(transform.inverse_rigid())
+    .transform_point(@math.Vec3::new(4.0, 5.0, 6.0))
+  assert_true((result.x - 4.0).abs() < 0.000000000000001)
+  assert_true((result.y - 5.0).abs() < 0.000000000000001)
+  assert_true((result.z - 6.0).abs() < 0.000000000000001)
+}
+
+///|
 test "Mat4 scale transforms points" {
   let result = @math.Mat4::scale(2.0, 3.0, 4.0).transform_point(
     @math.Vec3::new(1.0, 1.0, 1.0),
