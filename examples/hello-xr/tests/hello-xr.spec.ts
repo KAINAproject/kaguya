@@ -237,7 +237,9 @@ test("renders a mocked stereo WebXR frame", async ({ page }) => {
   await expect(page.locator("#status")).toContainText("controller: right")
   await expect(page.locator("#status")).toContainText("XR selectstart (right)")
   await expect(page.locator("#status")).toContainText("Cube selected")
+  await expect(page.locator("#status")).toContainText("Cube grabbed")
   await expect(page.locator("#status")).toContainText("XR selectend (right)")
+  await expect(page.locator("#status")).toContainText("Cube released")
   expect(pageErrors).toHaveLength(0)
 })
 
@@ -477,6 +479,8 @@ test("falls back to WebGL for browsers without the WebGPU XR binding", async ({ 
   await expect(page.locator("#status")).toContainText("controller: right")
   await expect(page.locator("#status")).toContainText("XR selectstart (right)")
   await expect(page.locator("#status")).toContainText("Cube selected")
+  await expect(page.locator("#status")).toContainText("Cube grabbed")
   await expect(page.locator("#status")).toContainText("XR selectend (right)")
+  await expect(page.locator("#status")).toContainText("Cube released")
   expect(pageErrors).toHaveLength(0)
 })

@@ -22,7 +22,7 @@ pnpm dev
 
 成功すると Canvas に濃紺背景と、色付きで回転する立方体が描画され、下部に初期化済みの解像度が表示されます。
 
-WebXR と WebXR/WebGPU Binding に対応したブラウザでは、「VR を開始」ボタンから immersive VR session を開始できます。XR 中は各 eye の projection layer に pose の行列を使ってステレオ描画します。コントローラーが接続されている場合は、`targetRaySpace` に沿ったレイで奥の Cube を狙い、select で選択できます。WebXR/WebGPU Binding がないブラウザでは、標準の `XRWebGLLayer` と WebGL にフォールバックします。その場合、ボタンには「VR を開始（WebGL）」と表示されます。
+WebXR と WebXR/WebGPU Binding に対応したブラウザでは、「VR を開始」ボタンから immersive VR session を開始できます。XR 中は各 eye の projection layer に pose の行列を使ってステレオ描画します。コントローラーが接続されている場合は、`targetRaySpace` に沿ったレイで奥の Cube を狙い、select で選択している間はコントローラーに追従させられます。select を離すとその場所に Cube が残ります。WebXR/WebGPU Binding がないブラウザでは、標準の `XRWebGLLayer` と WebGL にフォールバックします。その場合、ボタンには「VR を開始（WebGL）」と表示されます。
 
 ## 検証
 
