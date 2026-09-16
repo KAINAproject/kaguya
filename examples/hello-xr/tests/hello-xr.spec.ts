@@ -9,6 +9,12 @@ test("WebGPU example boots and reports its initialization state", async ({ page 
   await expect(page).toHaveTitle("Kaguya WebGPU Example")
   await expect(page.locator("#canvas")).toBeVisible()
   await expect(page.locator("#enter-xr")).toBeVisible()
+  await expect(page.locator("#interaction")).toBeVisible()
+  await expect(page.locator("#interaction")).toHaveAttribute(
+    "data-state",
+    /^(ready|error)$/,
+  )
+  await expect(page.locator("#interaction-state")).toHaveText(/^(準備完了|エラー)$/)
 
   const status = page.locator("#status")
   await expect(status).toHaveAttribute("data-kind", /^(success|error)$/)
@@ -61,17 +67,34 @@ test("renders a mocked stereo WebXR frame", async ({ page }) => {
       setBindGroup: () => {},
       setVertexBuffer: () => {},
       setViewport: () => {},
-      draw: () => {},
+      draw: (vertexCount: number) => {
+        if (vertexCount === 6) {
+          const state = globalThis as unknown as { spatialUiDraws?: number }
+          state.spatialUiDraws = (state.spatialUiDraws || 0) + 1
+        }
+      },
       end: () => {},
     }
+    const fake2dContext = {
+      clearRect: () => {},
+      fillStyle: "",
+      fillRect: () => {},
+      font: "",
+      fillText: () => {},
+    }
     const fakeDevice = {
-      queue: { writeBuffer: () => {}, submit: () => {} },
+      queue: {
+        writeBuffer: () => {},
+        copyExternalImageToTexture: () => {},
+        submit: () => {},
+      },
       lost: { then: () => {} },
       requestAdapter: undefined,
       createShaderModule: () => ({}),
       createRenderPipeline: () => ({ getBindGroupLayout: () => ({}) }),
       createBuffer: () => ({}),
       createBindGroup: () => ({}),
+      createSampler: () => ({}),
       createTexture: () => makeTexture(),
       createCommandEncoder: () => ({
         beginRenderPass: () => fakePass,
@@ -111,6 +134,15 @@ test("renders a mocked stereo WebXR frame", async ({ page }) => {
 
       updateRenderState() {}
 
+      emitSelect(pressed: boolean) {
+        this.selectListeners.forEach((listener) => {
+          listener({
+            type: pressed ? "selectstart" : "selectend",
+            inputSource: { handedness: "right" },
+          })
+        })
+      }
+
       requestAnimationFrame(callback: (time: number, frame: unknown) => void) {
         if (this.frameScheduled) return
         this.frameScheduled = true
@@ -141,22 +173,10 @@ test("renders a mocked stereo WebXR frame", async ({ page }) => {
               },
             }),
           })
-          window.setTimeout(() => {
-            this.selectListeners.forEach((listener) => {
-              listener({
-                type: "selectstart",
-                inputSource: { handedness: "right" },
-              })
-            })
-            window.setTimeout(() => {
-              this.selectListeners.forEach((listener) => {
-                listener({
-                  type: "selectend",
-                  inputSource: { handedness: "right" },
-                })
-              })
-            }, 20)
-          }, 20)
+          Object.defineProperty(globalThis, "triggerSelect", {
+            configurable: true,
+            value: (pressed: boolean) => this.emitSelect(pressed),
+          })
         }, 0)
       }
     }
@@ -202,7 +222,11 @@ test("renders a mocked stereo WebXR frame", async ({ page }) => {
     })
     Object.defineProperty(HTMLCanvasElement.prototype, "getContext", {
       configurable: true,
-      value: (contextId: string) => contextId === "webgpu" ? fakeContext : null,
+      value: (contextId: string) => {
+        if (contextId === "webgpu") return fakeContext
+        if (contextId === "2d") return fake2dContext
+        return null
+      },
     })
     Object.defineProperty(navigator, "gpu", {
       configurable: true,
@@ -234,17 +258,36 @@ test("renders a mocked stereo WebXR frame", async ({ page }) => {
   await button.click()
 
   await expect(page.locator("#status")).toContainText("WebXR session active (2 views)")
+  await expect.poll(() => page.evaluate(
+    () => (globalThis as unknown as { spatialUiDraws?: number }).spatialUiDraws || 0,
+  )).toBeGreaterThanOrEqual(2)
+  await expect(page.locator("#interaction")).toHaveAttribute("data-state", "hover")
+  await expect(page.locator("#interaction-controller")).toHaveText("右コントローラー")
   await expect(page.locator("#status")).toContainText("controller: right")
+  await page.evaluate(() => {
+    (globalThis as unknown as { triggerSelect: (pressed: boolean) => void })
+      .triggerSelect(true)
+  })
   await expect(page.locator("#status")).toContainText("XR selectstart (right)")
   await expect(page.locator("#status")).toContainText("Cube selected")
   await expect(page.locator("#status")).toContainText("Cube grabbed")
+  await expect(page.locator("#interaction")).toHaveAttribute("data-state", "grabbed")
+  await expect(page.locator("#interaction")).toHaveAttribute("data-controller", "right")
+  await expect(page.locator("#interaction-controller")).toHaveText("右コントローラー")
+  await page.evaluate(() => {
+    (globalThis as unknown as { triggerSelect: (pressed: boolean) => void })
+      .triggerSelect(false)
+  })
   await expect(page.locator("#status")).toContainText("XR selectend (right)")
   await expect(page.locator("#status")).toContainText("Cube released")
+  await expect(page.locator("#interaction")).toHaveAttribute("data-state", "released")
+  await expect(page.locator("#interaction-state")).toHaveText("配置完了")
   expect(pageErrors).toHaveLength(0)
 })
 
 test("falls back to WebGL for browsers without the WebGPU XR binding", async ({ page }) => {
   await page.addInitScript(() => {
+    let spatialUiDraws = 0
     const matrix = [
       1, 0, 0, 0,
       0, 1, 0, 0,
@@ -282,6 +325,7 @@ test("falls back to WebGL for browsers without the WebGPU XR binding", async ({ 
     const fakeGl = {
       ARRAY_BUFFER: 0x8892,
       BACK: 0x0405,
+      CLAMP_TO_EDGE: 0x812f,
       COLOR_BUFFER_BIT: 0x4000,
       COMPILE_STATUS: 0x8b81,
       CULL_FACE: 0x0b44,
@@ -290,15 +334,27 @@ test("falls back to WebGL for browsers without the WebGPU XR binding", async ({ 
       FLOAT: 0x1406,
       FRAGMENT_SHADER: 0x8b30,
       FRAMEBUFFER: 0x8d40,
+      LINEAR: 0x2601,
       LESS: 0x0201,
       LINK_STATUS: 0x8b82,
+      RGBA: 0x1908,
       SCISSOR_TEST: 0x0c11,
       STATIC_DRAW: 0x88e4,
+      TEXTURE0: 0x84c0,
+      TEXTURE_2D: 0x0de1,
+      TEXTURE_MAG_FILTER: 0x2800,
+      TEXTURE_MIN_FILTER: 0x2801,
+      TEXTURE_WRAP_S: 0x2802,
+      TEXTURE_WRAP_T: 0x2803,
       TRIANGLES: 0x0004,
+      UNPACK_FLIP_Y_WEBGL: 0x9240,
+      UNSIGNED_BYTE: 0x1401,
       VERTEX_SHADER: 0x8b31,
+      activeTexture: () => {},
       attachShader: () => {},
       bindBuffer: () => {},
       bindFramebuffer: () => {},
+      bindTexture: () => {},
       bufferData: () => {},
       clear: () => {},
       clearColor: () => {},
@@ -307,9 +363,16 @@ test("falls back to WebGL for browsers without the WebGPU XR binding", async ({ 
       createBuffer: () => ({}),
       createProgram: () => ({}),
       createShader: () => ({}),
+      createTexture: () => ({}),
       cullFace: () => {},
       depthFunc: () => {},
-      drawArrays: () => {},
+      drawArrays: (_mode: number, _first: number, vertexCount: number) => {
+        if (vertexCount === 6) {
+          spatialUiDraws += 1
+          const state = globalThis as unknown as { spatialUiDraws: number }
+          state.spatialUiDraws = spatialUiDraws
+        }
+      },
       disable: () => {},
       enable: () => {},
       enableVertexAttribArray: () => {},
@@ -320,8 +383,12 @@ test("falls back to WebGL for browsers without the WebGPU XR binding", async ({ 
       getShaderParameter: () => true,
       getUniformLocation: () => ({}),
       linkProgram: () => {},
+      pixelStorei: () => {},
       scissor: () => {},
       shaderSource: () => {},
+      texImage2D: () => {},
+      texParameteri: () => {},
+      uniform1i: () => {},
       uniformMatrix4fv: () => {},
       useProgram: () => {},
       vertexAttribPointer: () => {},
@@ -332,12 +399,17 @@ test("falls back to WebGL for browsers without the WebGPU XR binding", async ({ 
       destroy: () => {},
     })
     const fakeDevice = {
-      queue: { writeBuffer: () => {}, submit: () => {} },
+      queue: {
+        writeBuffer: () => {},
+        copyExternalImageToTexture: () => {},
+        submit: () => {},
+      },
       lost: { then: () => {} },
       createShaderModule: () => ({}),
       createRenderPipeline: () => ({ getBindGroupLayout: () => ({}) }),
       createBuffer: () => ({}),
       createBindGroup: () => ({}),
+      createSampler: () => ({}),
       createTexture: () => makeTexture(),
       createCommandEncoder: () => ({
         beginRenderPass: () => ({
@@ -357,6 +429,13 @@ test("falls back to WebGL for browsers without the WebGPU XR binding", async ({ 
     const fakeContext = {
       configure: () => {},
       getCurrentTexture: () => makeTexture(),
+    }
+    const fake2dContext = {
+      clearRect: () => {},
+      fillStyle: "",
+      fillRect: () => {},
+      font: "",
+      fillText: () => {},
     }
 
     class MockXRSession {
@@ -379,6 +458,15 @@ test("falls back to WebGL for browsers without the WebGPU XR binding", async ({ 
       }
 
       updateRenderState() {}
+
+      emitSelect(pressed: boolean) {
+        this.selectListeners.forEach((listener) => {
+          listener({
+            type: pressed ? "selectstart" : "selectend",
+            inputSource: { handedness: "right" },
+          })
+        })
+      }
 
       requestAnimationFrame(callback: (time: number, frame: unknown) => void) {
         if (this.frameScheduled) return
@@ -406,22 +494,10 @@ test("falls back to WebGL for browsers without the WebGPU XR binding", async ({ 
               },
             }),
           })
-          window.setTimeout(() => {
-            this.selectListeners.forEach((listener) => {
-              listener({
-                type: "selectstart",
-                inputSource: { handedness: "right" },
-              })
-            })
-            window.setTimeout(() => {
-              this.selectListeners.forEach((listener) => {
-                listener({
-                  type: "selectend",
-                  inputSource: { handedness: "right" },
-                })
-              })
-            }, 20)
-          }, 20)
+          Object.defineProperty(globalThis, "triggerSelect", {
+            configurable: true,
+            value: (pressed: boolean) => this.emitSelect(pressed),
+          })
         }, 0)
       }
     }
@@ -445,6 +521,7 @@ test("falls back to WebGL for browsers without the WebGPU XR binding", async ({ 
       value: (contextId: string) => {
         if (contextId === "webgpu") return fakeContext
         if (contextId === "webgl2" || contextId === "webgl") return fakeGl
+        if (contextId === "2d") return fake2dContext
         return null
       },
     })
@@ -476,11 +553,29 @@ test("falls back to WebGL for browsers without the WebGPU XR binding", async ({ 
   await button.click()
 
   await expect(page.locator("#status")).toContainText("WebXR session active (2 views, WebGL)")
+  await expect.poll(() => page.evaluate(
+    () => (globalThis as unknown as { spatialUiDraws?: number }).spatialUiDraws || 0,
+  )).toBeGreaterThanOrEqual(2)
+  await expect(page.locator("#interaction")).toHaveAttribute("data-state", "hover")
+  await expect(page.locator("#interaction-controller")).toHaveText("右コントローラー")
   await expect(page.locator("#status")).toContainText("controller: right")
+  await page.evaluate(() => {
+    (globalThis as unknown as { triggerSelect: (pressed: boolean) => void })
+      .triggerSelect(true)
+  })
   await expect(page.locator("#status")).toContainText("XR selectstart (right)")
   await expect(page.locator("#status")).toContainText("Cube selected")
   await expect(page.locator("#status")).toContainText("Cube grabbed")
+  await expect(page.locator("#interaction")).toHaveAttribute("data-state", "grabbed")
+  await expect(page.locator("#interaction")).toHaveAttribute("data-controller", "right")
+  await expect(page.locator("#interaction-controller")).toHaveText("右コントローラー")
+  await page.evaluate(() => {
+    (globalThis as unknown as { triggerSelect: (pressed: boolean) => void })
+      .triggerSelect(false)
+  })
   await expect(page.locator("#status")).toContainText("XR selectend (right)")
   await expect(page.locator("#status")).toContainText("Cube released")
+  await expect(page.locator("#interaction")).toHaveAttribute("data-state", "released")
+  await expect(page.locator("#interaction-state")).toHaveText("配置完了")
   expect(pageErrors).toHaveLength(0)
 })

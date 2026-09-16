@@ -78,6 +78,13 @@ fn controller_ray_hits_target(
 async fn initialize() -> Unit {
   let canvas = @ffi.canvas()
   let status = @ffi.status()
+  let interaction = @ffi.interaction()
+  let mut interaction_state = "initializing"
+  let mut interaction_controller = "none"
+  let mut interaction_detail = "XR セッションを確認しています…"
+  interaction.set_state(
+    "initializing", "none", "準備中", "XR セッションを確認しています…",
+  )
   status.set_message("WebGPU adapter を取得しています…", "info")
 
   let gpu = @ffi.gpu()
@@ -88,6 +95,7 @@ async fn initialize() -> Unit {
   let format = gpu.preferred_canvas_format()
   context.configure(device, format)
   let canvas_pipeline = @webgpu.create_cube_pipeline(device, format)
+  let spatial_ui = @webgpu.create_spatial_ui_renderer(device, format)
   let cube_vertex_buffer = @webgpu.create_cube_vertex_buffer(device)
   let cube_uniform_buffer = @webgpu.create_cube_uniform_buffer(device)
   let controller_uniform_buffer = @webgpu.create_cube_uniform_buffer(device)
@@ -112,6 +120,61 @@ async fn initialize() -> Unit {
   let mut cube_transform = @math.Mat4::translation(0.0, 0.0, -2.0)
   let mut grab_transform = @math.Mat4::identity()
   let mut last_controller_transform = @math.Mat4::identity()
+  let update_interaction = fn(
+    state : String,
+    controller : String,
+    label : String,
+    detail : String,
+  ) {
+    if interaction_state == state &&
+      interaction_controller == controller &&
+      interaction_detail == detail {
+      return
+    }
+    interaction_state = state
+    interaction_controller = controller
+    interaction_detail = detail
+    interaction.set_state(state, controller, label, detail)
+    @webgpu.update_spatial_ui(spatial_ui, state, controller, label, detail)
+  }
+  let update_controller_interaction = fn(controller : @ffi.XRControllerPose) {
+    let target_size = if cube_selected { 0.35 } else { 0.25 }
+    ray_hit = controller.is_valid() &&
+      controller_ray_hits_target(controller, cube_transform, target_size)
+    if !controller.is_valid() {
+      update_interaction(
+        "no-controller", "none", "コントローラー待ち", "XR コントローラーを接続してください",
+      )
+    } else if cube_grabbed {
+      update_interaction(
+        "grabbed",
+        controller.handedness(),
+        "掴んで移動中",
+        "select を離すと Cube を配置します",
+      )
+    } else if cube_selected {
+      update_interaction(
+        "selected",
+        controller.handedness(),
+        "選択中",
+        "Cube を選択しています",
+      )
+    } else if ray_hit {
+      update_interaction(
+        "hover",
+        controller.handedness(),
+        "Cube を狙い中",
+        "select で Cube を掴めます",
+      )
+    } else {
+      update_interaction(
+        "ready",
+        controller.handedness(),
+        "操作待機",
+        "レイを Cube に合わせてください",
+      )
+    }
+  }
   let dimensions = canvas.resize()
   let mut depth_width = canvas.pixel_width()
   let mut depth_height = canvas.pixel_height()
@@ -149,6 +212,9 @@ async fn initialize() -> Unit {
   @ffi.start_animation_frame(render)
   device.on_lost(message => status.set_message(message, "error"))
   status.set_message("WebGPU initialized (\{dimensions})", "success")
+  update_interaction(
+    "ready", "none", "準備完了", "VR を開始すると Cube を操作できます",
+  )
   let draw_xr = fn(
     timestamp : Double,
     binding : @ffi.XRGPUBinding,
@@ -177,9 +243,7 @@ async fn initialize() -> Unit {
         cube_transform = current_controller_transform.mul(grab_transform)
       }
     }
-    let target_size = if cube_selected { 0.35 } else { 0.25 }
-    ray_hit = controller.is_valid() &&
-      controller_ray_hits_target(controller, cube_transform, target_size)
+    update_controller_interaction(controller)
     for index = 0; index < pose.view_count(); index = index + 1 {
       let xr_view = pose.view(index)
       let projection = @math.Mat4::from_array(read_xr_matrix(xr_view, true))
@@ -228,11 +292,28 @@ async fn initialize() -> Unit {
         pass.set_bind_group(0, active_ray_bind_group)
         pass.draw(36)
       }
+      let ui_anchor = view
+        .inverse_rigid()
+        .mul(
+          @math.Mat4::translation(0.0, -0.28, -1.3).mul(
+            @math.Mat4::scale(0.62, 0.31, 1.0),
+          ),
+        )
+      @webgpu.draw_spatial_ui(
+        spatial_ui,
+        pass,
+        projection.mul(view.mul(ui_anchor)),
+      )
       pass.end()
       device.submit(encoder.finish())
     }
   }
-  let on_started = fn() { in_xr = true }
+  let on_started = fn() {
+    in_xr = true
+    update_interaction(
+      "starting", "none", "開始中", "XR セッションを開始しています…",
+    )
+  }
   let on_ended = fn() {
     in_xr = false
     select_pressed = false
@@ -251,6 +332,9 @@ async fn initialize() -> Unit {
     cube_transform = @math.Mat4::translation(0.0, 0.0, -2.0)
     grab_transform = @math.Mat4::identity()
     last_controller_transform = @math.Mat4::identity()
+    update_interaction(
+      "ready", "none", "準備完了", "VR を開始すると Cube を操作できます",
+    )
   }
   let on_select = fn(handedness, pressed) {
     select_pressed = pressed
@@ -265,14 +349,26 @@ async fn initialize() -> Unit {
           "XR selectstart (\{handedness}), Cube selected, Cube grabbed",
           "success",
         )
+        update_interaction(
+          "grabbed", handedness, "掴んで移動中", "select を離すと Cube を配置します",
+        )
       } else {
         status.set_message("XR selectstart (\{handedness})", "success")
+        update_interaction(
+          "ready", handedness, "操作待機", "Cube に当たっていません",
+        )
       }
     } else if cube_selected {
       cube_grabbed = false
       status.set_message("XR selectend (\{handedness}), Cube released", "info")
+      update_interaction(
+        "released", handedness, "配置完了", "Cube を離しました",
+      )
     } else {
       status.set_message("XR selectend (\{handedness})", "info")
+      update_interaction(
+        "ready", handedness, "操作待機", "select で Cube を掴めます",
+      )
     }
   }
   if @ffi.has_xr_gpu() {
@@ -294,9 +390,7 @@ async fn initialize() -> Unit {
           cube_transform = current_controller_transform.mul(grab_transform)
         }
       }
-      let target_size = if cube_selected { 0.35 } else { 0.25 }
-      ray_hit = controller.is_valid() &&
-        controller_ray_hits_target(controller, cube_transform, target_size)
+      update_controller_interaction(controller)
       for index = 0; index < pose.view_count(); index = index + 1 {
         let xr_view = pose.view(index)
         let projection = @math.Mat4::from_array(read_xr_matrix(xr_view, true))
@@ -336,6 +430,18 @@ async fn initialize() -> Unit {
             false,
           )
         }
+        let ui_anchor = view
+          .inverse_rigid()
+          .mul(
+            @math.Mat4::translation(0.0, -0.28, -1.3).mul(
+              @math.Mat4::scale(0.62, 0.31, 1.0),
+            ),
+          )
+        renderer.draw_spatial_ui(
+          layer,
+          xr_view,
+          projection.mul(view.mul(ui_anchor)).to_fixed_array(),
+        )
       }
     }
     setup_xr_button_with_webgl_renderer(
@@ -352,6 +458,12 @@ async fn start_async() -> Unit {
     error => {
       let status = @ffi.status()
       status.set_message(error.to_string(), "error")
+      @ffi.interaction().set_state(
+        "error",
+        "none",
+        "エラー",
+        error.to_string(),
+      )
     }
   } noraise {
     _ => ()

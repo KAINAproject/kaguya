@@ -20,6 +20,8 @@ pub fn has_xr_gpu() -> Bool
 
 pub fn has_xr_webgl() -> Bool
 
+pub fn interaction() -> InteractionElement
+
 pub fn start_animation_frame((Double) -> Unit) -> Unit
 
 pub fn status() -> StatusElement
@@ -74,6 +76,7 @@ pub fn Device::create_depth_texture(Self, Int, Int) -> Texture
 pub fn Device::create_mesh_render_pipeline(Self, ShaderModule, String) -> RenderPipeline
 pub fn Device::create_render_pipeline(Self, ShaderModule, String) -> RenderPipeline
 pub fn Device::create_shader_module(Self, String) -> ShaderModule
+pub fn Device::create_spatial_ui_renderer(Self, String) -> SpatialUiRenderer
 pub fn Device::create_uniform_buffer(Self, Int) -> GpuBuffer
 pub fn Device::create_vertex_buffer(Self, FixedArray[Double]) -> GpuBuffer
 pub fn Device::on_lost(Self, (String) -> Unit) -> Unit
@@ -89,6 +92,10 @@ pub fn Gpu::request_adapter(Self, Bool) -> @js_async.Promise[Adapter]
 pub type GpuBuffer
 
 #external
+pub type InteractionElement
+pub fn InteractionElement::set_state(Self, String, String, String, String) -> Unit
+
+#external
 pub type RenderPassEncoder
 pub fn RenderPassEncoder::draw(Self, Int) -> Unit
 pub fn RenderPassEncoder::end(Self) -> Unit
@@ -102,6 +109,11 @@ pub type RenderPipeline
 
 #external
 pub type ShaderModule
+
+#external
+pub type SpatialUiRenderer
+pub fn SpatialUiRenderer::draw(Self, RenderPassEncoder, FixedArray[Double]) -> Unit
+pub fn SpatialUiRenderer::set_state(Self, String, String, String, String) -> Unit
 
 #external
 pub type StatusElement
@@ -122,6 +134,7 @@ pub type WebGLContext
 pub type WebGLXRRenderer
 pub fn WebGLXRRenderer::context(Self) -> WebGLContext
 pub fn WebGLXRRenderer::draw_cube(Self, XRWebGLLayer, XRView, FixedArray[Double], Bool, Bool) -> Unit
+pub fn WebGLXRRenderer::draw_spatial_ui(Self, XRWebGLLayer, XRView, FixedArray[Double]) -> Unit
 
 #external
 pub type XRControllerPose
