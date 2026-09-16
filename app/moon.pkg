@@ -1,0 +1,13 @@
+// Kaguya browser application using the Three.js WebXR integration.
+
+import {
+  "KAINAproject/kaguya/three/xr" @three_xr,
+  "moonbitlang/async/js_async",
+  "mizchi/js_browser/dom",
+  "mizchi/js_core" @core,
+  "mizchi/three",
+}
+
+pkgtype(kind: "foreign_library")
+
+supported_targets = "js"

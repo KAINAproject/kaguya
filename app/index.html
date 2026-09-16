@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#111827" />
+    <title>Kaguya Three.js WebXR</title>
+  </head>
+  <body>
+    <main>
+      <p class="eyebrow">KAGUYA / XR APPLICATION</p>
+      <h1>Three.js WebXR</h1>
+      <p class="description">
+        three-mbt の scene graph と WebGLRenderer を使い、MoonBit から WebXR を開始する Kaguya のアプリ本体です。
+      </p>
+      <button id="enter-xr" type="button" disabled>WebXR を確認しています…</button>
+      <section
+        id="interaction"
+        class="interaction-panel"
+        data-state="initializing"
+        data-controller="none"
+        aria-live="polite"
+        aria-label="XR インタラクションの状態"
+      >
+        <p class="panel-label">INTERACTION</p>
+        <p id="interaction-state" class="interaction-state">準備中</p>
+        <p id="interaction-detail" class="interaction-detail">
+          XR セッションを確認しています…
+        </p>
+        <p id="interaction-controller" class="interaction-controller">
+          コントローラー —
+        </p>
+      </section>
+      <canvas id="canvas" aria-label="Three.js canvas"></canvas>
+      <p id="status" class="status" role="status" aria-live="polite">
+        Three.js を初期化しています…
+      </p>
+    </main>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>

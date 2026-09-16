@@ -3,9 +3,12 @@
   "private": true,
   "packageManager": "pnpm@11.25.0",
   "scripts": {
-    "dev": "pnpm --filter @kaguya/hello-xr-example run dev",
-    "build": "pnpm --filter @kaguya/hello-xr-example run build",
-    "test:e2e": "pnpm --filter @kaguya/hello-xr-example run test:e2e",
+    "dev": "pnpm --filter @kaguya/app run dev",
+    "build": "pnpm --filter @kaguya/app run build",
+    "test:e2e": "pnpm --filter @kaguya/app run test:e2e",
     "adb:reverse": "adb reverse tcp:5173 tcp:5173"
+  },
+  "dependencies": {
+    "three": "0.185.1"
   }
 }

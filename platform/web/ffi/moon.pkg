@@ -1,7 +1,0 @@
-// Low-level browser, WebGPU, and WebXR foreign-function bindings.
-
-import {
-  "moonbitlang/async/js_async",
-}
-
-supported_targets = "js"

@@ -1,0 +1,20 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "useDefineForClassFields": true,
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
+    "baseUrl": ".",
+    "paths": {
+      "@kaguya/runtime": [
+        "./.moonbit-build/js/release/build/app/app.d.ts"
+      ],
+      "moonbitlang/async/js_async": ["./src/moonbit-async"]
+    },
+    "strict": true,
+    "noEmit": true,
+    "types": ["vite/client"],
+    "skipLibCheck": true
+  },
+  "include": ["src", "vite.config.ts"]
+}

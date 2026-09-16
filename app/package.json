@@ -1,0 +1,30 @@
+{
+  "name": "@kaguya/app",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "build:moonbit": "moon build . --target js --release --target-dir .moonbit-build",
+    "setup:types": "moon install mizchi/ts/cmd/mbt2ts --bin .moonbit-tools",
+    "ensure:types": "test -x .moonbit-tools/mbt2ts || pnpm run setup:types",
+    "build:types": ".moonbit-tools/mbt2ts decl pkg.generated.mbti .moonbit-build/js/release/build/app/app.d.ts",
+    "predev": "pnpm run ensure:types && pnpm run build:moonbit && pnpm run build:types",
+    "dev": "vite --host",
+    "prebuild": "pnpm run ensure:types && pnpm run build:moonbit && pnpm run build:types",
+    "typecheck": "tsc --noEmit",
+    "build": "pnpm run typecheck && vite build",
+    "test:e2e": "playwright test",
+    "test:e2e:ui": "playwright test --ui",
+    "preview": "vite preview"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.63.0",
+    "@vitejs/plugin-basic-ssl": "^2.3.0",
+    "typescript": "^5.9.3",
+    "vite": "^8.2.2"
+  },
+  "dependencies": {
+    "@mizchi/three-mbt": "link:../.mooncakes/mizchi/three/js",
+    "three": "0.185.1"
+  }
+}
