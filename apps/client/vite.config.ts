@@ -2,7 +2,7 @@ import { defineConfig } from "vite"
 import basicSsl from "@vitejs/plugin-basic-ssl"
 
 const kaguyaRuntime = new URL(
-  "./.moonbit-build/js/release/build/app/app.js",
+  "./.moonbit-build/js/release/build/apps/client/src/src.js",
   import.meta.url,
 ).pathname
 

@@ -1,6 +1,6 @@
 # Kaguya XR application
 
-Kaguya の XR アプリケーション本体です。MoonBit から `mizchi/three-mbt` 経由で Three.js を使い、Kaguya の WebXR adapter で `WebXRManager` と接続します。pnpm workspace のパッケージとして、リポジトリルートから起動できます。
+Kaguya の XR クライアントです。MoonBit から `mizchi/three-mbt` 経由で Three.js を使い、Kaguya の WebXR adapter で `WebXRManager` と接続します。pnpm workspace のパッケージとして、リポジトリルートから起動できます。
 
 このアプリでの担当範囲は次の通りです。
 
@@ -20,7 +20,7 @@ pnpm install
 pnpm dev
 ```
 
-ルートの `pnpm dev` はこのパッケージを起動します。パッケージディレクトリから直接起動する場合は、`pnpm dev` も引き続き利用できます。
+ルートの `pnpm dev` はこのクライアントを起動します。クライアントディレクトリから直接起動する場合は、`pnpm dev` も利用できます。
 
 `mbt2ts` は `pnpm install` ではなく、`pnpm dev` と `pnpm build` の実行時に必要な場合だけ `mizchi/ts` から `.moonbit-tools/` へ自動インストールされます。
 
@@ -39,7 +39,7 @@ three.js の `WebXRManager` が XR カメラ、フレームループ、projectio
 ```sh
 # リポジトリルートで実行
 pnpm build
-pnpm --filter @kaguya/app exec playwright install chromium
+pnpm --filter @kaguya/client exec playwright install chromium
 pnpm test:e2e
 ```
 

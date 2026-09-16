@@ -3,9 +3,9 @@
   "private": true,
   "packageManager": "pnpm@11.25.0",
   "scripts": {
-    "dev": "pnpm --filter @kaguya/app run dev",
-    "build": "pnpm --filter @kaguya/app run build",
-    "test:e2e": "pnpm --filter @kaguya/app run test:e2e",
+    "dev": "pnpm --filter @kaguya/client run dev",
+    "build": "pnpm --filter @kaguya/client run build",
+    "test:e2e": "pnpm --filter @kaguya/client run test:e2e",
     "adb:reverse": "adb reverse tcp:5173 tcp:5173"
   },
   "dependencies": {
