@@ -236,6 +236,8 @@ async fn initialize() -> Unit {
       } else {
         status.set_message("XR selectstart (\{handedness})", "success")
       }
+    } else if cube_selected {
+      status.set_message("XR selectend (\{handedness}), Cube selected", "info")
     } else {
       status.set_message("XR selectend (\{handedness})", "info")
     }

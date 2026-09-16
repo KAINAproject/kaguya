@@ -49,6 +49,8 @@ test("renders a mocked stereo WebXR frame", async ({ page }) => {
     }
     const gripSpace = {}
     const targetRaySpace = {}
+    const leftGripSpace = {}
+    const leftTargetRaySpace = {}
 
     const makeTexture = () => ({
       createView: () => ({}),
@@ -117,6 +119,10 @@ test("renders a mocked stereo WebXR frame", async ({ page }) => {
             getViewerPose: () => pose,
             session: {
               inputSources: [{
+                handedness: "left",
+                gripSpace: leftGripSpace,
+                targetRaySpace: leftTargetRaySpace,
+              }, {
                 handedness: "right",
                 gripSpace,
                 targetRaySpace,
@@ -124,7 +130,14 @@ test("renders a mocked stereo WebXR frame", async ({ page }) => {
             },
             getPose: (space: unknown, _referenceSpace: unknown) => ({
               transform: {
-                matrix: space === targetRaySpace ? controller.rayMatrix : controller.matrix,
+                matrix: space === leftTargetRaySpace
+                  ? [
+                    1, 0, 0, 0,
+                    0, 1, 0, 0,
+                    0, 0, 1, 0,
+                    1, 0, -1, 1,
+                  ]
+                  : space === targetRaySpace ? controller.rayMatrix : controller.matrix,
               },
             }),
           })
@@ -261,6 +274,8 @@ test("falls back to WebGL for browsers without the WebGPU XR binding", async ({ 
     }
     const gripSpace = {}
     const targetRaySpace = {}
+    const leftGripSpace = {}
+    const leftTargetRaySpace = {}
 
     const fakeGl = {
       ARRAY_BUFFER: 0x8892,
@@ -370,11 +385,22 @@ test("falls back to WebGL for browsers without the WebGPU XR binding", async ({ 
           callback(performance.now(), {
             getViewerPose: () => pose,
             session: {
-              inputSources: [{ handedness: "right", gripSpace, targetRaySpace }],
+              inputSources: [{
+                handedness: "left",
+                gripSpace: leftGripSpace,
+                targetRaySpace: leftTargetRaySpace,
+              }, { handedness: "right", gripSpace, targetRaySpace }],
             },
             getPose: (space: unknown, _referenceSpace: unknown) => ({
               transform: {
-                matrix: space === targetRaySpace ? controller.rayMatrix : controller.matrix,
+                matrix: space === leftTargetRaySpace
+                  ? [
+                    1, 0, 0, 0,
+                    0, 1, 0, 0,
+                    0, 0, 1, 0,
+                    1, 0, -1, 1,
+                  ]
+                  : space === targetRaySpace ? controller.rayMatrix : controller.matrix,
               },
             }),
           })
