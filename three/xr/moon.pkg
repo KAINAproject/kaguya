@@ -1,4 +1,4 @@
-// WebXR bindings for three.js.
+// WebXR adapter for Three.js.
 
 import {
   "mizchi/three" @three_js,

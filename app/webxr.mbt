@@ -12,13 +12,13 @@ fn update_interaction(
 ///|
 async fn enter_xr(
   button : Button,
-  manager : @xr_three.WebXRManager,
+  manager : @three_xr.WebXRManager,
   status : StatusElement,
 ) -> Unit {
   button.set_enabled(false)
   button.set_label("VR セッションを開始しています…")
   try {
-    let session = @xr_three.request_immersive_vr_session().wait()
+    let session = @three_xr.request_immersive_vr_session().wait()
     manager.set_session(session).wait()
     status.set_message(
       "WebXR session active (three.js WebGLRenderer)", "success",
@@ -72,7 +72,7 @@ async fn initialize() -> Unit {
   let cube_object = cube.as_object3d()
   scene.add_child(cube_object)
 
-  let manager = @xr_three.manager(renderer)
+  let manager = @three_xr.manager(renderer)
   manager.set_enabled(true)
   manager.set_reference_space_type("local-floor")
   let controller = manager.get_controller(0)
@@ -97,7 +97,7 @@ async fn initialize() -> Unit {
   let ray_direction = @three.Vector3::Vector3(0.0, 0.0, -1.0)
   let raycaster = @three.Raycaster::Raycaster(ray_origin, ray_direction)
   ignore(
-    @xr_three.on_controller_connected(controller, fn(handedness) {
+    @three_xr.on_controller_connected(controller, fn(handedness) {
       set_state(
         "hover", handedness, "Cube を狙い中", "select で Cube を掴めます",
       )
@@ -105,14 +105,14 @@ async fn initialize() -> Unit {
     }),
   )
   ignore(
-    @xr_three.on_controller_disconnected(controller, fn() {
+    @three_xr.on_controller_disconnected(controller, fn() {
       set_state(
         "no-controller", "none", "コントローラー待ち", "XR コントローラーを接続してください",
       )
     }),
   )
   ignore(
-    @xr_three.on_select_start(controller, fn(handedness) {
+    @three_xr.on_select_start(controller, fn(handedness) {
       if is_targeting {
         is_grabbed = true
         cube.set_uniform_scale(1.2)
@@ -129,7 +129,7 @@ async fn initialize() -> Unit {
     }),
   )
   ignore(
-    @xr_three.on_select_end(controller, fn(handedness) {
+    @three_xr.on_select_end(controller, fn(handedness) {
       if is_grabbed {
         is_grabbed = false
         cube.set_uniform_scale(1.0)
@@ -183,13 +183,13 @@ async fn initialize() -> Unit {
   set_state(
     "ready", "none", "準備完了", "VR を開始すると Cube を操作できます",
   )
-  if !@xr_three.is_available() {
+  if !@three_xr.is_available() {
     button.set_label("WebXR は利用できません")
     status.set_message("WebXR は利用できません", "error")
     return
   }
   try {
-    let supported = @xr_three.is_session_supported().wait()
+    let supported = @three_xr.is_session_supported().wait()
     if supported {
       button.set_label("VR を開始")
       button.set_enabled(true)

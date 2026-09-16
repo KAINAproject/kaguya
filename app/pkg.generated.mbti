@@ -8,6 +8,8 @@ import {
 // Values
 pub fn kaguya_start() -> @js_async.Promise[Unit]
 
+pub fn start() -> @js_async.Promise[Unit]
+
 // Errors
 
 // Types and methods
