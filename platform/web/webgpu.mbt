@@ -15,6 +15,53 @@ fn read_controller_matrix(controller : @ffi.XRControllerPose) -> Array[Double] {
 }
 
 ///|
+fn read_controller_ray_matrix(
+  controller : @ffi.XRControllerPose,
+) -> Array[Double] {
+  Array::makei(16, fn(index) { controller.ray_matrix_value(index) })
+}
+
+///|
+fn target_model(selected : Bool) -> @math.Mat4 {
+  let size = if selected { 0.35 } else { 0.25 }
+  @math.Mat4::translation(0.0, 0.0, -2.0).mul(
+    @math.Mat4::scale(size, size, size),
+  )
+}
+
+///|
+fn controller_marker_model(controller : @ffi.XRControllerPose) -> @math.Mat4 {
+  @math.Mat4::from_array(read_controller_matrix(controller)).mul(
+    @math.Mat4::scale(0.08, 0.08, 0.08),
+  )
+}
+
+///|
+fn controller_ray_model(controller : @ffi.XRControllerPose) -> @math.Mat4 {
+  @math.Mat4::from_array(read_controller_ray_matrix(controller)).mul(
+    @math.Mat4::translation(0.0, 0.0, -1.5).mul(
+      @math.Mat4::scale(0.015, 0.015, 1.5),
+    ),
+  )
+}
+
+///|
+fn controller_ray_hits_target(
+  controller : @ffi.XRControllerPose,
+  target_size : Double,
+) -> Bool {
+  let matrix = read_controller_ray_matrix(controller)
+  let origin = @math.Vec3::new(matrix[12], matrix[13], matrix[14])
+  let direction = @math.Vec3::new(-matrix[8], -matrix[9], -matrix[10]).normalize()
+  @math.ray_intersects_aabb(
+    origin,
+    direction,
+    @math.Vec3::new(-target_size, -target_size, -2.0 - target_size),
+    @math.Vec3::new(target_size, target_size, -2.0 + target_size),
+  )
+}
+
+///|
 async fn initialize() -> Unit {
   let canvas = @ffi.canvas()
   let status = @ffi.status()
@@ -30,14 +77,24 @@ async fn initialize() -> Unit {
   let canvas_pipeline = @webgpu.create_cube_pipeline(device, format)
   let cube_vertex_buffer = @webgpu.create_cube_vertex_buffer(device)
   let cube_uniform_buffer = @webgpu.create_cube_uniform_buffer(device)
+  let controller_uniform_buffer = @webgpu.create_cube_uniform_buffer(device)
+  let ray_uniform_buffer = @webgpu.create_cube_uniform_buffer(device)
   let canvas_bind_group = @webgpu.create_cube_bind_group(
     device, canvas_pipeline, cube_uniform_buffer,
+  )
+  let mut active_controller_bind_group = @webgpu.create_cube_bind_group(
+    device, canvas_pipeline, controller_uniform_buffer,
+  )
+  let mut active_ray_bind_group = @webgpu.create_cube_bind_group(
+    device, canvas_pipeline, ray_uniform_buffer,
   )
   let mut active_pipeline = canvas_pipeline
   let mut active_bind_group = canvas_bind_group
   let mut active_format = format
   let mut in_xr = false
   let mut select_pressed = false
+  let mut cube_selected = false
+  let mut ray_hit = false
   let dimensions = canvas.resize()
   let mut depth_width = canvas.pixel_width()
   let mut depth_height = canvas.pixel_height()
@@ -88,19 +145,26 @@ async fn initialize() -> Unit {
       active_bind_group = @webgpu.create_cube_bind_group(
         device, active_pipeline, cube_uniform_buffer,
       )
+      active_controller_bind_group = @webgpu.create_cube_bind_group(
+        device, active_pipeline, controller_uniform_buffer,
+      )
+      active_ray_bind_group = @webgpu.create_cube_bind_group(
+        device, active_pipeline, ray_uniform_buffer,
+      )
       active_format = xr_format
     }
-    let model = if controller.is_valid() {
-      @math.Mat4::from_array(read_controller_matrix(controller)).mul(
-        @math.Mat4::scale(0.08, 0.08, 0.08),
-      )
-    } else {
-      @math.Mat4::rotation_y(timestamp / 2000.0)
-    }
+    let target_size = if cube_selected { 0.35 } else { 0.25 }
+    ray_hit = controller.is_valid() &&
+      controller_ray_hits_target(controller, target_size)
     for index = 0; index < pose.view_count(); index = index + 1 {
       let xr_view = pose.view(index)
       let projection = @math.Mat4::from_array(read_xr_matrix(xr_view, true))
       let view = @math.Mat4::from_array(read_xr_matrix(xr_view, false))
+      let model = if controller.is_valid() {
+        target_model(cube_selected)
+      } else {
+        @math.Mat4::rotation_y(timestamp / 2000.0)
+      }
       let mvp = projection.mul(view.mul(model))
       @webgpu.update_cube_uniform(device, cube_uniform_buffer, mvp)
       let encoder = device.create_command_encoder()
@@ -126,6 +190,20 @@ async fn initialize() -> Unit {
       pass.set_bind_group(0, active_bind_group)
       pass.set_vertex_buffer(0, cube_vertex_buffer)
       pass.draw(36)
+      if controller.is_valid() {
+        let controller_mvp = projection.mul(
+          view.mul(controller_marker_model(controller)),
+        )
+        let ray_mvp = projection.mul(view.mul(controller_ray_model(controller)))
+        @webgpu.update_cube_uniform(
+          device, controller_uniform_buffer, controller_mvp,
+        )
+        @webgpu.update_cube_uniform(device, ray_uniform_buffer, ray_mvp)
+        pass.set_bind_group(0, active_controller_bind_group)
+        pass.draw(36)
+        pass.set_bind_group(0, active_ray_bind_group)
+        pass.draw(36)
+      }
       pass.end()
       device.submit(encoder.finish())
     }
@@ -136,12 +214,28 @@ async fn initialize() -> Unit {
     select_pressed = false
     active_pipeline = canvas_pipeline
     active_bind_group = canvas_bind_group
+    active_controller_bind_group = @webgpu.create_cube_bind_group(
+      device, canvas_pipeline, controller_uniform_buffer,
+    )
+    active_ray_bind_group = @webgpu.create_cube_bind_group(
+      device, canvas_pipeline, ray_uniform_buffer,
+    )
     active_format = format
+    cube_selected = false
+    ray_hit = false
   }
   let on_select = fn(handedness, pressed) {
     select_pressed = pressed
     if pressed {
-      status.set_message("XR selectstart (\{handedness})", "success")
+      if ray_hit {
+        cube_selected = true
+        status.set_message(
+          "XR selectstart (\{handedness}), Cube selected",
+          "success",
+        )
+      } else {
+        status.set_message("XR selectstart (\{handedness})", "success")
+      }
     } else {
       status.set_message("XR selectend (\{handedness})", "info")
     }
@@ -158,19 +252,48 @@ async fn initialize() -> Unit {
       pose : @ffi.XRViewerPose,
       controller : @ffi.XRControllerPose,
     ) {
-      let model = if controller.is_valid() {
-        @math.Mat4::from_array(read_controller_matrix(controller)).mul(
-          @math.Mat4::scale(0.08, 0.08, 0.08),
-        )
-      } else {
-        @math.Mat4::rotation_y(timestamp / 2000.0)
-      }
+      let target_size = if cube_selected { 0.35 } else { 0.25 }
+      ray_hit = controller.is_valid() &&
+        controller_ray_hits_target(controller, target_size)
       for index = 0; index < pose.view_count(); index = index + 1 {
         let xr_view = pose.view(index)
         let projection = @math.Mat4::from_array(read_xr_matrix(xr_view, true))
         let view = @math.Mat4::from_array(read_xr_matrix(xr_view, false))
-        let mvp = projection.mul(view.mul(model))
-        renderer.draw_cube(layer, xr_view, mvp.to_fixed_array(), select_pressed)
+        let target = if controller.is_valid() {
+          target_model(cube_selected)
+        } else {
+          @math.Mat4::rotation_y(timestamp / 2000.0)
+        }
+        let target_mvp = projection.mul(view.mul(target))
+        renderer.draw_cube(
+          layer,
+          xr_view,
+          target_mvp.to_fixed_array(),
+          select_pressed,
+          true,
+        )
+        if controller.is_valid() {
+          let controller_mvp = projection.mul(
+            view.mul(controller_marker_model(controller)),
+          )
+          let ray_mvp = projection.mul(
+            view.mul(controller_ray_model(controller)),
+          )
+          renderer.draw_cube(
+            layer,
+            xr_view,
+            controller_mvp.to_fixed_array(),
+            select_pressed,
+            false,
+          )
+          renderer.draw_cube(
+            layer,
+            xr_view,
+            ray_mvp.to_fixed_array(),
+            select_pressed,
+            false,
+          )
+        }
       }
     }
     setup_xr_button_with_webgl_renderer(

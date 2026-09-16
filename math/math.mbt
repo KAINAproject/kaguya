@@ -26,6 +26,84 @@ pub fn Vec3::scale(self : Vec3, scalar : Double) -> Vec3 {
 }
 
 ///|
+pub fn ray_intersects_aabb(
+  origin : Vec3,
+  direction : Vec3,
+  minimum : Vec3,
+  maximum : Vec3,
+) -> Bool {
+  let mut near = 0.0
+  let mut far = 1000000.0
+  if direction.x == 0.0 {
+    if origin.x < minimum.x || origin.x > maximum.x {
+      return false
+    }
+  } else {
+    let mut axis_near = (minimum.x - origin.x) / direction.x
+    let mut axis_far = (maximum.x - origin.x) / direction.x
+    if axis_near > axis_far {
+      let temporary = axis_near
+      axis_near = axis_far
+      axis_far = temporary
+    }
+    if axis_near > near {
+      near = axis_near
+    }
+    if axis_far < far {
+      far = axis_far
+    }
+    if near > far {
+      return false
+    }
+  }
+  if direction.y == 0.0 {
+    if origin.y < minimum.y || origin.y > maximum.y {
+      return false
+    }
+  } else {
+    let mut axis_near = (minimum.y - origin.y) / direction.y
+    let mut axis_far = (maximum.y - origin.y) / direction.y
+    if axis_near > axis_far {
+      let temporary = axis_near
+      axis_near = axis_far
+      axis_far = temporary
+    }
+    if axis_near > near {
+      near = axis_near
+    }
+    if axis_far < far {
+      far = axis_far
+    }
+    if near > far {
+      return false
+    }
+  }
+  if direction.z == 0.0 {
+    if origin.z < minimum.z || origin.z > maximum.z {
+      return false
+    }
+  } else {
+    let mut axis_near = (minimum.z - origin.z) / direction.z
+    let mut axis_far = (maximum.z - origin.z) / direction.z
+    if axis_near > axis_far {
+      let temporary = axis_near
+      axis_near = axis_far
+      axis_far = temporary
+    }
+    if axis_near > near {
+      near = axis_near
+    }
+    if axis_far < far {
+      far = axis_far
+    }
+    if near > far {
+      return false
+    }
+  }
+  far >= 0.0
+}
+
+///|
 pub fn Vec3::dot(self : Vec3, other : Vec3) -> Double {
   self.x * other.x + self.y * other.y + self.z * other.z
 }

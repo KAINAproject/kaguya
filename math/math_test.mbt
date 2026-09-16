@@ -12,6 +12,24 @@ test "Vec3 cross product and normalization" {
 }
 
 ///|
+test "ray intersects an axis-aligned cube" {
+  let hit = @math.ray_intersects_aabb(
+    @math.Vec3::new(0.0, 0.0, 0.0),
+    @math.Vec3::new(0.0, 0.0, -1.0),
+    @math.Vec3::new(-0.5, -0.5, -2.5),
+    @math.Vec3::new(0.5, 0.5, -1.5),
+  )
+  assert_true(hit)
+  let miss = @math.ray_intersects_aabb(
+    @math.Vec3::new(1.0, 0.0, 0.0),
+    @math.Vec3::new(0.0, 0.0, -1.0),
+    @math.Vec3::new(-0.5, -0.5, -2.5),
+    @math.Vec3::new(0.5, 0.5, -1.5),
+  )
+  assert_false(miss)
+}
+
+///|
 test "Mat4 multiplication preserves identity and translation" {
   let identity = @math.Mat4::identity()
   let translation = @math.Mat4::translation(1.0, 2.0, 3.0)

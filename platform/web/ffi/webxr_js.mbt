@@ -170,16 +170,20 @@ pub extern "js" fn XRSession::request_animation_frame(
   #|         valid: false,
   #|         handedness: "none",
   #|         matrix: [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1],
+  #|         rayMatrix: [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1],
   #|       }
   #|       for (const inputSource of xrFrame.session.inputSources) {
   #|         const inputSpace = inputSource.gripSpace || inputSource.targetRaySpace
+  #|         const raySpace = inputSource.targetRaySpace || inputSpace
   #|         if (!inputSpace) continue
   #|         const inputPose = xrFrame.getPose(inputSpace, referenceSpace)
-  #|         if (!inputPose) continue
+  #|         const rayPose = xrFrame.getPose(raySpace, referenceSpace)
+  #|         if (!inputPose || !rayPose) continue
   #|         controller = {
   #|           valid: true,
   #|           handedness: inputSource.handedness || "none",
   #|           matrix: inputPose.transform.matrix,
+  #|           rayMatrix: rayPose.transform.matrix,
   #|         }
   #|         break
   #|       }
@@ -206,6 +210,13 @@ pub extern "js" fn XRControllerPose::matrix_value(
   index : Int,
 ) -> Double =
   #| (pose, index) => pose.matrix[index]
+
+///|
+pub extern "js" fn XRControllerPose::ray_matrix_value(
+  self : XRControllerPose,
+  index : Int,
+) -> Double =
+  #| (pose, index) => pose.rayMatrix[index]
 
 ///|
 pub extern "js" fn XRViewerPose::view_count(self : XRViewerPose) -> Int =

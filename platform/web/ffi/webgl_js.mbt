@@ -88,20 +88,23 @@ pub extern "js" fn WebGLXRRenderer::draw_cube(
   view : XRView,
   mvp : FixedArray[Double],
   pressed : Bool,
+  clear : Bool,
 ) -> Unit =
-  #| (renderer, layer, view, mvp, pressed) => {
+  #| (renderer, layer, view, mvp, pressed, clear) => {
   #|   const { gl, program, buffer, position, color, mvp: mvpLocation } = renderer
   #|   const viewport = layer.getViewport(view)
   #|   gl.bindFramebuffer(gl.FRAMEBUFFER, layer.framebuffer)
   #|   gl.enable(gl.SCISSOR_TEST)
   #|   gl.scissor(viewport.x, viewport.y, viewport.width, viewport.height)
   #|   gl.viewport(viewport.x, viewport.y, viewport.width, viewport.height)
-  #|   if (pressed) {
-  #|     gl.clearColor(0.65, 0.12, 0.08, 1.0)
-  #|   } else {
-  #|     gl.clearColor(0.05, 0.08, 0.16, 1.0)
+  #|   if (clear) {
+  #|     if (pressed) {
+  #|       gl.clearColor(0.65, 0.12, 0.08, 1.0)
+  #|     } else {
+  #|       gl.clearColor(0.05, 0.08, 0.16, 1.0)
+  #|     }
+  #|     gl.clear(gl.COLOR_BUFFER_BIT)
   #|   }
-  #|   gl.clear(gl.COLOR_BUFFER_BIT)
   #|   gl.disable(gl.DEPTH_TEST)
   #|   gl.enable(gl.CULL_FACE)
   #|   gl.cullFace(gl.BACK)

@@ -2,6 +2,7 @@
 package "KAINAproject/kaguya/math"
 
 // Values
+pub fn ray_intersects_aabb(Vec3, Vec3, Vec3, Vec3) -> Bool
 
 // Errors
 

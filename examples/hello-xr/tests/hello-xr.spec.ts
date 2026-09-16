@@ -40,7 +40,15 @@ test("renders a mocked stereo WebXR frame", async ({ page }) => {
         0, 0, 1, 0,
         0.4, 0, -1, 1,
       ],
+      rayMatrix: [
+        1, 0, 0, 0,
+        0, 1, 0, 0,
+        0, 0, 1, 0,
+        0, 0, -1, 1,
+      ],
     }
+    const gripSpace = {}
+    const targetRaySpace = {}
 
     const makeTexture = () => ({
       createView: () => ({}),
@@ -108,9 +116,17 @@ test("renders a mocked stereo WebXR frame", async ({ page }) => {
           callback(performance.now(), {
             getViewerPose: () => pose,
             session: {
-              inputSources: [{ handedness: "right", gripSpace: {} }],
+              inputSources: [{
+                handedness: "right",
+                gripSpace,
+                targetRaySpace,
+              }],
             },
-            getPose: () => ({ transform: { matrix: controller.matrix } }),
+            getPose: (space: unknown, _referenceSpace: unknown) => ({
+              transform: {
+                matrix: space === targetRaySpace ? controller.rayMatrix : controller.matrix,
+              },
+            }),
           })
           window.setTimeout(() => {
             this.selectListeners.forEach((listener) => {
@@ -207,6 +223,7 @@ test("renders a mocked stereo WebXR frame", async ({ page }) => {
   await expect(page.locator("#status")).toContainText("WebXR session active (2 views)")
   await expect(page.locator("#status")).toContainText("controller: right")
   await expect(page.locator("#status")).toContainText("XR selectstart (right)")
+  await expect(page.locator("#status")).toContainText("Cube selected")
   await expect(page.locator("#status")).toContainText("XR selectend (right)")
   expect(pageErrors).toHaveLength(0)
 })
@@ -235,7 +252,15 @@ test("falls back to WebGL for browsers without the WebGPU XR binding", async ({ 
         0, 0, 1, 0,
         0.4, 0, -1, 1,
       ],
+      rayMatrix: [
+        1, 0, 0, 0,
+        0, 1, 0, 0,
+        0, 0, 1, 0,
+        0, 0, -1, 1,
+      ],
     }
+    const gripSpace = {}
+    const targetRaySpace = {}
 
     const fakeGl = {
       ARRAY_BUFFER: 0x8892,
@@ -345,9 +370,13 @@ test("falls back to WebGL for browsers without the WebGPU XR binding", async ({ 
           callback(performance.now(), {
             getViewerPose: () => pose,
             session: {
-              inputSources: [{ handedness: "right", gripSpace: {} }],
+              inputSources: [{ handedness: "right", gripSpace, targetRaySpace }],
             },
-            getPose: () => ({ transform: { matrix: controller.matrix } }),
+            getPose: (space: unknown, _referenceSpace: unknown) => ({
+              transform: {
+                matrix: space === targetRaySpace ? controller.rayMatrix : controller.matrix,
+              },
+            }),
           })
           window.setTimeout(() => {
             this.selectListeners.forEach((listener) => {
@@ -421,6 +450,7 @@ test("falls back to WebGL for browsers without the WebGPU XR binding", async ({ 
   await expect(page.locator("#status")).toContainText("WebXR session active (2 views, WebGL)")
   await expect(page.locator("#status")).toContainText("controller: right")
   await expect(page.locator("#status")).toContainText("XR selectstart (right)")
+  await expect(page.locator("#status")).toContainText("Cube selected")
   await expect(page.locator("#status")).toContainText("XR selectend (right)")
   expect(pageErrors).toHaveLength(0)
 })
