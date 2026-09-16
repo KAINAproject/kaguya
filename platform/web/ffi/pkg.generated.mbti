@@ -124,6 +124,12 @@ pub fn WebGLXRRenderer::context(Self) -> WebGLContext
 pub fn WebGLXRRenderer::draw_cube(Self, XRWebGLLayer, XRView, FixedArray[Double], Bool) -> Unit
 
 #external
+pub type XRControllerPose
+pub fn XRControllerPose::handedness(Self) -> String
+pub fn XRControllerPose::is_valid(Self) -> Bool
+pub fn XRControllerPose::matrix_value(Self, Int) -> Double
+
+#external
 pub type XRGPUBinding
 pub fn XRGPUBinding::create_projection_layer(Self, String, String) -> XRProjectionLayer
 pub fn XRGPUBinding::get_preferred_color_format(Self) -> String
@@ -147,7 +153,7 @@ pub fn XRSession::create_gpu_binding(Self, Device) -> XRGPUBinding
 pub fn XRSession::create_webgl_layer(Self, WebGLContext) -> XRWebGLLayer
 pub fn XRSession::on_end(Self, () -> Unit) -> Unit
 pub fn XRSession::on_select(Self, (String, Bool) -> Unit) -> Unit
-pub fn XRSession::request_animation_frame(Self, XRReferenceSpace, (Double, XRViewerPose) -> Unit) -> Unit
+pub fn XRSession::request_animation_frame(Self, XRReferenceSpace, (Double, XRViewerPose, XRControllerPose) -> Unit) -> Unit
 pub fn XRSession::request_reference_space(Self) -> @js_async.Promise[XRReferenceSpace]
 pub fn XRSession::update_render_state(Self, XRProjectionLayer) -> Unit
 pub fn XRSession::update_render_state_webgl(Self, XRWebGLLayer) -> Unit

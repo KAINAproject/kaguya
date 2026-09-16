@@ -14,6 +14,7 @@ pub fn Mat4::identity() -> Self
 pub fn Mat4::mul(Self, Self) -> Self
 pub fn Mat4::perspective(Double, Double, Double, Double) -> Self
 pub fn Mat4::rotation_y(Double) -> Self
+pub fn Mat4::scale(Double, Double, Double) -> Self
 pub fn Mat4::to_fixed_array(Self) -> FixedArray[Double]
 pub fn Mat4::transform_point(Self, Vec3) -> Vec3
 pub fn Mat4::translation(Double, Double, Double) -> Self

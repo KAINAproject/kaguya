@@ -49,7 +49,7 @@ async fn start_async(
   let session = @ffi.xr().request_immersive_vr_session().wait()
   let reference_space = session.request_reference_space().wait()
   session.on_end(on_end)
-  session.request_animation_frame(reference_space, fn(time, pose) {
+  session.request_animation_frame(reference_space, fn(time, pose, _controller) {
     on_frame(read_pose(pose))
     ignore(time)
   })
