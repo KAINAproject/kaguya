@@ -1,6 +1,14 @@
-# hello-xr
+# Kaguya XR application
 
-three-mbt の scene graph と WebGLRenderer、Kaguya の WebXR バインディングを確認する最小ブラウザ example です。pnpm workspace のパッケージとして、リポジトリルートから起動できます。
+Kaguya の XR アプリケーション本体です。MoonBit から `mizchi/three-mbt` 経由で Three.js を使い、Kaguya の WebXR adapter で `WebXRManager` と接続します。pnpm workspace のパッケージとして、リポジトリルートから起動できます。
+
+このアプリでの担当範囲は次の通りです。
+
+- Three.js: scene graph、`WebGLRenderer`、XR camera、frame loop、projection layer、controller pose
+- Kaguya: WebXR session の開始、`WebXRManager` binding、controller event、XR interaction
+- MoonBit application code: Cube の表示、Raycaster による hover、select による grab/release、画面の状態表示
+
+Kaguya 自身が WebGL/WebGPU renderer を実装する構成ではありません。現在のブラウザ統合は Three.js の WebGL renderer を使います。
 
 ## 起動
 

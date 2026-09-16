@@ -1,4 +1,4 @@
-// Minimal browser example for the Three.js WebXR integration.
+// Kaguya browser application using the Three.js WebXR integration.
 
 import {
   "moonbitlang/async/js_async",

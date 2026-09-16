@@ -1,12 +1,12 @@
 import { expect, test } from "@playwright/test"
 
-test("Three.js WebXR example boots", async ({ page }) => {
+test("Kaguya Three.js WebXR app boots", async ({ page }) => {
   const pageErrors: Error[] = []
   page.on("pageerror", (error) => pageErrors.push(error))
 
   await page.goto("/")
 
-  await expect(page).toHaveTitle("Kaguya Three.js WebXR Example")
+  await expect(page).toHaveTitle("Kaguya Three.js WebXR")
   await expect(page.locator("#canvas")).toBeVisible()
   await expect(page.locator("#enter-xr")).toBeVisible()
   await expect(page.locator("#interaction")).toBeVisible()

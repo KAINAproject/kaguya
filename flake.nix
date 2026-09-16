@@ -1,5 +1,5 @@
 {
-  description = "WebXR Framework for Humanoid Development, Written in MoonBit.";
+  description = "MoonBit XR application for humanoid development, built on Three.js.";
 
   inputs = {
     flake-parts.url = "github:hercules-ci/flake-parts";
