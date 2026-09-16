@@ -1,5 +1,0 @@
-// import {
-//   "KAINAproject/kaguya" @lib,
-// }
-
-pkgtype(kind: "executable")
