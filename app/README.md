@@ -39,7 +39,7 @@ three.js の `WebXRManager` が XR カメラ、フレームループ、projectio
 ```sh
 # リポジトリルートで実行
 pnpm build
-pnpm --filter @kaguya/hello-xr-example exec playwright install chromium
+pnpm --filter @kaguya/app exec playwright install chromium
 pnpm test:e2e
 ```
 

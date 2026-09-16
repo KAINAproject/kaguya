@@ -7,7 +7,7 @@
     "baseUrl": ".",
     "paths": {
       "@kaguya/runtime": [
-        "./.moonbit-build/js/release/build/examples/hello-xr/hello-xr.d.ts"
+        "./.moonbit-build/js/release/build/app/app.d.ts"
       ],
       "moonbitlang/async/js_async": ["./src/moonbit-async"]
     },

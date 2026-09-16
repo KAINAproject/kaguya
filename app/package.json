@@ -1,5 +1,5 @@
 {
-  "name": "@kaguya/hello-xr-example",
+  "name": "@kaguya/app",
   "private": true,
   "version": "0.0.0",
   "type": "module",
@@ -7,7 +7,7 @@
     "build:moonbit": "moon build . --target js --release --target-dir .moonbit-build",
     "setup:types": "moon install mizchi/ts/cmd/mbt2ts --bin .moonbit-tools",
     "ensure:types": "test -x .moonbit-tools/mbt2ts || pnpm run setup:types",
-    "build:types": ".moonbit-tools/mbt2ts decl pkg.generated.mbti .moonbit-build/js/release/build/examples/hello-xr/hello-xr.d.ts",
+    "build:types": ".moonbit-tools/mbt2ts decl pkg.generated.mbti .moonbit-build/js/release/build/app/app.d.ts",
     "predev": "pnpm run ensure:types && pnpm run build:moonbit && pnpm run build:types",
     "dev": "vite --host",
     "prebuild": "pnpm run ensure:types && pnpm run build:moonbit && pnpm run build:types",
@@ -24,7 +24,7 @@
     "vite": "^8.2.2"
   },
   "dependencies": {
-    "@mizchi/three-mbt": "link:../../.mooncakes/mizchi/three/js",
+    "@mizchi/three-mbt": "link:../.mooncakes/mizchi/three/js",
     "three": "0.185.1"
   }
 }

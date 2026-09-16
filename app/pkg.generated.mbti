@@ -1,5 +1,5 @@
 // Generated using `moon info`, DON'T EDIT IT
-package "KAINAproject/kaguya/examples/hello-xr"
+package "KAINAproject/kaguya/app"
 
 import {
   "moonbitlang/async/js_async",

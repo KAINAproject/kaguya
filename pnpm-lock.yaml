@@ -12,11 +12,11 @@ importers:
         specifier: 0.185.1
         version: 0.185.1
 
-  examples/hello-xr:
+  app:
     dependencies:
       '@mizchi/three-mbt':
-        specifier: link:../../.mooncakes/mizchi/three/js
-        version: link:../../.mooncakes/mizchi/three/js
+        specifier: link:../.mooncakes/mizchi/three/js
+        version: link:../.mooncakes/mizchi/three/js
       three:
         specifier: 0.185.1
         version: 0.185.1

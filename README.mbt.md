@@ -45,7 +45,7 @@ The browser boundary is therefore:
 MoonBit → mizchi/three-mbt / Kaguya adapter → Three.js → WebGL / WebXR
 ```
 
-The [browser application](examples/hello-xr/README.md) is the main application for this repository.
+The [browser application](app/README.md) is the main application for this repository.
 
 ## 開発
 
