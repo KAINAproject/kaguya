@@ -20,7 +20,6 @@ pub fn Mat4::scale(Double, Double, Double) -> Self
 pub fn Mat4::to_fixed_array(Self) -> FixedArray[Double]
 pub fn Mat4::transform_point(Self, Vec3) -> Vec3
 pub fn Mat4::translation(Double, Double, Double) -> Self
-pub fn Mat4::without_translation(Self) -> Self
 
 pub struct Vec3 {
   x : Double

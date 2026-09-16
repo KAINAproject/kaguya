@@ -27,15 +27,9 @@ fn read_controller_ray_matrix(
 }
 
 ///|
-fn target_model(
-  position : @math.Vec3,
-  rotation : @math.Mat4,
-  selected : Bool,
-) -> @math.Mat4 {
+fn target_model(transform : @math.Mat4, selected : Bool) -> @math.Mat4 {
   let size = if selected { 0.35 } else { 0.25 }
-  @math.Mat4::translation(position.x, position.y, position.z)
-  .mul(rotation)
-  .mul(@math.Mat4::scale(size, size, size))
+  transform.mul(@math.Mat4::scale(size, size, size))
 }
 
 ///|
@@ -57,12 +51,13 @@ fn controller_ray_model(controller : @ffi.XRControllerPose) -> @math.Mat4 {
 ///|
 fn controller_ray_hits_target(
   controller : @ffi.XRControllerPose,
-  position : @math.Vec3,
+  transform : @math.Mat4,
   target_size : Double,
 ) -> Bool {
   let matrix = read_controller_ray_matrix(controller)
   let origin = @math.Vec3::new(matrix[12], matrix[13], matrix[14])
   let direction = @math.Vec3::new(-matrix[8], -matrix[9], -matrix[10]).normalize()
+  let position = transform.transform_point(@math.Vec3::new(0.0, 0.0, 0.0))
   @math.ray_intersects_aabb(
     origin,
     direction,
@@ -114,11 +109,8 @@ async fn initialize() -> Unit {
   let mut cube_selected = false
   let mut ray_hit = false
   let mut cube_grabbed = false
-  let mut cube_position = @math.Vec3::new(0.0, 0.0, -2.0)
-  let mut cube_rotation = @math.Mat4::identity()
-  let mut grab_start_cube_position = @math.Vec3::new(0.0, 0.0, -2.0)
-  let mut grab_start_controller_position = @math.Vec3::new(0.0, 0.0, 0.0)
-  let mut grab_rotation_offset = @math.Mat4::identity()
+  let mut cube_transform = @math.Mat4::translation(0.0, 0.0, -2.0)
+  let mut grab_transform = @math.Mat4::identity()
   let mut last_controller_transform = @math.Mat4::identity()
   let dimensions = canvas.resize()
   let mut depth_width = canvas.pixel_width()
@@ -182,26 +174,18 @@ async fn initialize() -> Unit {
       let current_controller_transform = read_controller_transform(controller)
       last_controller_transform = current_controller_transform
       if cube_grabbed {
-        let current_controller_position = current_controller_transform.transform_point(
-          @math.Vec3::new(0.0, 0.0, 0.0),
-        )
-        cube_position = grab_start_cube_position.add(
-          current_controller_position.sub(grab_start_controller_position),
-        )
-        cube_rotation = current_controller_transform
-          .without_translation()
-          .mul(grab_rotation_offset)
+        cube_transform = current_controller_transform.mul(grab_transform)
       }
     }
     let target_size = if cube_selected { 0.35 } else { 0.25 }
     ray_hit = controller.is_valid() &&
-      controller_ray_hits_target(controller, cube_position, target_size)
+      controller_ray_hits_target(controller, cube_transform, target_size)
     for index = 0; index < pose.view_count(); index = index + 1 {
       let xr_view = pose.view(index)
       let projection = @math.Mat4::from_array(read_xr_matrix(xr_view, true))
       let view = @math.Mat4::from_array(read_xr_matrix(xr_view, false))
       let model = if controller.is_valid() {
-        target_model(cube_position, cube_rotation, cube_selected)
+        target_model(cube_transform, cube_selected)
       } else {
         @math.Mat4::rotation_y(timestamp / 2000.0)
       }
@@ -264,11 +248,8 @@ async fn initialize() -> Unit {
     cube_selected = false
     ray_hit = false
     cube_grabbed = false
-    cube_position = @math.Vec3::new(0.0, 0.0, -2.0)
-    cube_rotation = @math.Mat4::identity()
-    grab_start_cube_position = @math.Vec3::new(0.0, 0.0, -2.0)
-    grab_start_controller_position = @math.Vec3::new(0.0, 0.0, 0.0)
-    grab_rotation_offset = @math.Mat4::identity()
+    cube_transform = @math.Mat4::translation(0.0, 0.0, -2.0)
+    grab_transform = @math.Mat4::identity()
     last_controller_transform = @math.Mat4::identity()
   }
   let on_select = fn(handedness, pressed) {
@@ -277,14 +258,9 @@ async fn initialize() -> Unit {
       if ray_hit {
         cube_selected = true
         cube_grabbed = true
-        grab_start_cube_position = cube_position
-        grab_start_controller_position = last_controller_transform.transform_point(
-          @math.Vec3::new(0.0, 0.0, 0.0),
-        )
-        grab_rotation_offset = last_controller_transform
-          .without_translation()
+        grab_transform = last_controller_transform
           .inverse_rigid()
-          .mul(cube_rotation)
+          .mul(cube_transform)
         status.set_message(
           "XR selectstart (\{handedness}), Cube selected, Cube grabbed",
           "success",
@@ -315,26 +291,18 @@ async fn initialize() -> Unit {
         let current_controller_transform = read_controller_transform(controller)
         last_controller_transform = current_controller_transform
         if cube_grabbed {
-          let current_controller_position = current_controller_transform.transform_point(
-            @math.Vec3::new(0.0, 0.0, 0.0),
-          )
-          cube_position = grab_start_cube_position.add(
-            current_controller_position.sub(grab_start_controller_position),
-          )
-          cube_rotation = current_controller_transform
-            .without_translation()
-            .mul(grab_rotation_offset)
+          cube_transform = current_controller_transform.mul(grab_transform)
         }
       }
       let target_size = if cube_selected { 0.35 } else { 0.25 }
       ray_hit = controller.is_valid() &&
-        controller_ray_hits_target(controller, cube_position, target_size)
+        controller_ray_hits_target(controller, cube_transform, target_size)
       for index = 0; index < pose.view_count(); index = index + 1 {
         let xr_view = pose.view(index)
         let projection = @math.Mat4::from_array(read_xr_matrix(xr_view, true))
         let view = @math.Mat4::from_array(read_xr_matrix(xr_view, false))
         let target = if controller.is_valid() {
-          target_model(cube_position, cube_rotation, cube_selected)
+          target_model(cube_transform, cube_selected)
         } else {
           @math.Mat4::rotation_y(timestamp / 2000.0)
         }
