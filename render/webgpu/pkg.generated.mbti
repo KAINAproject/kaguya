@@ -19,13 +19,19 @@ pub fn create_cube_vertex_buffer(@ffi.Device) -> @ffi.GpuBuffer
 
 pub fn create_cube_webgl_xr_renderer() -> @ffi.WebGLXRRenderer
 
+pub fn create_spatial_ui_renderer(@ffi.Device, String) -> @ffi.SpatialUiRenderer
+
 pub fn create_triangle_pipeline(@ffi.Device, String) -> @ffi.RenderPipeline
 
 pub fn draw_cube(@ffi.Device, @ffi.CanvasContext, @ffi.RenderPipeline, @ffi.GpuBuffer, @ffi.BindGroup, @ffi.TextureView) -> Unit
 
+pub fn draw_spatial_ui(@ffi.SpatialUiRenderer, @ffi.RenderPassEncoder, @math.Mat4) -> Unit
+
 pub fn draw_triangle(@ffi.Device, @ffi.CanvasContext, @ffi.RenderPipeline) -> Unit
 
 pub fn update_cube_uniform(@ffi.Device, @ffi.GpuBuffer, @math.Mat4) -> Unit
+
+pub fn update_spatial_ui(@ffi.SpatialUiRenderer, String, String, String, String) -> Unit
 
 // Errors
 

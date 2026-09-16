@@ -95,6 +95,7 @@ async fn initialize() -> Unit {
   let format = gpu.preferred_canvas_format()
   context.configure(device, format)
   let canvas_pipeline = @webgpu.create_cube_pipeline(device, format)
+  let spatial_ui = @webgpu.create_spatial_ui_renderer(device, format)
   let cube_vertex_buffer = @webgpu.create_cube_vertex_buffer(device)
   let cube_uniform_buffer = @webgpu.create_cube_uniform_buffer(device)
   let controller_uniform_buffer = @webgpu.create_cube_uniform_buffer(device)
@@ -134,6 +135,7 @@ async fn initialize() -> Unit {
     interaction_controller = controller
     interaction_detail = detail
     interaction.set_state(state, controller, label, detail)
+    @webgpu.update_spatial_ui(spatial_ui, state, controller, label, detail)
   }
   let update_controller_interaction = fn(controller : @ffi.XRControllerPose) {
     let target_size = if cube_selected { 0.35 } else { 0.25 }
@@ -290,6 +292,18 @@ async fn initialize() -> Unit {
         pass.set_bind_group(0, active_ray_bind_group)
         pass.draw(36)
       }
+      let ui_anchor = view
+        .inverse_rigid()
+        .mul(
+          @math.Mat4::translation(0.0, -0.28, -1.3).mul(
+            @math.Mat4::scale(0.62, 0.31, 1.0),
+          ),
+        )
+      @webgpu.draw_spatial_ui(
+        spatial_ui,
+        pass,
+        projection.mul(view.mul(ui_anchor)),
+      )
       pass.end()
       device.submit(encoder.finish())
     }
@@ -416,6 +430,18 @@ async fn initialize() -> Unit {
             false,
           )
         }
+        let ui_anchor = view
+          .inverse_rigid()
+          .mul(
+            @math.Mat4::translation(0.0, -0.28, -1.3).mul(
+              @math.Mat4::scale(0.62, 0.31, 1.0),
+            ),
+          )
+        renderer.draw_spatial_ui(
+          layer,
+          xr_view,
+          projection.mul(view.mul(ui_anchor)).to_fixed_array(),
+        )
       }
     }
     setup_xr_button_with_webgl_renderer(

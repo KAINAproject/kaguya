@@ -24,6 +24,8 @@ pnpm dev
 
 XR ボタンの下にある Interaction パネルでは、準備中・コントローラー待ち・Cube への hover・grab 中・配置完了の状態を確認できます。XR セッション中は、使用中のコントローラーの左右も表示されます。
 
+XR セッション中は、視界の正面下に同じ情報を表示する空間 UI パネルも表示されます。パネルは状態に応じた色と状態名を持ち、WebGPU と WebGL の両方で描画されます。
+
 WebXR と WebXR/WebGPU Binding に対応したブラウザでは、「VR を開始」ボタンから immersive VR session を開始できます。XR 中は各 eye の projection layer に pose の行列を使ってステレオ描画します。コントローラーが接続されている場合は、`targetRaySpace` に沿ったレイで奥の Cube を狙い、select で選択している間はコントローラーとの相対的な 6 軸 pose（位置と回転）を保って追従させられます。Cube のメッシュは自身の中心で回転し、コントローラーを回すと保持している距離に応じて Cube の中心もコントローラーの周りを動きます。select を離すとその場所と向きに Cube が残ります。WebXR/WebGPU Binding がないブラウザでは、標準の `XRWebGLLayer` と WebGL にフォールバックします。その場合、ボタンには「VR を開始（WebGL）」と表示されます。
 
 ## 検証
