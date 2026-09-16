@@ -165,7 +165,7 @@ pub extern "js" fn create_webgl_xr_renderer(
   #|   ]), gl.STATIC_DRAW)
   #|   const uiTexture = gl.createTexture()
   #|   gl.bindTexture(gl.TEXTURE_2D, uiTexture)
-  #|   gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true)
+  #|   gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, false)
   #|   gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR)
   #|   gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR)
   #|   gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE)
