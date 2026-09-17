@@ -9,6 +9,7 @@
     "adb:reverse": "adb reverse tcp:5173 tcp:5173"
   },
   "dependencies": {
+    "@eclipse-zenoh/zenoh-ts": "1.10.1",
     "three": "0.185.1"
   }
 }

@@ -1,0 +1,7 @@
+// Typed MoonBit bindings for the browser-facing zenoh-ts API.
+
+import {
+  "moonbitlang/async/js_async",
+}
+
+supported_targets = "js"

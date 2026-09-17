@@ -8,6 +8,10 @@ import {
 // Values
 pub fn kaguya_start() -> @js_async.Promise[Unit]
 
+pub fn kaguya_zenoh_close() -> @js_async.Promise[Unit]
+
+pub fn kaguya_zenoh_open(String) -> @js_async.Promise[Unit]
+
 pub fn start() -> @js_async.Promise[Unit]
 
 // Errors

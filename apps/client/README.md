@@ -4,18 +4,25 @@ Kaguya の XR クライアントです。MoonBit から `mizchi/three-mbt` 経�
 
 ## Zenoh transport
 
-ブラウザからの Zenoh 接続には `@eclipse-zenoh/zenoh-ts` を使います。これは
-`zenoh-bridge-remote-api` の WebSocket endpoint に接続する方式です。この bridge は
-通常の Zenoh router と `remote_api` plugin をひとつの実行ファイルにまとめています。
-アプリケーション側の低レベル API は
-[`src/zenoh_transport.ts`](src/zenoh_transport.ts) にあります。
+ブラウザからの Zenoh 接続には `packages/zenoh-mbt` の MoonBit bindingを使います。
+bindingのJavaScript companionが `@eclipse-zenoh/zenoh-ts` 経由で
+`zenoh-bridge-remote-api` の WebSocket endpointに接続します。この bridgeは通常の
+Zenoh routerと `remote_api` pluginをひとつの実行ファイルにまとめています。
+アプリケーション側の接続 lifecycleは
+[`src/zenoh.mbt`](src/zenoh.mbt) にあります。
 
-```ts
-const transport = await ZenohTransport.open("ws://127.0.0.1:10000")
-await transport.publish(keyExpr, protobufBytes)
-const subscription = await transport.subscribe(keyExpr, ({ payload }) => {
-  // packages/shared の decode_* に payload を渡す
-})
+```moonbit
+async fn publish_example(key_expr : String, protobuf_bytes : Bytes) -> Unit {
+  let config = @zenoh.Config::new("ws://127.0.0.1:10000", 500)
+  let session = @zenoh.Session::open(config)
+  let publisher = session.declare_publisher_with_encoding(
+    key_expr,
+    @zenoh.Encoding::application_protobuf(),
+  )
+  publisher.put(protobuf_bytes)
+  publisher.undeclare()
+  session.close()
+}
 ```
 
 動作確認だけなら、locator を URL query に指定してクライアントを起動できます。
@@ -24,8 +31,9 @@ const subscription = await transport.subscribe(keyExpr, ({ payload }) => {
 https://<client-host>:5173/?zenoh=ws://<bridge-host>:10000
 ```
 
-接続後の publish/subscribe は `src/zenoh_transport.ts` の `ZenohTransport` を
-利用します。アプリの起動時に locator がない場合は Zenoh 接続を行いません。
+接続後の publish/subscribe は `packages/zenoh-mbt` の
+`Session` / `Publisher` / `Subscriber` APIを利用します。アプリの起動時に locatorが
+ない場合はZenoh接続を行いません。
 
 Nix 環境では、リポジトリルートの `pnpm dev` が Vite と bridge を同時に起動します。
 `direnv` を使っていない場合は、先に `nix develop` に入ってください。

@@ -1,8 +1,9 @@
 import "./style.css"
-import { kaguya_start } from "@kaguya/runtime"
-import type { ZenohTransport } from "./zenoh_transport"
-
-let activeZenohTransport: ZenohTransport | undefined
+import {
+  kaguya_start,
+  kaguya_zenoh_close,
+  kaguya_zenoh_open,
+} from "@kaguya/runtime"
 
 async function start(): Promise<void> {
   await kaguya_start()
@@ -11,8 +12,7 @@ async function start(): Promise<void> {
   if (locator == null || locator === "") return
 
   try {
-    const { openZenohTransport } = await import("./zenoh_transport")
-    activeZenohTransport = await openZenohTransport(locator)
+    await kaguya_zenoh_open(locator)
     console.info(`Kaguya Zenoh connected: ${locator}`)
   } catch (error: unknown) {
     console.error(`Kaguya Zenoh connection failed: ${locator}`, error)
@@ -20,7 +20,7 @@ async function start(): Promise<void> {
 }
 
 window.addEventListener("pagehide", () => {
-  void activeZenohTransport?.close()
+  void kaguya_zenoh_close()
 })
 
 start().catch((error: unknown) => {

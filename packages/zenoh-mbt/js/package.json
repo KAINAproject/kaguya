@@ -1,0 +1,16 @@
+{
+  "name": "@kaguya/zenoh-mbt",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "exports": {
+    "./config": "./config.js",
+    "./encoding": "./encoding.js",
+    "./session": "./session.js",
+    "./publisher": "./publisher.js",
+    "./subscriber": "./subscriber.js"
+  },
+  "peerDependencies": {
+    "@eclipse-zenoh/zenoh-ts": "1.10.1"
+  }
+}

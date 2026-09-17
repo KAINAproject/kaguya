@@ -1,0 +1,44 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "KAINAproject/kaguya/packages/zenoh-mbt"
+
+// Values
+
+// Errors
+
+// Types and methods
+#external
+pub type Config
+pub fn Config::new(String, Int) -> Self
+
+#external
+pub type Encoding
+pub fn Encoding::application_protobuf() -> Self
+
+#external
+pub type Publisher
+pub async fn Publisher::put(Self, Bytes) -> Unit
+pub async fn Publisher::undeclare(Self) -> Unit
+
+pub struct Sample {
+  key_expr : String
+  payload : Bytes
+}
+pub fn Sample::key_expr(Self) -> String
+pub fn Sample::new(String, Bytes) -> Self
+pub fn Sample::payload(Self) -> Bytes
+
+#external
+pub type Session
+pub async fn Session::close(Self) -> Unit
+pub async fn Session::declare_publisher(Self, String) -> Publisher
+pub async fn Session::declare_publisher_with_encoding(Self, String, Encoding) -> Publisher
+pub async fn Session::declare_subscriber(Self, String, (Sample) -> Unit) -> Subscriber
+pub async fn Session::open(Config) -> Self
+
+#external
+pub type Subscriber
+pub async fn Subscriber::undeclare(Self) -> Unit
+
+// Type aliases
+
+// Traits
