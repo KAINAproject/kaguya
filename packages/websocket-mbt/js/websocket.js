@@ -15,4 +15,8 @@ export const websocketOpen = (url, onMessage) =>
 
 export const websocketSend = (socket, payload) => socket.send(payload)
 
+export const websocketIsOpen = (socket) => socket.readyState === WebSocket.OPEN
+
+export const websocketBufferedAmount = (socket) => socket.bufferedAmount
+
 export const websocketClose = (socket) => socket.close()

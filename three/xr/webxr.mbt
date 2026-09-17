@@ -11,6 +11,10 @@ pub type XRSession
 pub type WebXRManager
 
 ///|
+#external
+pub type XRInputSource
+
+///|
 extern "js" fn navigator_xr() -> XRSystem =
   #| () => {
   #|   if (!navigator.xr) throw new Error("このブラウザでは WebXR が利用できません")
@@ -43,7 +47,7 @@ pub extern "js" fn XRSystem::request_immersive_vr_session(
   self : XRSystem,
 ) -> @js_async.Promise[XRSession] =
   #| (xr) => xr.requestSession("immersive-vr", {
-  #|   optionalFeatures: ["local-floor"],
+  #|   optionalFeatures: ["local-floor", "hand-tracking"],
   #| })
 
 ///|
@@ -110,10 +114,10 @@ pub extern "js" fn WebXRManager::on_session_end(
 ///|
 pub extern "js" fn on_controller_connected(
   controller : @three_js.Group,
-  callback : (String) -> Unit,
+  callback : (String, XRInputSource) -> Unit,
 ) -> @three_js.EventSubscription =
   #| (controller, callback) => {
-  #|   const listener = event => callback(event.data?.handedness || "none")
+  #|   const listener = event => callback(event.data?.handedness || "none", event.data)
   #|   controller.addEventListener("connected", listener)
   #|   return () => controller.removeEventListener("connected", listener)
   #| }

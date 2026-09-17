@@ -7,13 +7,19 @@ import {
 }
 
 // Values
+pub fn frame_time_to_sample_time_ns(Double) -> Int64
+
+pub fn frame_time_to_source_time_ns(Double) -> UInt64
+
+pub fn hand_sample(@three.Group) -> HandSample?
+
 pub fn is_available() -> Bool
 
 pub fn is_session_supported() -> @js_async.Promise[Bool]
 
 pub fn manager(@three.WebGLRenderer) -> WebXRManager
 
-pub fn on_controller_connected(@three.Group, (String) -> Unit) -> @three.EventSubscription
+pub fn on_controller_connected(@three.Group, (String, XRInputSource) -> Unit) -> @three.EventSubscription
 
 pub fn on_controller_disconnected(@three.Group, () -> Unit) -> @three.EventSubscription
 
@@ -21,13 +27,42 @@ pub fn on_select_end(@three.Group, (String) -> Unit) -> @three.EventSubscription
 
 pub fn on_select_start(@three.Group, (String) -> Unit) -> @three.EventSubscription
 
+pub fn pose_from_object(@three.Object3D) -> Pose?
+
 pub fn request_immersive_vr_session() -> @js_async.Promise[XRSession]
 
 // Errors
 
 // Types and methods
 #external
+pub type HandSample
+pub fn HandSample::joint_pose(Self, Int) -> Pose?
+pub fn HandSample::joint_radius(Self, Int) -> Float
+
+#external
+pub type InputState
+pub fn InputState::menu_click(Self) -> Bool
+pub fn InputState::primary_click(Self) -> Bool
+pub fn InputState::secondary_click(Self) -> Bool
+pub fn InputState::squeeze_value(Self) -> Float
+pub fn InputState::thumbstick_click(Self) -> Bool
+pub fn InputState::thumbstick_x(Self) -> Float
+pub fn InputState::thumbstick_y(Self) -> Float
+pub fn InputState::trigger_value(Self) -> Float
+
+#external
+pub type Pose
+pub fn Pose::orientation_w(Self) -> Float
+pub fn Pose::orientation_x(Self) -> Float
+pub fn Pose::orientation_y(Self) -> Float
+pub fn Pose::orientation_z(Self) -> Float
+pub fn Pose::position_x(Self) -> Float
+pub fn Pose::position_y(Self) -> Float
+pub fn Pose::position_z(Self) -> Float
+
+#external
 pub type WebXRManager
+pub fn WebXRManager::current_head_pose(Self) -> Pose?
 pub fn WebXRManager::get_controller(Self, Int) -> @three.Group
 pub fn WebXRManager::get_controller_grip(Self, Int) -> @three.Group
 pub fn WebXRManager::get_hand(Self, Int) -> @three.Group
@@ -36,6 +71,11 @@ pub fn WebXRManager::on_session_end(Self, () -> Unit) -> @three.EventSubscriptio
 pub fn WebXRManager::set_enabled(Self, Bool) -> Unit
 pub fn WebXRManager::set_reference_space_type(Self, String) -> Unit
 pub fn WebXRManager::set_session(Self, XRSession) -> @js_async.Promise[Unit]
+
+#external
+pub type XRInputSource
+pub fn XRInputSource::has_hand(Self) -> Bool
+pub fn XRInputSource::input_state(Self) -> InputState?
 
 #external
 pub type XRSession

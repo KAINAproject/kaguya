@@ -8,6 +8,11 @@ pub enum Encoding {
 } derive(Eq, Debug)
 
 ///|
+pub fn Encoding::protobuf() -> Encoding {
+  Protobuf
+}
+
+///|
 pub struct Envelope {
   schema_id : String
   schema_version : UInt

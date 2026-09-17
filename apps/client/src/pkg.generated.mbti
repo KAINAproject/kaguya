@@ -6,6 +6,8 @@ import {
 }
 
 // Values
+pub fn kaguya_set_xr_robot_id(String) -> Unit
+
 pub fn kaguya_start() -> @js_async.Promise[Unit]
 
 pub fn kaguya_websocket_close() -> Unit
