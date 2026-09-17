@@ -31,6 +31,26 @@ pub fn Connection::send(self : Connection, payload : Bytes) -> Unit {
 
 ///|
 #module("@kaguya/websocket-mbt/websocket")
+extern "js" fn Connection::ffi_is_open(self : Connection) -> Bool = "websocketIsOpen"
+
+///|
+/// Returns whether the browser WebSocket is ready to send binary frames.
+pub fn Connection::is_open(self : Connection) -> Bool {
+  self.ffi_is_open()
+}
+
+///|
+#module("@kaguya/websocket-mbt/websocket")
+extern "js" fn Connection::ffi_buffered_amount(self : Connection) -> Int = "websocketBufferedAmount"
+
+///|
+/// Returns the number of bytes queued by the browser for this connection.
+pub fn Connection::buffered_amount(self : Connection) -> Int {
+  self.ffi_buffered_amount()
+}
+
+///|
+#module("@kaguya/websocket-mbt/websocket")
 extern "js" fn Connection::ffi_close(self : Connection) -> Unit = "websocketClose"
 
 ///|

@@ -31,18 +31,31 @@ async fn open_example(url : String) -> Unit {
 動作確認だけなら、WebSocket URL を `ws` query に指定してクライアントを起動できます。
 
 ```text
-https://<client-host>:5173/?ws=ws://<server-host>:10000/ws
+https://<client-host>:5173/?ws=ws://<server-host>:10000/ws&robot=atlas
 ```
 
 接続後の通信は `Frame::publish` / `Frame::subscribe` などを protobuf bytes にして送ります。
 現在の WebSocket binding は transport としての接続・送受信だけを担当し、将来の WebRTC
 DataChannel でも同じ `Frame` bytes を再利用できるようにしています。
 
+`ws` query で接続した状態で XR セッションを開始すると、client は Three.js の XR frame
+loop から次の input topic をリアルタイム publish します。
+
+- `kaguya/v1/atlas/input/head_pose`
+- `kaguya/v1/atlas/input/controller_snapshot`
+- `kaguya/v1/atlas/input/hand_pose`
+
+各 envelope の `encoding` は `Protobuf` で、payload は対応する `*Record` です。手 tracking
+は `"hand-tracking"` が利用できる環境で有効になり、対応する手について WebXR の 26
+関節を `hand_pose` に含めます。WebSocket の送信キューが 512 KiB を超えた場合は、その
+frame の publish を捨てて送信キューの回復を待ちます。
+robot ID の既定値は `atlas` で、URL の `robot` query で変更できます。
+
 このアプリでの担当範囲は次の通りです。
 
 - Three.js: scene graph、`WebGLRenderer`、XR camera、frame loop、projection layer、controller pose
-- Kaguya: WebXR session の開始、`WebXRManager` binding、controller event、XR interaction
-- MoonBit application code: Cube の表示、Raycaster による hover、select による grab/release、画面の状態表示
+- Kaguya: WebXR session の開始、`WebXRManager` binding、controller/hand event、XR interaction
+- MoonBit application code: Cube の表示、Raycaster による hover、select による grab/release、XR input の protobuf publish、画面の状態表示
 
 Kaguya 自身が WebGL/WebGPU renderer を実装する構成ではありません。現在のブラウザ統合は Three.js の WebGL renderer を使います。
 

@@ -2,6 +2,9 @@
 let active_websocket : Ref[@websocket.Connection?] = Ref(None)
 
 ///|
+const MAX_BUFFERED_BYTES : Int = 524288
+
+///|
 fn handle_websocket_frame(bytes : Bytes) -> Unit {
   match @protocol.decode_frame(bytes) {
     Ok(_) => @core.log(@core.any("Kaguya frame received"))
@@ -19,6 +22,31 @@ async fn open_websocket(url : String) -> Unit {
 #export_name("kaguya_websocket_open")
 pub fn kaguya_websocket_open(url : String) -> @js_async.Promise[Unit] {
   @js_async.Promise::from_async(() => open_websocket(url))
+}
+
+///|
+fn protocol_stream_ready() -> Bool {
+  match active_websocket.val {
+    Some(connection) =>
+      connection.is_open() && connection.buffered_amount() <= MAX_BUFFERED_BYTES
+    None => false
+  }
+}
+
+///|
+/// Sends a protocol frame when the WebSocket is ready and its queue is bounded.
+fn send_protocol_frame(frame : @protocol.Frame) -> Bool {
+  if !protocol_stream_ready() {
+    false
+  } else {
+    match active_websocket.val {
+      Some(connection) => {
+        connection.send(@protocol.encode_frame(frame))
+        true
+      }
+      None => false
+    }
+  }
 }
 
 ///|

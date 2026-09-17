@@ -43,7 +43,18 @@ async fn initialize() -> Unit {
   let controller_object = controller.as_object3d()
   scene.add_child(controller_object)
   let controller_grip = manager.get_controller_grip(0)
+  let controller1 = manager.get_controller(1)
+  let controller1_object = controller1.as_object3d()
   scene.add_child(controller_grip.as_object3d())
+  scene.add_child(controller1_object)
+  let controller1_grip = manager.get_controller_grip(1)
+  scene.add_child(controller1_grip.as_object3d())
+  let hand0 = manager.get_hand(0)
+  let hand1 = manager.get_hand(1)
+  let mut controller0_source : @three_xr.XRInputSource? = None
+  let mut controller0_handedness = "none"
+  let mut controller1_source : @three_xr.XRInputSource? = None
+  let mut controller1_handedness = "none"
   let controller_marker = @three.Mesh::Mesh(
     @three.BoxGeometry::BoxGeometry(0.12, 0.12, 0.12).as_buffer_geometry(),
     @three.MeshBasicMaterial::MeshBasicMaterial(0x6EE7B7).as_material(),
@@ -61,7 +72,9 @@ async fn initialize() -> Unit {
   let ray_direction = @three.Vector3::Vector3(0.0, 0.0, -1.0)
   let raycaster = @three.Raycaster::Raycaster(ray_origin, ray_direction)
   ignore(
-    @three_xr.on_controller_connected(controller, fn(handedness) {
+    @three_xr.on_controller_connected(controller, fn(handedness, source) {
+      controller0_source = Some(source)
+      controller0_handedness = handedness
       set_state(
         "hover", handedness, "Cube を狙い中", "select で Cube を掴めます",
       )
@@ -72,9 +85,23 @@ async fn initialize() -> Unit {
   )
   ignore(
     @three_xr.on_controller_disconnected(controller, fn() {
+      controller0_source = None
+      controller0_handedness = "none"
       set_state(
         "no-controller", "none", "コントローラー待ち", "XR コントローラーを接続してください",
       )
+    }),
+  )
+  ignore(
+    @three_xr.on_controller_connected(controller1, fn(handedness, source) {
+      controller1_source = Some(source)
+      controller1_handedness = handedness
+    }),
+  )
+  ignore(
+    @three_xr.on_controller_disconnected(controller1, fn() {
+      controller1_source = None
+      controller1_handedness = "none"
     }),
   )
   ignore(
@@ -144,6 +171,11 @@ async fn initialize() -> Unit {
     } else if is_targeting {
       is_targeting = false
     }
+    publish_xr_frame(
+      manager, controller, controller_grip, controller0_source, controller0_handedness,
+      hand0, controller1, controller1_grip, controller1_source, controller1_handedness,
+      hand1, time,
+    )
     renderer.render(scene, camera.as_camera())
   })
   set_state(
