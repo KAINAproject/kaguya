@@ -6,8 +6,8 @@
     "moduleResolution": "Bundler",
     "baseUrl": ".",
     "paths": {
-      "@kaguya/runtime": [
-        "./.moonbit-build/js/release/build/apps/client/src/src.d.ts"
+      "mbt:KAINAproject/kaguya/apps/client/src": [
+        "../../_build/js/release/build/apps/client/src/src.d.ts"
       ],
       "moonbitlang/async/js_async": ["./src/moonbit-async"]
     },
