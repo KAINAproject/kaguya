@@ -40,16 +40,29 @@ jobs:
         run: pnpm install --frozen-lockfile
 
       - name: Install MoonBit TypeScript tooling
-        run: pnpm --filter @kaguya/app run setup:types
+        run: pnpm --filter @kaguya/client run setup:types
 
       - name: Build app
-        run: pnpm --filter @kaguya/app run build
+        run: pnpm --filter @kaguya/client run build
+
+      - name: Install Zenoh bridge
+        run: |
+          archive="$RUNNER_TEMP/zenoh-ts-1.10.1-x86_64-unknown-linux-gnu-standalone.zip"
+          curl --fail --location --silent --show-error \
+            --output "$archive" \
+            "https://github.com/eclipse-zenoh/zenoh-ts/releases/download/1.10.1/zenoh-ts-1.10.1-x86_64-unknown-linux-gnu-standalone.zip"
+          echo "65a5ed59ba78d1b39da80692c56fddc2dd8879f0feb4a50344f8b9b041b3f559  $archive" | sha256sum --check
+          unzip -q "$archive" -d "$RUNNER_TEMP/zenoh-ts"
+          install -Dm755 \
+            "$RUNNER_TEMP/zenoh-ts/zenoh-bridge-remote-api" \
+            "$HOME/.local/bin/zenoh-bridge-remote-api"
+          echo "$HOME/.local/bin" >> "$GITHUB_PATH"
 
       - name: Install Playwright browser
-        run: pnpm --filter @kaguya/app exec playwright install --with-deps chromium
+        run: pnpm --filter @kaguya/client exec playwright install --with-deps chromium
 
       - name: Run Playwright tests
-        run: pnpm --filter @kaguya/app run test:e2e
+        run: pnpm --filter @kaguya/client run test:e2e
 
       - name: Upload Playwright artifacts
         if: ${{ !cancelled() }}
@@ -57,6 +70,6 @@ jobs:
         with:
           name: playwright-artifacts
           path: |
-            app/test-results/
-            app/playwright-report/
+            apps/client/test-results/
+            apps/client/playwright-report/
           if-no-files-found: ignore
