@@ -25,7 +25,7 @@
     "vite-plugin-wasm": "^3.4.1"
   },
   "dependencies": {
-    "@kaguya/zenoh-mbt": "link:../../packages/zenoh-mbt/js",
+    "@kaguya/websocket-mbt": "link:../../packages/websocket-mbt/js",
     "@mizchi/three-mbt": "link:../../.mooncakes/mizchi/three/js",
     "three": "0.185.1"
   }

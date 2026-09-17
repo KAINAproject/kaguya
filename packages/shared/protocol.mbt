@@ -20,6 +20,24 @@ pub struct Envelope {
 } derive(Eq, Debug)
 
 ///|
+pub enum FrameKind {
+  Unspecified
+  Publish
+  Subscribe
+  Unsubscribe
+  Data
+  Error
+} derive(Eq, Debug)
+
+///|
+pub struct Frame {
+  kind : FrameKind
+  topic : String
+  envelope : Envelope?
+  error : String
+} derive(Eq, Debug)
+
+///|
 pub struct Vec3 {
   x : Float
   y : Float
@@ -97,6 +115,51 @@ pub fn Envelope::new(
     encoding,
     payload,
   }
+}
+
+///|
+pub fn Frame::publish(topic : String, envelope : Envelope) -> Frame {
+  { kind: Publish, topic, envelope: Some(envelope), error: "", }
+}
+
+///|
+pub fn Frame::subscribe(topic : String) -> Frame {
+  { kind: Subscribe, topic, envelope: None, error: "", }
+}
+
+///|
+pub fn Frame::unsubscribe(topic : String) -> Frame {
+  { kind: Unsubscribe, topic, envelope: None, error: "", }
+}
+
+///|
+pub fn Frame::data(topic : String, envelope : Envelope) -> Frame {
+  { kind: Data, topic, envelope: Some(envelope), error: "", }
+}
+
+///|
+pub fn Frame::error(message : String) -> Frame {
+  { kind: Error, topic: "", envelope: None, error: message, }
+}
+
+///|
+pub fn Frame::kind(self : Frame) -> FrameKind {
+  self.kind
+}
+
+///|
+pub fn Frame::topic(self : Frame) -> String {
+  self.topic
+}
+
+///|
+pub fn Frame::envelope(self : Frame) -> Envelope? {
+  self.envelope
+}
+
+///|
+pub fn Frame::error_message(self : Frame) -> String {
+  self.error
 }
 
 ///|
@@ -189,6 +252,96 @@ fn int_to_encoding(value : UInt) -> Encoding {
 }
 
 ///|
+fn frame_kind_to_int(kind : FrameKind) -> UInt {
+  match kind {
+    Unspecified => 0U
+    Publish => 1U
+    Subscribe => 2U
+    Unsubscribe => 3U
+    Data => 4U
+    Error => 5U
+  }
+}
+
+///|
+fn int_to_frame_kind(value : UInt) -> FrameKind {
+  match value {
+    1U => Publish
+    2U => Subscribe
+    3U => Unsubscribe
+    4U => Data
+    5U => Error
+    _ => Unspecified
+  }
+}
+
+///|
+pub fn encode_frame(value : Frame) -> Bytes {
+  let writer = ProtoWriter::new()
+  if value.kind != Unspecified {
+    writer.write_uint32(1, frame_kind_to_int(value.kind))
+  }
+  if value.topic != "" {
+    writer.write_string(2, value.topic)
+  }
+  match value.envelope {
+    Some(envelope) => writer.write_message(3, encode_envelope(envelope))
+    None => ()
+  }
+  if value.error != "" {
+    writer.write_string(4, value.error)
+  }
+  writer.finish()
+}
+
+///|
+pub fn decode_frame(bytes : Bytes) -> Result[Frame, String] {
+  let reader = ProtoReader::new(bytes)
+  let mut kind = FrameKind::Unspecified
+  let mut topic = ""
+  let mut envelope : Envelope? = None
+  let mut error = ""
+  while reader.position < reader.bytes.length() {
+    let (field_number, wire_type) = match reader.read_key() {
+      Ok(key) => key
+      Err(error) => return Err(error)
+    }
+    match (field_number, wire_type) {
+      (1, 0) =>
+        match reader.read_uint32() {
+          Ok(field) => kind = int_to_frame_kind(field)
+          Err(error) => return Err(error)
+        }
+      (2, 2) =>
+        match reader.read_string() {
+          Ok(field) => topic = field
+          Err(error) => return Err(error)
+        }
+      (3, 2) =>
+        match reader.read_bytes() {
+          Ok(field) =>
+            match decode_envelope(field) {
+              Ok(decoded) => envelope = Some(decoded)
+              Err(error) => return Err(error)
+            }
+          Err(error) => return Err(error)
+        }
+      (4, 2) =>
+        match reader.read_string() {
+          Ok(field) => error = field
+          Err(error) => return Err(error)
+        }
+      (_, _) =>
+        match reader.skip(wire_type) {
+          Ok(_) => ()
+          Err(error) => return Err(error)
+        }
+    }
+  }
+  Ok(Frame::{ kind, topic, envelope, error, })
+}
+
+///|
 pub fn encode_envelope(value : Envelope) -> Bytes {
   let writer = ProtoWriter::new()
   if value.schema_id != "" {
@@ -227,7 +380,7 @@ pub fn decode_envelope(bytes : Bytes) -> Result[Envelope, String] {
   let mut source_time_ns = 0UL
   let mut source_id = ""
   let mut frame_id = ""
-  let mut encoding = Unspecified
+  let mut encoding = Encoding::Unspecified
   let mut payload : Bytes = b""
   while reader.position < reader.bytes.length() {
     let (field_number, wire_type) = match reader.read_key() {

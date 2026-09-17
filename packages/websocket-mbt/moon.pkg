@@ -1,4 +1,4 @@
-// Typed MoonBit bindings for the browser-facing zenoh-ts API.
+// Thin browser WebSocket binding for Kaguya transports.
 
 import {
   "moonbitlang/async/js_async",

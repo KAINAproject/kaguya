@@ -16,6 +16,8 @@ pub fn decode_controller_state(Bytes) -> Result[ControllerState, String]
 
 pub fn decode_envelope(Bytes) -> Result[Envelope, String]
 
+pub fn decode_frame(Bytes) -> Result[Frame, String]
+
 pub fn decode_hand_landmarks(Bytes) -> Result[HandLandmarks, String]
 
 pub fn decode_hmd_pose(Bytes) -> Result[HmdPose, String]
@@ -25,6 +27,8 @@ pub fn decode_joint_state(Bytes) -> Result[JointState, String]
 pub fn encode_controller_state(ControllerState) -> Bytes
 
 pub fn encode_envelope(Envelope) -> Bytes
+
+pub fn encode_frame(Frame) -> Bytes
 
 pub fn encode_hand_landmarks(HandLandmarks) -> Bytes
 
@@ -80,6 +84,31 @@ pub struct Envelope {
   payload : Bytes
 } derive(Eq, @debug.Debug)
 pub fn Envelope::new(String, UInt, UInt64, UInt64, String, String, Encoding, Bytes) -> Self
+
+pub struct Frame {
+  kind : FrameKind
+  topic : String
+  envelope : Envelope?
+  error : String
+} derive(Eq, @debug.Debug)
+pub fn Frame::data(String, Envelope) -> Self
+pub fn Frame::envelope(Self) -> Envelope?
+pub fn Frame::error(String) -> Self
+pub fn Frame::error_message(Self) -> String
+pub fn Frame::kind(Self) -> FrameKind
+pub fn Frame::publish(String, Envelope) -> Self
+pub fn Frame::subscribe(String) -> Self
+pub fn Frame::topic(Self) -> String
+pub fn Frame::unsubscribe(String) -> Self
+
+pub enum FrameKind {
+  Unspecified
+  Publish
+  Subscribe
+  Unsubscribe
+  Data
+  Error
+} derive(Eq, @debug.Debug)
 
 pub struct HandLandmarks {
   handedness : String

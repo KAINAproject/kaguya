@@ -25,6 +25,22 @@ message Envelope {
   bytes payload = 8;
 }
 
+enum FrameKind {
+  FRAME_KIND_UNSPECIFIED = 0;
+  FRAME_KIND_PUBLISH = 1;
+  FRAME_KIND_SUBSCRIBE = 2;
+  FRAME_KIND_UNSUBSCRIBE = 3;
+  FRAME_KIND_DATA = 4;
+  FRAME_KIND_ERROR = 5;
+}
+
+message Frame {
+  FrameKind kind = 1;
+  string topic = 2;
+  Envelope envelope = 3;
+  string error = 4;
+}
+
 message Vec3 {
   float x = 1;
   float y = 2;

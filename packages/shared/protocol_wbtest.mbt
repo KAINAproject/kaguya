@@ -19,6 +19,36 @@ test "envelope round trip" {
 }
 
 ///|
+test "publish frame round trip" {
+  let envelope = Envelope::{
+    schema_id: "kaguya.input.hmd_pose",
+    schema_version: 1U,
+    sequence: 42UL,
+    source_time_ns: 123456789UL,
+    source_id: "quest3",
+    frame_id: "local-floor",
+    encoding: Protobuf,
+    payload: b"payload",
+  }
+  let original = Frame::publish("kaguya/v1/atlas/input/hmd_pose", envelope)
+  let decoded = match decode_frame(encode_frame(original)) {
+    Ok(value) => value
+    Err(error) => fail(error)
+  }
+  assert_eq(decoded, original)
+}
+
+///|
+test "subscribe frame round trip" {
+  let original = Frame::subscribe("kaguya/v1/atlas/output/joint_state")
+  let decoded = match decode_frame(encode_frame(original)) {
+    Ok(value) => value
+    Err(error) => fail(error)
+  }
+  assert_eq(decoded, original)
+}
+
+///|
 test "envelope skips unknown fields" {
   let bytes : Bytes = [
     b'\x4A', b'\x03', b'o', b'l', b'd', // field 9, bytes

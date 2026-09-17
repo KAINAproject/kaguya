@@ -42,7 +42,10 @@ MoonBit XR application
 The browser boundary is therefore:
 
 ```text
-MoonBit → mizchi/three-mbt / Kaguya adapter → Three.js → WebGL / WebXR
+MoonBit application
+├── shared protobuf protocol
+├── native WebSocket transport adapter
+└── mizchi/three-mbt / Kaguya adapter → Three.js → WebGL / WebXR
 ```
 
 The [browser client](apps/client/README.md) is the main application for this repository.

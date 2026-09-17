@@ -1,26 +1,22 @@
 import "./style.css"
-import {
-  kaguya_start,
-  kaguya_zenoh_close,
-  kaguya_zenoh_open,
-} from "@kaguya/runtime"
+import { kaguya_start, kaguya_websocket_close, kaguya_websocket_open } from "@kaguya/runtime"
 
 async function start(): Promise<void> {
   await kaguya_start()
 
-  const locator = new URL(window.location.href).searchParams.get("zenoh")
-  if (locator == null || locator === "") return
+  const url = new URL(window.location.href).searchParams.get("ws")
+  if (url == null || url === "") return
 
   try {
-    await kaguya_zenoh_open(locator)
-    console.info(`Kaguya Zenoh connected: ${locator}`)
+    await kaguya_websocket_open(url)
+    console.info(`Kaguya WebSocket connected: ${url}`)
   } catch (error: unknown) {
-    console.error(`Kaguya Zenoh connection failed: ${locator}`, error)
+    console.error(`Kaguya WebSocket connection failed: ${url}`, error)
   }
 }
 
 window.addEventListener("pagehide", () => {
-  void kaguya_zenoh_close()
+  kaguya_websocket_close()
 })
 
 start().catch((error: unknown) => {
