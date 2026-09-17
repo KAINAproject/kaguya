@@ -6,6 +6,12 @@ import {
 }
 
 // Values
+pub const TOPIC_ROOT : String = "kaguya/v1"
+
+pub fn controller_input(String) -> String
+
+pub fn debug(String, String) -> String
+
 pub fn decode_controller_state(Bytes) -> Result[ControllerState, String]
 
 pub fn decode_envelope(Bytes) -> Result[Envelope, String]
@@ -25,6 +31,24 @@ pub fn encode_hand_landmarks(HandLandmarks) -> Bytes
 pub fn encode_hmd_pose(HmdPose) -> Bytes
 
 pub fn encode_joint_state(JointState) -> Bytes
+
+pub fn event(String, String) -> String
+
+pub fn hand_landmarks_input(String) -> String
+
+pub fn hmd_pose_input(String) -> String
+
+pub fn input(String) -> String
+
+pub fn joint_state_output(String) -> String
+
+pub fn output(String) -> String
+
+pub fn rgb_output(String) -> String
+
+pub fn state(String, String) -> String
+
+pub fn topic(String, String) -> String
 
 // Errors
 

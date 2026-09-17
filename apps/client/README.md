@@ -2,6 +2,47 @@
 
 Kaguya の XR クライアントです。MoonBit から `mizchi/three-mbt` 経由で Three.js を使い、Kaguya の WebXR adapter で `WebXRManager` と接続します。pnpm workspace のパッケージとして、リポジトリルートから起動できます。
 
+## Zenoh transport
+
+ブラウザからの Zenoh 接続には `@eclipse-zenoh/zenoh-ts` を使います。これは
+`zenohd` に `remote_api` plugin を有効化し、その WebSocket endpoint に接続する
+方式です。アプリケーション側の低レベル API は
+[`src/zenoh_transport.ts`](src/zenoh_transport.ts) にあります。
+
+```ts
+const transport = await ZenohTransport.open("ws://127.0.0.1:10000")
+await transport.publish(keyExpr, protobufBytes)
+const subscription = await transport.subscribe(keyExpr, ({ payload }) => {
+  // packages/shared の decode_* に payload を渡す
+})
+```
+
+動作確認だけなら、locator を URL query に指定してクライアントを起動できます。
+
+```text
+https://<client-host>:5173/?zenoh=ws://<zenohd-host>:10000
+```
+
+接続後の publish/subscribe は `src/zenoh_transport.ts` の `ZenohTransport` を
+利用します。アプリの起動時に locator がない場合は Zenoh 接続を行いません。
+
+このリポジトリには開発用の [`zenohd.json5`](../../zenohd.json5) もあります。
+`zenohd` と `zenoh-plugin-remote-api` をインストール済みなら、リポジトリルートで
+次のように起動できます。
+
+```sh
+zenohd -c zenohd.json5
+```
+
+この設定は認証なしで LAN に WebSocket を公開する開発用設定です。インターネット
+側へポートを公開しないでください。本番または HTTPS クライアントから使う場合は
+remote-api plugin の TLS 設定を追加し、`wss://` locator を使います。
+
+`zenohd` はサーバーと同一である必要はありません。クライアントから到達できる
+任意の LAN 上の `zenohd` を locator に指定できます。現在の開発用クライアントは
+WebXR のため HTTPS で起動するので、実機ブラウザからは HTTPS/WSS の組み合わせを
+使う構成を推奨します。`ws://` は混在コンテンツ制限に注意してください。
+
 このアプリでの担当範囲は次の通りです。
 
 - Three.js: scene graph、`WebGLRenderer`、XR camera、frame loop、projection layer、controller pose

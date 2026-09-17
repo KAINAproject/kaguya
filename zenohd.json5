@@ -1,0 +1,21 @@
+{
+  mode: "router",
+
+  // Allow other machines on the LAN to reach this development router.
+  listen: {
+    endpoints: {
+      router: ["tcp/0.0.0.0:7447"],
+    },
+  },
+
+  // The remote_api plugin is supplied by zenoh-plugin-remote-api.
+  plugins_loading: {
+    enabled: true,
+    search_dirs: ["~/.zenoh/lib"],
+  },
+  plugins: {
+    remote_api: {
+      websocket_port: "0.0.0.0:10000",
+    },
+  },
+}
