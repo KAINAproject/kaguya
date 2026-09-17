@@ -1,0 +1,17 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "KAINAproject/kaguya/packages/websocket-mbt"
+
+// Values
+
+// Errors
+
+// Types and methods
+#external
+pub type Connection
+pub fn Connection::close(Self) -> Unit
+pub async fn Connection::open(String, (Bytes) -> Unit) -> Self
+pub fn Connection::send(Self, Bytes) -> Unit
+
+// Type aliases
+
+// Traits

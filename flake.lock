@@ -88,8 +88,7 @@
       "inputs": {
         "flake-parts": "flake-parts",
         "moonbit-overlay": "moonbit-overlay",
-        "nixpkgs": "nixpkgs_2",
-        "zenoh-ts": "zenoh-ts"
+        "nixpkgs": "nixpkgs_2"
       }
     },
     "treefmt-nix": {
@@ -110,23 +109,6 @@
       "original": {
         "owner": "numtide",
         "repo": "treefmt-nix",
-        "type": "github"
-      }
-    },
-    "zenoh-ts": {
-      "flake": false,
-      "locked": {
-        "lastModified": 1788793809,
-        "narHash": "sha256-ht9lrbAsoigovE8Yp/rVk0IZO1DgNVQRXCvPUznBtwo=",
-        "owner": "eclipse-zenoh",
-        "repo": "zenoh-ts",
-        "rev": "d46ae6378767b9723842684731942584a4b199a2",
-        "type": "github"
-      },
-      "original": {
-        "owner": "eclipse-zenoh",
-        "ref": "1.10.1",
-        "repo": "zenoh-ts",
         "type": "github"
       }
     }

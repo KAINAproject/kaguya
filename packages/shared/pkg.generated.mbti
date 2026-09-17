@@ -6,37 +6,79 @@ import {
 }
 
 // Values
+pub const NUM_JOINTS : Int = 26
+
 pub const TOPIC_ROOT : String = "kaguya/v1"
 
-pub fn controller_input(String) -> String
+pub fn controller_snapshot_input(String) -> String
 
 pub fn debug(String, String) -> String
 
-pub fn decode_controller_state(Bytes) -> Result[ControllerState, String]
+pub fn decode_controller_input_state(Bytes) -> Result[ControllerInputState, String]
+
+pub fn decode_controller_snapshot(Bytes) -> Result[ControllerSnapshot, String]
+
+pub fn decode_controller_snapshot_record(Bytes) -> Result[ControllerSnapshotRecord, String]
+
+pub fn decode_device_data_timestamp(Bytes) -> Result[DeviceDataTimestamp, String]
 
 pub fn decode_envelope(Bytes) -> Result[Envelope, String]
 
-pub fn decode_hand_landmarks(Bytes) -> Result[HandLandmarks, String]
+pub fn decode_frame(Bytes) -> Result[Frame, String]
 
-pub fn decode_hmd_pose(Bytes) -> Result[HmdPose, String]
+pub fn decode_hand_pose(Bytes) -> Result[HandPose, String]
 
-pub fn decode_joint_state(Bytes) -> Result[JointState, String]
+pub fn decode_hand_pose_record(Bytes) -> Result[HandPoseRecord, String]
 
-pub fn encode_controller_state(ControllerState) -> Bytes
+pub fn decode_head_pose(Bytes) -> Result[HeadPose, String]
+
+pub fn decode_head_pose_record(Bytes) -> Result[HeadPoseRecord, String]
+
+pub fn decode_joint_state_output(Bytes) -> Result[JointStateOutput, String]
+
+pub fn decode_joint_state_output_record(Bytes) -> Result[JointStateOutputRecord, String]
+
+pub fn decode_point(Bytes) -> Result[Point, String]
+
+pub fn decode_pose(Bytes) -> Result[Pose, String]
+
+pub fn decode_quaternion(Bytes) -> Result[Quaternion, String]
+
+pub fn encode_controller_input_state(ControllerInputState) -> Bytes
+
+pub fn encode_controller_snapshot(ControllerSnapshot) -> Bytes
+
+pub fn encode_controller_snapshot_record(ControllerSnapshotRecord) -> Bytes
+
+pub fn encode_device_data_timestamp(DeviceDataTimestamp) -> Bytes
 
 pub fn encode_envelope(Envelope) -> Bytes
 
-pub fn encode_hand_landmarks(HandLandmarks) -> Bytes
+pub fn encode_frame(Frame) -> Bytes
 
-pub fn encode_hmd_pose(HmdPose) -> Bytes
+pub fn encode_hand_pose(HandPose) -> Bytes
 
-pub fn encode_joint_state(JointState) -> Bytes
+pub fn encode_hand_pose_record(HandPoseRecord) -> Bytes
+
+pub fn encode_head_pose(HeadPose) -> Bytes
+
+pub fn encode_head_pose_record(HeadPoseRecord) -> Bytes
+
+pub fn encode_joint_state_output(JointStateOutput) -> Bytes
+
+pub fn encode_joint_state_output_record(JointStateOutputRecord) -> Bytes
+
+pub fn encode_point(Point) -> Bytes
+
+pub fn encode_pose(Pose) -> Bytes
+
+pub fn encode_quaternion(Quaternion) -> Bytes
 
 pub fn event(String, String) -> String
 
-pub fn hand_landmarks_input(String) -> String
+pub fn hand_pose_input(String) -> String
 
-pub fn hmd_pose_input(String) -> String
+pub fn head_pose_input(String) -> String
 
 pub fn input(String) -> String
 
@@ -53,13 +95,43 @@ pub fn topic(String, String) -> String
 // Errors
 
 // Types and methods
-pub struct ControllerState {
-  handedness : String
-  buttons : UInt
-  axes : Array[Float]
-  pose : Pose?
+pub struct ControllerInputState {
+  primary_click : Bool
+  secondary_click : Bool
+  thumbstick_click : Bool
+  menu_click : Bool
+  thumbstick_x : Float
+  thumbstick_y : Float
+  squeeze_value : Float
+  trigger_value : Float
 } derive(Eq, @debug.Debug)
-pub fn ControllerState::new(String, UInt, Array[Float], Pose?) -> Self
+pub fn ControllerInputState::new(Bool, Bool, Bool, Bool, Float, Float, Float, Float) -> Self
+
+pub struct ControllerPose {
+  pose : Pose
+  is_valid : Bool
+} derive(Eq, @debug.Debug)
+pub fn ControllerPose::new(Pose, Bool) -> Self
+
+pub struct ControllerSnapshot {
+  grip_pose : ControllerPose
+  aim_pose : ControllerPose
+  inputs : ControllerInputState
+} derive(Eq, @debug.Debug)
+pub fn ControllerSnapshot::new(ControllerPose, ControllerPose, ControllerInputState) -> Self
+
+pub struct ControllerSnapshotRecord {
+  data : ControllerSnapshot
+  timestamp : DeviceDataTimestamp
+} derive(Eq, @debug.Debug)
+pub fn ControllerSnapshotRecord::new(ControllerSnapshot, DeviceDataTimestamp) -> Self
+
+pub struct DeviceDataTimestamp {
+  available_time_local_common_clock : Int64
+  sample_time_local_common_clock : Int64
+  sample_time_raw_device_clock : Int64
+} derive(Eq, @debug.Debug)
+pub fn DeviceDataTimestamp::new(Int64, Int64, Int64) -> Self
 
 pub enum Encoding {
   Unspecified
@@ -81,39 +153,136 @@ pub struct Envelope {
 } derive(Eq, @debug.Debug)
 pub fn Envelope::new(String, UInt, UInt64, UInt64, String, String, Encoding, Bytes) -> Self
 
-pub struct HandLandmarks {
-  handedness : String
-  landmarks : Array[Landmark]
+pub struct Frame {
+  kind : FrameKind
+  topic : String
+  envelope : Envelope?
+  error : String
 } derive(Eq, @debug.Debug)
-pub fn HandLandmarks::new(String, Array[Landmark]) -> Self
+pub fn Frame::data(String, Envelope) -> Self
+pub fn Frame::envelope(Self) -> Envelope?
+pub fn Frame::error(String) -> Self
+pub fn Frame::error_message(Self) -> String
+pub fn Frame::kind(Self) -> FrameKind
+pub fn Frame::publish(String, Envelope) -> Self
+pub fn Frame::subscribe(String) -> Self
+pub fn Frame::topic(Self) -> String
+pub fn Frame::unsubscribe(String) -> Self
 
-pub struct HmdPose {
-  pose : Pose
+pub enum FrameKind {
+  Unspecified
+  Publish
+  Subscribe
+  Unsubscribe
+  Data
+  Error
 } derive(Eq, @debug.Debug)
-pub fn HmdPose::new(Pose) -> Self
+
+pub enum HandJoint {
+  Palm
+  Wrist
+  ThumbMetacarpal
+  ThumbProximal
+  ThumbDistal
+  ThumbTip
+  IndexMetacarpal
+  IndexProximal
+  IndexIntermediate
+  IndexDistal
+  IndexTip
+  MiddleMetacarpal
+  MiddleProximal
+  MiddleIntermediate
+  MiddleDistal
+  MiddleTip
+  RingMetacarpal
+  RingProximal
+  RingIntermediate
+  RingDistal
+  RingTip
+  LittleMetacarpal
+  LittleProximal
+  LittleIntermediate
+  LittleDistal
+  LittleTip
+  NumJoints
+} derive(Eq, @debug.Debug)
+pub fn HandJoint::from_int(Int) -> Self
+pub fn HandJoint::to_int(Self) -> Int
+
+pub struct HandJointPose {
+  pose : Pose
+  is_valid : Bool
+  radius : Float
+} derive(Eq, @debug.Debug)
+pub fn HandJointPose::new(Pose, Bool, Float) -> Self
+
+pub struct HandJoints {
+  poses : Array[HandJointPose]
+} derive(Eq, @debug.Debug)
+pub fn HandJoints::new(Array[HandJointPose]) -> Self
+
+pub struct HandPose {
+  joints : HandJoints
+} derive(Eq, @debug.Debug)
+pub fn HandPose::new(HandJoints) -> Self
+
+pub struct HandPoseRecord {
+  data : HandPose
+  timestamp : DeviceDataTimestamp
+} derive(Eq, @debug.Debug)
+pub fn HandPoseRecord::new(HandPose, DeviceDataTimestamp) -> Self
+
+pub struct HeadPose {
+  pose : Pose
+  is_valid : Bool
+  is_tracked : Bool
+} derive(Eq, @debug.Debug)
+pub fn HeadPose::new(Pose, Bool, Bool) -> Self
+
+pub struct HeadPoseRecord {
+  data : HeadPose
+  timestamp : DeviceDataTimestamp
+} derive(Eq, @debug.Debug)
+pub fn HeadPoseRecord::new(HeadPose, DeviceDataTimestamp) -> Self
 
 pub struct JointState {
-  positions : Array[Float]
-  velocities : Array[Float]
-  efforts : Array[Float]
-  source_time_ns : UInt64
+  name : String
+  position : Float
+  velocity : Float
+  effort : Float
+  valid : Bool
 } derive(Eq, @debug.Debug)
-pub fn JointState::new(Array[Float], Array[Float], Array[Float], UInt64) -> Self
+pub fn JointState::new(String, Float, Float, Float, Bool) -> Self
 
-pub struct Landmark {
+pub struct JointStateOutput {
+  joints : Array[JointState]
+  device_id : String
+  has_velocity : Bool
+  has_effort : Bool
+  ee_pose : Pose?
+  ee_pose_valid : Bool
+} derive(Eq, @debug.Debug)
+pub fn JointStateOutput::new(Array[JointState], String, Bool, Bool, Pose?, Bool) -> Self
+
+pub struct JointStateOutputRecord {
+  data : JointStateOutput
+  timestamp : DeviceDataTimestamp
+} derive(Eq, @debug.Debug)
+pub fn JointStateOutputRecord::new(JointStateOutput, DeviceDataTimestamp) -> Self
+
+pub struct Point {
   x : Float
   y : Float
   z : Float
-  confidence : Float
 } derive(Eq, @debug.Debug)
-pub fn Landmark::new(Float, Float, Float, Float) -> Self
+pub fn Point::new(Float, Float, Float) -> Self
 
 pub struct Pose {
-  position : Vec3
+  position : Point
   orientation : Quaternion
-  reference_frame : String
 } derive(Eq, @debug.Debug)
-pub fn Pose::new(Vec3, Quaternion, String) -> Self
+pub fn Pose::new(Point, Quaternion) -> Self
 
 pub struct Quaternion {
   x : Float
@@ -122,13 +291,6 @@ pub struct Quaternion {
   w : Float
 } derive(Eq, @debug.Debug)
 pub fn Quaternion::new(Float, Float, Float, Float) -> Self
-
-pub struct Vec3 {
-  x : Float
-  y : Float
-  z : Float
-} derive(Eq, @debug.Debug)
-pub fn Vec3::new(Float, Float, Float) -> Self
 
 // Type aliases
 

@@ -12,18 +12,18 @@ pub fn input(robot_id : String) -> String {
 }
 
 ///|
-pub fn controller_input(robot_id : String) -> String {
-  topic(robot_id, "input/controller")
+pub fn controller_snapshot_input(robot_id : String) -> String {
+  topic(robot_id, "input/controller_snapshot")
 }
 
 ///|
-pub fn hmd_pose_input(robot_id : String) -> String {
-  topic(robot_id, "input/hmd_pose")
+pub fn head_pose_input(robot_id : String) -> String {
+  topic(robot_id, "input/head_pose")
 }
 
 ///|
-pub fn hand_landmarks_input(robot_id : String) -> String {
-  topic(robot_id, "input/hand_landmarks")
+pub fn hand_pose_input(robot_id : String) -> String {
+  topic(robot_id, "input/hand_pose")
 }
 
 ///|

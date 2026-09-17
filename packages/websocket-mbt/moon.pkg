@@ -1,0 +1,7 @@
+// Thin browser WebSocket binding for Kaguya transports.
+
+import {
+  "moonbitlang/async/js_async",
+}
+
+supported_targets = "js"
