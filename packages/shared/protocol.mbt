@@ -47,6 +47,28 @@ pub struct HmdPose {
 } derive(Eq, Debug)
 
 ///|
+pub struct ControllerState {
+  handedness : String
+  buttons : UInt
+  axes : Array[Float]
+  pose : Pose?
+} derive(Eq, Debug)
+
+///|
+pub struct Landmark {
+  x : Float
+  y : Float
+  z : Float
+  confidence : Float
+} derive(Eq, Debug)
+
+///|
+pub struct HandLandmarks {
+  handedness : String
+  landmarks : Array[Landmark]
+} derive(Eq, Debug)
+
+///|
 pub struct JointState {
   positions : Array[Float]
   velocities : Array[Float]
@@ -104,6 +126,34 @@ pub fn Pose::new(
 ///|
 pub fn HmdPose::new(pose : Pose) -> HmdPose {
   { pose, }
+}
+
+///|
+pub fn ControllerState::new(
+  handedness : String,
+  buttons : UInt,
+  axes : Array[Float],
+  pose : Pose?,
+) -> ControllerState {
+  { handedness, buttons, axes, pose, }
+}
+
+///|
+pub fn Landmark::new(
+  x : Float,
+  y : Float,
+  z : Float,
+  confidence : Float,
+) -> Landmark {
+  { x, y, z, confidence, }
+}
+
+///|
+pub fn HandLandmarks::new(
+  handedness : String,
+  landmarks : Array[Landmark],
+) -> HandLandmarks {
+  { handedness, landmarks, }
 }
 
 ///|
@@ -437,6 +487,180 @@ pub fn decode_hmd_pose(bytes : Bytes) -> Result[HmdPose, String] {
     }
   }
   Ok(HmdPose::{ pose, })
+}
+
+///|
+pub fn encode_controller_state(value : ControllerState) -> Bytes {
+  let writer = ProtoWriter::new()
+  if value.handedness != "" {
+    writer.write_string(1, value.handedness)
+  }
+  if value.buttons != 0U {
+    writer.write_uint32(2, value.buttons)
+  }
+  encode_float_array(writer, 3, value.axes)
+  match value.pose {
+    Some(pose) => writer.write_message(4, encode_pose(pose))
+    None => ()
+  }
+  writer.finish()
+}
+
+///|
+pub fn decode_controller_state(
+  bytes : Bytes,
+) -> Result[ControllerState, String] {
+  let reader = ProtoReader::new(bytes)
+  let mut handedness = ""
+  let mut buttons = 0U
+  let axes : Array[Float] = []
+  let mut pose : Pose? = None
+  while reader.position < reader.bytes.length() {
+    let (field_number, wire_type) = match reader.read_key() {
+      Ok(key) => key
+      Err(error) => return Err(error)
+    }
+    match (field_number, wire_type) {
+      (1, 2) =>
+        match reader.read_string() {
+          Ok(field) => handedness = field
+          Err(error) => return Err(error)
+        }
+      (2, 0) =>
+        match reader.read_uint32() {
+          Ok(field) => buttons = field
+          Err(error) => return Err(error)
+        }
+      (3, 2) =>
+        match reader.read_packed_floats() {
+          Ok(fields) =>
+            for field in fields {
+              axes.push(field)
+            }
+          Err(error) => return Err(error)
+        }
+      (3, 5) =>
+        match reader.read_float() {
+          Ok(field) => axes.push(field)
+          Err(error) => return Err(error)
+        }
+      (4, 2) =>
+        match reader.read_bytes() {
+          Ok(field) =>
+            match decode_pose(field) {
+              Ok(decoded) => pose = Some(decoded)
+              Err(error) => return Err(error)
+            }
+          Err(error) => return Err(error)
+        }
+      (_, _) =>
+        match reader.skip(wire_type) {
+          Ok(_) => ()
+          Err(error) => return Err(error)
+        }
+    }
+  }
+  Ok(ControllerState::{ handedness, buttons, axes, pose, })
+}
+
+///|
+fn encode_landmark(value : Landmark) -> Bytes {
+  let writer = ProtoWriter::new()
+  writer.write_float(1, value.x)
+  writer.write_float(2, value.y)
+  writer.write_float(3, value.z)
+  writer.write_float(4, value.confidence)
+  writer.finish()
+}
+
+///|
+fn decode_landmark(bytes : Bytes) -> Result[Landmark, String] {
+  let reader = ProtoReader::new(bytes)
+  let mut x : Float = 0.0
+  let mut y : Float = 0.0
+  let mut z : Float = 0.0
+  let mut confidence : Float = 0.0
+  while reader.position < reader.bytes.length() {
+    let (field_number, wire_type) = match reader.read_key() {
+      Ok(key) => key
+      Err(error) => return Err(error)
+    }
+    match (field_number, wire_type) {
+      (1, 5) =>
+        match reader.read_float() {
+          Ok(field) => x = field
+          Err(error) => return Err(error)
+        }
+      (2, 5) =>
+        match reader.read_float() {
+          Ok(field) => y = field
+          Err(error) => return Err(error)
+        }
+      (3, 5) =>
+        match reader.read_float() {
+          Ok(field) => z = field
+          Err(error) => return Err(error)
+        }
+      (4, 5) =>
+        match reader.read_float() {
+          Ok(field) => confidence = field
+          Err(error) => return Err(error)
+        }
+      (_, _) =>
+        match reader.skip(wire_type) {
+          Ok(_) => ()
+          Err(error) => return Err(error)
+        }
+    }
+  }
+  Ok(Landmark::{ x, y, z, confidence, })
+}
+
+///|
+pub fn encode_hand_landmarks(value : HandLandmarks) -> Bytes {
+  let writer = ProtoWriter::new()
+  if value.handedness != "" {
+    writer.write_string(1, value.handedness)
+  }
+  for landmark in value.landmarks {
+    writer.write_message(2, encode_landmark(landmark))
+  }
+  writer.finish()
+}
+
+///|
+pub fn decode_hand_landmarks(bytes : Bytes) -> Result[HandLandmarks, String] {
+  let reader = ProtoReader::new(bytes)
+  let mut handedness = ""
+  let landmarks : Array[Landmark] = []
+  while reader.position < reader.bytes.length() {
+    let (field_number, wire_type) = match reader.read_key() {
+      Ok(key) => key
+      Err(error) => return Err(error)
+    }
+    match (field_number, wire_type) {
+      (1, 2) =>
+        match reader.read_string() {
+          Ok(field) => handedness = field
+          Err(error) => return Err(error)
+        }
+      (2, 2) =>
+        match reader.read_bytes() {
+          Ok(field) =>
+            match decode_landmark(field) {
+              Ok(decoded) => landmarks.push(decoded)
+              Err(error) => return Err(error)
+            }
+          Err(error) => return Err(error)
+        }
+      (_, _) =>
+        match reader.skip(wire_type) {
+          Ok(_) => ()
+          Err(error) => return Err(error)
+        }
+    }
+  }
+  Ok(HandLandmarks::{ handedness, landmarks, })
 }
 
 ///|

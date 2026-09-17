@@ -72,3 +72,40 @@ test "joint state round trip" {
   }
   assert_eq(decoded, original)
 }
+
+///|
+test "controller state round trip" {
+  let original = ControllerState::{
+    handedness: "left",
+    buttons: 5U,
+    axes: [0.25, -0.5],
+    pose: Some(Pose::{
+      position: Vec3::{ x: 1.0, y: 2.0, z: 3.0, },
+      orientation: Quaternion::{ x: 0.0, y: 0.0, z: 0.0, w: 1.0, },
+      reference_frame: "local-floor",
+    }),
+  }
+  let encoded = encode_controller_state(original)
+  let decoded = match decode_controller_state(encoded) {
+    Ok(value) => value
+    Err(error) => fail(error)
+  }
+  assert_eq(decoded, original)
+}
+
+///|
+test "hand landmarks round trip" {
+  let original = HandLandmarks::{
+    handedness: "right",
+    landmarks: [
+      Landmark::{ x: 0.0, y: 1.0, z: 2.0, confidence: 0.9, },
+      Landmark::{ x: 3.0, y: 4.0, z: 5.0, confidence: 0.8, },
+    ],
+  }
+  let encoded = encode_hand_landmarks(original)
+  let decoded = match decode_hand_landmarks(encoded) {
+    Ok(value) => value
+    Err(error) => fail(error)
+  }
+  assert_eq(decoded, original)
+}

@@ -10,10 +10,11 @@
 
 - `Envelope`
 - `HmdPose`
+- `ControllerState`
+- `HandLandmarks`
 - `JointState`
 
 未知の field は読み飛ばすため、追加フィールドを含む将来の packet を古いクライアントが受信できます。
 protobuf のフィールド番号は再利用しないでください。
 
 このパッケージは Zenoh、WebSocket、WebRTC などの transport を直接 import しません。transport adapter は別 package からこの package の `Bytes` API を利用します。
-

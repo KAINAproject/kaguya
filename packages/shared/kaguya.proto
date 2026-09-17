@@ -48,10 +48,28 @@ message HmdPose {
   Pose pose = 1;
 }
 
+message ControllerState {
+  string handedness = 1;
+  uint32 buttons = 2;
+  repeated float axes = 3;
+  Pose pose = 4;
+}
+
+message Landmark {
+  float x = 1;
+  float y = 2;
+  float z = 3;
+  float confidence = 4;
+}
+
+message HandLandmarks {
+  string handedness = 1;
+  repeated Landmark landmarks = 2;
+}
+
 message JointState {
   repeated float positions = 1;
   repeated float velocities = 2;
   repeated float efforts = 3;
   uint64 source_time_ns = 4;
 }
-
