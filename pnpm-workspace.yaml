@@ -1,2 +1,5 @@
 packages:
   - apps/client
+
+allowBuilds:
+  esbuild: true

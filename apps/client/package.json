@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "build:moonbit": "moon build src --target js --release --target-dir .moonbit-build",
-    "setup:types": "moon install mizchi/ts/cmd/mbt2ts --bin .moonbit-tools",
+    "setup:types": "moon install mizchi/ts/cmd/mbt2ts@0.5.2 --bin .moonbit-tools",
     "ensure:types": "test -x .moonbit-tools/mbt2ts || pnpm run setup:types",
     "build:types": ".moonbit-tools/mbt2ts decl src/pkg.generated.mbti .moonbit-build/js/release/build/apps/client/src/src.d.ts",
     "predev": "pnpm run ensure:types && pnpm run build:moonbit && pnpm run build:types",
