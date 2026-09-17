@@ -1,0 +1,313 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "KAINAproject/kaguya/packages/shared/kaguya/v1"
+
+import {
+  "moonbitlang/core/debug",
+  "moonbitlang/protobuf",
+}
+
+// Values
+
+// Errors
+
+// Types and methods
+pub(all) struct ControllerInputState {
+  mut primary_click : Bool
+  mut secondary_click : Bool
+  mut thumbstick_click : Bool
+  mut menu_click : Bool
+  mut thumbstick_x : Float
+  mut thumbstick_y : Float
+  mut squeeze_value : Float
+  mut trigger_value : Float
+} derive(Eq, @debug.Debug)
+#alias(new, deprecated)
+pub fn ControllerInputState::ControllerInputState(Bool, Bool, Bool, Bool, Float, Float, Float, Float) -> Self
+pub impl Default for ControllerInputState
+pub impl @protobuf.Read for ControllerInputState
+pub impl @protobuf.Sized for ControllerInputState
+pub impl @protobuf.Write for ControllerInputState
+
+pub(all) struct ControllerPose {
+  mut pose : Pose?
+  mut is_valid : Bool
+} derive(Eq, @debug.Debug)
+#alias(new, deprecated)
+pub fn ControllerPose::ControllerPose(pose? : Pose, Bool) -> Self
+pub impl Default for ControllerPose
+pub impl @protobuf.Read for ControllerPose
+pub impl @protobuf.Sized for ControllerPose
+pub impl @protobuf.Write for ControllerPose
+
+pub(all) struct ControllerSnapshot {
+  mut grip_pose : ControllerPose?
+  mut aim_pose : ControllerPose?
+  mut inputs : ControllerInputState?
+} derive(Eq, @debug.Debug)
+#alias(new, deprecated)
+pub fn ControllerSnapshot::ControllerSnapshot(grip_pose? : ControllerPose, aim_pose? : ControllerPose, inputs? : ControllerInputState) -> Self
+pub impl Default for ControllerSnapshot
+pub impl @protobuf.Read for ControllerSnapshot
+pub impl @protobuf.Sized for ControllerSnapshot
+pub impl @protobuf.Write for ControllerSnapshot
+
+pub(all) struct ControllerSnapshotRecord {
+  mut data : ControllerSnapshot?
+  mut timestamp : DeviceDataTimestamp?
+} derive(Eq, @debug.Debug)
+#alias(new, deprecated)
+pub fn ControllerSnapshotRecord::ControllerSnapshotRecord(data? : ControllerSnapshot, timestamp? : DeviceDataTimestamp) -> Self
+pub impl Default for ControllerSnapshotRecord
+pub impl @protobuf.Read for ControllerSnapshotRecord
+pub impl @protobuf.Sized for ControllerSnapshotRecord
+pub impl @protobuf.Write for ControllerSnapshotRecord
+
+pub(all) struct DeviceDataTimestamp {
+  mut available_time_local_common_clock : Int64
+  mut sample_time_local_common_clock : Int64
+  mut sample_time_raw_device_clock : Int64
+} derive(Eq, @debug.Debug)
+#alias(new, deprecated)
+pub fn DeviceDataTimestamp::DeviceDataTimestamp(Int64, Int64, Int64) -> Self
+pub impl Default for DeviceDataTimestamp
+pub impl @protobuf.Read for DeviceDataTimestamp
+pub impl @protobuf.Sized for DeviceDataTimestamp
+pub impl @protobuf.Write for DeviceDataTimestamp
+
+pub(all) enum Encoding {
+  ENCODING_UNSPECIFIED
+  ENCODING_PROTOBUF
+  ENCODING_JSON
+  ENCODING_JPEG
+  ENCODING_WEBP
+  Unknown(@protobuf.Enum)
+} derive(Eq, @debug.Debug)
+pub fn Encoding::from_enum(@protobuf.Enum) -> Self
+pub fn Encoding::to_enum(Self) -> @protobuf.Enum
+pub impl Default for Encoding
+pub impl @protobuf.Sized for Encoding
+
+pub(all) struct Envelope {
+  mut schema_id : String
+  mut schema_version : UInt
+  mut sequence : UInt64
+  mut source_time_ns : UInt64
+  mut source_id : String
+  mut frame_id : String
+  mut encoding : Encoding
+  mut payload : Bytes
+} derive(Eq, @debug.Debug)
+#alias(new, deprecated)
+pub fn Envelope::Envelope(String, UInt, UInt64, UInt64, String, String, Encoding, Bytes) -> Self
+pub impl Default for Envelope
+pub impl @protobuf.Read for Envelope
+pub impl @protobuf.Sized for Envelope
+pub impl @protobuf.Write for Envelope
+
+pub(all) struct Frame {
+  mut kind : FrameKind
+  mut topic : String
+  mut envelope : Envelope?
+  mut error : String
+} derive(Eq, @debug.Debug)
+#alias(new, deprecated)
+pub fn Frame::Frame(FrameKind, String, envelope? : Envelope, String) -> Self
+pub impl Default for Frame
+pub impl @protobuf.Read for Frame
+pub impl @protobuf.Sized for Frame
+pub impl @protobuf.Write for Frame
+
+pub(all) enum FrameKind {
+  FRAME_KIND_UNSPECIFIED
+  FRAME_KIND_PUBLISH
+  FRAME_KIND_SUBSCRIBE
+  FRAME_KIND_UNSUBSCRIBE
+  FRAME_KIND_DATA
+  FRAME_KIND_ERROR
+  Unknown(@protobuf.Enum)
+} derive(Eq, @debug.Debug)
+pub fn FrameKind::from_enum(@protobuf.Enum) -> Self
+pub fn FrameKind::to_enum(Self) -> @protobuf.Enum
+pub impl Default for FrameKind
+pub impl @protobuf.Sized for FrameKind
+
+pub(all) enum HandJoint {
+  HAND_JOINT_PALM
+  HAND_JOINT_WRIST
+  HAND_JOINT_THUMB_METACARPAL
+  HAND_JOINT_THUMB_PROXIMAL
+  HAND_JOINT_THUMB_DISTAL
+  HAND_JOINT_THUMB_TIP
+  HAND_JOINT_INDEX_METACARPAL
+  HAND_JOINT_INDEX_PROXIMAL
+  HAND_JOINT_INDEX_INTERMEDIATE
+  HAND_JOINT_INDEX_DISTAL
+  HAND_JOINT_INDEX_TIP
+  HAND_JOINT_MIDDLE_METACARPAL
+  HAND_JOINT_MIDDLE_PROXIMAL
+  HAND_JOINT_MIDDLE_INTERMEDIATE
+  HAND_JOINT_MIDDLE_DISTAL
+  HAND_JOINT_MIDDLE_TIP
+  HAND_JOINT_RING_METACARPAL
+  HAND_JOINT_RING_PROXIMAL
+  HAND_JOINT_RING_INTERMEDIATE
+  HAND_JOINT_RING_DISTAL
+  HAND_JOINT_RING_TIP
+  HAND_JOINT_LITTLE_METACARPAL
+  HAND_JOINT_LITTLE_PROXIMAL
+  HAND_JOINT_LITTLE_INTERMEDIATE
+  HAND_JOINT_LITTLE_DISTAL
+  HAND_JOINT_LITTLE_TIP
+  HAND_JOINT_NUM_JOINTS
+  Unknown(@protobuf.Enum)
+} derive(Eq, @debug.Debug)
+pub fn HandJoint::from_enum(@protobuf.Enum) -> Self
+pub fn HandJoint::to_enum(Self) -> @protobuf.Enum
+pub impl Default for HandJoint
+pub impl @protobuf.Sized for HandJoint
+
+pub(all) struct HandJointPose {
+  mut pose : Pose?
+  mut is_valid : Bool
+  mut radius : Float
+} derive(Eq, @debug.Debug)
+#alias(new, deprecated)
+pub fn HandJointPose::HandJointPose(pose? : Pose, Bool, Float) -> Self
+pub impl Default for HandJointPose
+pub impl @protobuf.Read for HandJointPose
+pub impl @protobuf.Sized for HandJointPose
+pub impl @protobuf.Write for HandJointPose
+
+pub(all) struct HandJoints {
+  mut poses : Array[HandJointPose]
+} derive(Eq, @debug.Debug)
+#alias(new, deprecated)
+pub fn HandJoints::HandJoints(Array[HandJointPose]) -> Self
+pub impl Default for HandJoints
+pub impl @protobuf.Read for HandJoints
+pub impl @protobuf.Sized for HandJoints
+pub impl @protobuf.Write for HandJoints
+
+pub(all) struct HandPose {
+  mut joints : HandJoints?
+} derive(Eq, @debug.Debug)
+#alias(new, deprecated)
+pub fn HandPose::HandPose(joints? : HandJoints) -> Self
+pub impl Default for HandPose
+pub impl @protobuf.Read for HandPose
+pub impl @protobuf.Sized for HandPose
+pub impl @protobuf.Write for HandPose
+
+pub(all) struct HandPoseRecord {
+  mut data : HandPose?
+  mut timestamp : DeviceDataTimestamp?
+} derive(Eq, @debug.Debug)
+#alias(new, deprecated)
+pub fn HandPoseRecord::HandPoseRecord(data? : HandPose, timestamp? : DeviceDataTimestamp) -> Self
+pub impl Default for HandPoseRecord
+pub impl @protobuf.Read for HandPoseRecord
+pub impl @protobuf.Sized for HandPoseRecord
+pub impl @protobuf.Write for HandPoseRecord
+
+pub(all) struct HeadPose {
+  mut pose : Pose?
+  mut is_valid : Bool
+  mut is_tracked : Bool
+} derive(Eq, @debug.Debug)
+#alias(new, deprecated)
+pub fn HeadPose::HeadPose(pose? : Pose, Bool, Bool) -> Self
+pub impl Default for HeadPose
+pub impl @protobuf.Read for HeadPose
+pub impl @protobuf.Sized for HeadPose
+pub impl @protobuf.Write for HeadPose
+
+pub(all) struct HeadPoseRecord {
+  mut data : HeadPose?
+  mut timestamp : DeviceDataTimestamp?
+} derive(Eq, @debug.Debug)
+#alias(new, deprecated)
+pub fn HeadPoseRecord::HeadPoseRecord(data? : HeadPose, timestamp? : DeviceDataTimestamp) -> Self
+pub impl Default for HeadPoseRecord
+pub impl @protobuf.Read for HeadPoseRecord
+pub impl @protobuf.Sized for HeadPoseRecord
+pub impl @protobuf.Write for HeadPoseRecord
+
+pub(all) struct JointState {
+  mut name : String
+  mut position : Float
+  mut velocity : Float
+  mut effort : Float
+  mut valid : Bool?
+} derive(Eq, @debug.Debug)
+#alias(new, deprecated)
+pub fn JointState::JointState(String, Float, Float, Float, valid? : Bool) -> Self
+pub impl Default for JointState
+pub impl @protobuf.Read for JointState
+pub impl @protobuf.Sized for JointState
+pub impl @protobuf.Write for JointState
+
+pub(all) struct JointStateOutput {
+  mut joints : Array[JointState]
+  mut device_id : String
+  mut has_velocity : Bool
+  mut has_effort : Bool
+  mut ee_pose : Pose?
+  mut ee_pose_valid : Bool
+} derive(Eq, @debug.Debug)
+#alias(new, deprecated)
+pub fn JointStateOutput::JointStateOutput(Array[JointState], String, Bool, Bool, ee_pose? : Pose, Bool) -> Self
+pub impl Default for JointStateOutput
+pub impl @protobuf.Read for JointStateOutput
+pub impl @protobuf.Sized for JointStateOutput
+pub impl @protobuf.Write for JointStateOutput
+
+pub(all) struct JointStateOutputRecord {
+  mut data : JointStateOutput?
+  mut timestamp : DeviceDataTimestamp?
+} derive(Eq, @debug.Debug)
+#alias(new, deprecated)
+pub fn JointStateOutputRecord::JointStateOutputRecord(data? : JointStateOutput, timestamp? : DeviceDataTimestamp) -> Self
+pub impl Default for JointStateOutputRecord
+pub impl @protobuf.Read for JointStateOutputRecord
+pub impl @protobuf.Sized for JointStateOutputRecord
+pub impl @protobuf.Write for JointStateOutputRecord
+
+pub(all) struct Point {
+  mut x : Float
+  mut y : Float
+  mut z : Float
+} derive(Eq, @debug.Debug)
+#alias(new, deprecated)
+pub fn Point::Point(Float, Float, Float) -> Self
+pub impl Default for Point
+pub impl @protobuf.Read for Point
+pub impl @protobuf.Sized for Point
+pub impl @protobuf.Write for Point
+
+pub(all) struct Pose {
+  mut position : Point?
+  mut orientation : Quaternion?
+} derive(Eq, @debug.Debug)
+#alias(new, deprecated)
+pub fn Pose::Pose(position? : Point, orientation? : Quaternion) -> Self
+pub impl Default for Pose
+pub impl @protobuf.Read for Pose
+pub impl @protobuf.Sized for Pose
+pub impl @protobuf.Write for Pose
+
+pub(all) struct Quaternion {
+  mut x : Float
+  mut y : Float
+  mut z : Float
+  mut w : Float
+} derive(Eq, @debug.Debug)
+#alias(new, deprecated)
+pub fn Quaternion::Quaternion(Float, Float, Float, Float) -> Self
+pub impl Default for Quaternion
+pub impl @protobuf.Read for Quaternion
+pub impl @protobuf.Sized for Quaternion
+pub impl @protobuf.Write for Quaternion
+
+// Type aliases
+
+// Traits

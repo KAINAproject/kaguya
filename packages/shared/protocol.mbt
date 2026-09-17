@@ -479,721 +479,32 @@ pub fn JointStateOutputRecord::new(
 }
 
 ///|
-fn encoding_to_int(encoding : Encoding) -> UInt {
-  match encoding {
-    Unspecified => 0U
-    Protobuf => 1U
-    Json => 2U
-    Jpeg => 3U
-    Webp => 4U
-  }
+fn default_point() -> Point {
+  Point::{ x: 0.0, y: 0.0, z: 0.0, }
 }
 
 ///|
-fn int_to_encoding(value : UInt) -> Encoding {
-  match value {
-    1U => Protobuf
-    2U => Json
-    3U => Jpeg
-    4U => Webp
-    _ => Unspecified
-  }
+fn default_quaternion() -> Quaternion {
+  Quaternion::{ x: 0.0, y: 0.0, z: 0.0, w: 1.0, }
 }
 
 ///|
-fn frame_kind_to_int(kind : FrameKind) -> UInt {
-  match kind {
-    Unspecified => 0U
-    Publish => 1U
-    Subscribe => 2U
-    Unsubscribe => 3U
-    Data => 4U
-    Error => 5U
-  }
+fn default_pose() -> Pose {
+  Pose::{ position: default_point(), orientation: default_quaternion(), }
 }
 
 ///|
-fn int_to_frame_kind(value : UInt) -> FrameKind {
-  match value {
-    1U => Publish
-    2U => Subscribe
-    3U => Unsubscribe
-    4U => Data
-    5U => Error
-    _ => Unspecified
-  }
-}
-
-///|
-pub fn encode_frame(value : Frame) -> Bytes {
-  let writer = ProtoWriter::new()
-  if value.kind != FrameKind::Unspecified {
-    writer.write_uint32(1, frame_kind_to_int(value.kind))
-  }
-  if value.topic != "" {
-    writer.write_string(2, value.topic)
-  }
-  match value.envelope {
-    Some(envelope) => writer.write_message(3, encode_envelope(envelope))
-    None => ()
-  }
-  if value.error != "" {
-    writer.write_string(4, value.error)
-  }
-  writer.finish()
-}
-
-///|
-pub fn decode_frame(bytes : Bytes) -> Result[Frame, String] {
-  let reader = ProtoReader::new(bytes)
-  let mut kind = FrameKind::Unspecified
-  let mut topic = ""
-  let mut envelope : Envelope? = None
-  let mut error = ""
-  while reader.position < reader.bytes.length() {
-    let (field_number, wire_type) = match reader.read_key() {
-      Ok(key) => key
-      Err(error) => return Err(error)
-    }
-    match (field_number, wire_type) {
-      (1, 0) =>
-        match reader.read_uint32() {
-          Ok(field) => kind = int_to_frame_kind(field)
-          Err(error) => return Err(error)
-        }
-      (2, 2) =>
-        match reader.read_string() {
-          Ok(field) => topic = field
-          Err(error) => return Err(error)
-        }
-      (3, 2) =>
-        match reader.read_bytes() {
-          Ok(field) =>
-            match decode_envelope(field) {
-              Ok(decoded) => envelope = Some(decoded)
-              Err(error) => return Err(error)
-            }
-          Err(error) => return Err(error)
-        }
-      (4, 2) =>
-        match reader.read_string() {
-          Ok(field) => error = field
-          Err(error) => return Err(error)
-        }
-      (_, _) =>
-        match reader.skip(wire_type) {
-          Ok(_) => ()
-          Err(error) => return Err(error)
-        }
-    }
-  }
-  Ok(Frame::{ kind, topic, envelope, error, })
-}
-
-///|
-pub fn encode_envelope(value : Envelope) -> Bytes {
-  let writer = ProtoWriter::new()
-  if value.schema_id != "" {
-    writer.write_string(1, value.schema_id)
-  }
-  if value.schema_version != 0U {
-    writer.write_uint32(2, value.schema_version)
-  }
-  if value.sequence != 0UL {
-    writer.write_uint64(3, value.sequence)
-  }
-  if value.source_time_ns != 0UL {
-    writer.write_uint64(4, value.source_time_ns)
-  }
-  if value.source_id != "" {
-    writer.write_string(5, value.source_id)
-  }
-  if value.frame_id != "" {
-    writer.write_string(6, value.frame_id)
-  }
-  if value.encoding != Encoding::Unspecified {
-    writer.write_uint32(7, encoding_to_int(value.encoding))
-  }
-  if value.payload.length() > 0 {
-    writer.write_bytes(8, value.payload)
-  }
-  writer.finish()
-}
-
-///|
-pub fn decode_envelope(bytes : Bytes) -> Result[Envelope, String] {
-  let reader = ProtoReader::new(bytes)
-  let mut schema_id = ""
-  let mut schema_version = 0U
-  let mut sequence = 0UL
-  let mut source_time_ns = 0UL
-  let mut source_id = ""
-  let mut frame_id = ""
-  let mut encoding = Encoding::Unspecified
-  let mut payload : Bytes = b""
-  while reader.position < reader.bytes.length() {
-    let (field_number, wire_type) = match reader.read_key() {
-      Ok(key) => key
-      Err(error) => return Err(error)
-    }
-    match (field_number, wire_type) {
-      (1, 2) =>
-        match reader.read_string() {
-          Ok(field) => schema_id = field
-          Err(error) => return Err(error)
-        }
-      (2, 0) =>
-        match reader.read_uint32() {
-          Ok(field) => schema_version = field
-          Err(error) => return Err(error)
-        }
-      (3, 0) =>
-        match reader.read_uint64() {
-          Ok(field) => sequence = field
-          Err(error) => return Err(error)
-        }
-      (4, 0) =>
-        match reader.read_uint64() {
-          Ok(field) => source_time_ns = field
-          Err(error) => return Err(error)
-        }
-      (5, 2) =>
-        match reader.read_string() {
-          Ok(field) => source_id = field
-          Err(error) => return Err(error)
-        }
-      (6, 2) =>
-        match reader.read_string() {
-          Ok(field) => frame_id = field
-          Err(error) => return Err(error)
-        }
-      (7, 0) =>
-        match reader.read_uint32() {
-          Ok(field) => encoding = int_to_encoding(field)
-          Err(error) => return Err(error)
-        }
-      (8, 2) =>
-        match reader.read_bytes() {
-          Ok(field) => payload = field
-          Err(error) => return Err(error)
-        }
-      (_, _) =>
-        match reader.skip(wire_type) {
-          Ok(_) => ()
-          Err(error) => return Err(error)
-        }
-    }
-  }
-  Ok(Envelope::{
-    schema_id,
-    schema_version,
-    sequence,
-    source_time_ns,
-    source_id,
-    frame_id,
-    encoding,
-    payload,
-  })
-}
-
-///|
-pub fn encode_point(value : Point) -> Bytes {
-  let writer = ProtoWriter::new()
-  writer.write_float(1, value.x)
-  writer.write_float(2, value.y)
-  writer.write_float(3, value.z)
-  writer.finish()
-}
-
-///|
-pub fn decode_point(bytes : Bytes) -> Result[Point, String] {
-  let reader = ProtoReader::new(bytes)
-  let mut x : Float = 0.0
-  let mut y : Float = 0.0
-  let mut z : Float = 0.0
-  while reader.position < reader.bytes.length() {
-    let (field_number, wire_type) = match reader.read_key() {
-      Ok(key) => key
-      Err(error) => return Err(error)
-    }
-    match (field_number, wire_type) {
-      (1, 5) =>
-        match reader.read_float() {
-          Ok(field) => x = field
-          Err(error) => return Err(error)
-        }
-      (2, 5) =>
-        match reader.read_float() {
-          Ok(field) => y = field
-          Err(error) => return Err(error)
-        }
-      (3, 5) =>
-        match reader.read_float() {
-          Ok(field) => z = field
-          Err(error) => return Err(error)
-        }
-      (_, _) =>
-        match reader.skip(wire_type) {
-          Ok(_) => ()
-          Err(error) => return Err(error)
-        }
-    }
-  }
-  Ok(Point::{ x, y, z, })
-}
-
-///|
-pub fn encode_quaternion(value : Quaternion) -> Bytes {
-  let writer = ProtoWriter::new()
-  writer.write_float(1, value.x)
-  writer.write_float(2, value.y)
-  writer.write_float(3, value.z)
-  writer.write_float(4, value.w)
-  writer.finish()
-}
-
-///|
-pub fn decode_quaternion(bytes : Bytes) -> Result[Quaternion, String] {
-  let reader = ProtoReader::new(bytes)
-  let mut x : Float = 0.0
-  let mut y : Float = 0.0
-  let mut z : Float = 0.0
-  let mut w : Float = 1.0
-  while reader.position < reader.bytes.length() {
-    let (field_number, wire_type) = match reader.read_key() {
-      Ok(key) => key
-      Err(error) => return Err(error)
-    }
-    match (field_number, wire_type) {
-      (1, 5) =>
-        match reader.read_float() {
-          Ok(field) => x = field
-          Err(error) => return Err(error)
-        }
-      (2, 5) =>
-        match reader.read_float() {
-          Ok(field) => y = field
-          Err(error) => return Err(error)
-        }
-      (3, 5) =>
-        match reader.read_float() {
-          Ok(field) => z = field
-          Err(error) => return Err(error)
-        }
-      (4, 5) =>
-        match reader.read_float() {
-          Ok(field) => w = field
-          Err(error) => return Err(error)
-        }
-      (_, _) =>
-        match reader.skip(wire_type) {
-          Ok(_) => ()
-          Err(error) => return Err(error)
-        }
-    }
-  }
-  Ok(Quaternion::{ x, y, z, w, })
-}
-
-///|
-pub fn encode_pose(value : Pose) -> Bytes {
-  let writer = ProtoWriter::new()
-  writer.write_message(1, encode_point(value.position))
-  writer.write_message(2, encode_quaternion(value.orientation))
-  writer.finish()
-}
-
-///|
-pub fn decode_pose(bytes : Bytes) -> Result[Pose, String] {
-  let reader = ProtoReader::new(bytes)
-  let mut position = Point::{ x: 0.0, y: 0.0, z: 0.0, }
-  let mut orientation = Quaternion::{ x: 0.0, y: 0.0, z: 0.0, w: 1.0, }
-  while reader.position < reader.bytes.length() {
-    let (field_number, wire_type) = match reader.read_key() {
-      Ok(key) => key
-      Err(error) => return Err(error)
-    }
-    match (field_number, wire_type) {
-      (1, 2) =>
-        match reader.read_bytes() {
-          Ok(field) =>
-            match decode_point(field) {
-              Ok(decoded) => position = decoded
-              Err(error) => return Err(error)
-            }
-          Err(error) => return Err(error)
-        }
-      (2, 2) =>
-        match reader.read_bytes() {
-          Ok(field) =>
-            match decode_quaternion(field) {
-              Ok(decoded) => orientation = decoded
-              Err(error) => return Err(error)
-            }
-          Err(error) => return Err(error)
-        }
-      (_, _) =>
-        match reader.skip(wire_type) {
-          Ok(_) => ()
-          Err(error) => return Err(error)
-        }
-    }
-  }
-  Ok(Pose::{ position, orientation, })
-}
-
-///|
-pub fn encode_device_data_timestamp(value : DeviceDataTimestamp) -> Bytes {
-  let writer = ProtoWriter::new()
-  if value.available_time_local_common_clock != 0L {
-    writer.write_int64(1, value.available_time_local_common_clock)
-  }
-  if value.sample_time_local_common_clock != 0L {
-    writer.write_int64(2, value.sample_time_local_common_clock)
-  }
-  if value.sample_time_raw_device_clock != 0L {
-    writer.write_int64(3, value.sample_time_raw_device_clock)
-  }
-  writer.finish()
-}
-
-///|
-pub fn decode_device_data_timestamp(
-  bytes : Bytes,
-) -> Result[DeviceDataTimestamp, String] {
-  let reader = ProtoReader::new(bytes)
-  let mut available_time_local_common_clock = 0L
-  let mut sample_time_local_common_clock = 0L
-  let mut sample_time_raw_device_clock = 0L
-  while reader.position < reader.bytes.length() {
-    let (field_number, wire_type) = match reader.read_key() {
-      Ok(key) => key
-      Err(error) => return Err(error)
-    }
-    match (field_number, wire_type) {
-      (1, 0) =>
-        match reader.read_int64() {
-          Ok(field) => available_time_local_common_clock = field
-          Err(error) => return Err(error)
-        }
-      (2, 0) =>
-        match reader.read_int64() {
-          Ok(field) => sample_time_local_common_clock = field
-          Err(error) => return Err(error)
-        }
-      (3, 0) =>
-        match reader.read_int64() {
-          Ok(field) => sample_time_raw_device_clock = field
-          Err(error) => return Err(error)
-        }
-      (_, _) =>
-        match reader.skip(wire_type) {
-          Ok(_) => ()
-          Err(error) => return Err(error)
-        }
-    }
-  }
-  Ok(DeviceDataTimestamp::{
-    available_time_local_common_clock,
-    sample_time_local_common_clock,
-    sample_time_raw_device_clock,
-  })
-}
-
-///|
-pub fn encode_head_pose(value : HeadPose) -> Bytes {
-  let writer = ProtoWriter::new()
-  writer.write_message(1, encode_pose(value.pose))
-  if value.is_valid {
-    writer.write_bool(2, true)
-  }
-  if value.is_tracked {
-    writer.write_bool(3, true)
-  }
-  writer.finish()
-}
-
-///|
-pub fn decode_head_pose(bytes : Bytes) -> Result[HeadPose, String] {
-  let reader = ProtoReader::new(bytes)
-  let mut pose = Pose::{
-    position: Point::{ x: 0.0, y: 0.0, z: 0.0, },
-    orientation: Quaternion::{ x: 0.0, y: 0.0, z: 0.0, w: 1.0, },
-  }
-  let mut is_valid = false
-  let mut is_tracked = false
-  while reader.position < reader.bytes.length() {
-    let (field_number, wire_type) = match reader.read_key() {
-      Ok(key) => key
-      Err(error) => return Err(error)
-    }
-    match (field_number, wire_type) {
-      (1, 2) =>
-        match reader.read_bytes() {
-          Ok(field) =>
-            match decode_pose(field) {
-              Ok(decoded) => pose = decoded
-              Err(error) => return Err(error)
-            }
-          Err(error) => return Err(error)
-        }
-      (2, 0) =>
-        match reader.read_bool() {
-          Ok(field) => is_valid = field
-          Err(error) => return Err(error)
-        }
-      (3, 0) =>
-        match reader.read_bool() {
-          Ok(field) => is_tracked = field
-          Err(error) => return Err(error)
-        }
-      (_, _) =>
-        match reader.skip(wire_type) {
-          Ok(_) => ()
-          Err(error) => return Err(error)
-        }
-    }
-  }
-  Ok(HeadPose::{ pose, is_valid, is_tracked, })
-}
-
-///|
-pub fn encode_head_pose_record(value : HeadPoseRecord) -> Bytes {
-  let writer = ProtoWriter::new()
-  writer.write_message(1, encode_head_pose(value.data))
-  writer.write_message(2, encode_device_data_timestamp(value.timestamp))
-  writer.finish()
-}
-
-///|
-pub fn decode_head_pose_record(bytes : Bytes) -> Result[HeadPoseRecord, String] {
-  let reader = ProtoReader::new(bytes)
-  let mut data = HeadPose::{
-    pose: Pose::{
-      position: Point::{ x: 0.0, y: 0.0, z: 0.0, },
-      orientation: Quaternion::{ x: 0.0, y: 0.0, z: 0.0, w: 1.0, },
-    },
-    is_valid: false,
-    is_tracked: false,
-  }
-  let mut timestamp = DeviceDataTimestamp::{
+fn default_timestamp() -> DeviceDataTimestamp {
+  DeviceDataTimestamp::{
     available_time_local_common_clock: 0L,
     sample_time_local_common_clock: 0L,
     sample_time_raw_device_clock: 0L,
   }
-  while reader.position < reader.bytes.length() {
-    let (field_number, wire_type) = match reader.read_key() {
-      Ok(key) => key
-      Err(error) => return Err(error)
-    }
-    match (field_number, wire_type) {
-      (1, 2) =>
-        match reader.read_bytes() {
-          Ok(field) =>
-            match decode_head_pose(field) {
-              Ok(decoded) => data = decoded
-              Err(error) => return Err(error)
-            }
-          Err(error) => return Err(error)
-        }
-      (2, 2) =>
-        match reader.read_bytes() {
-          Ok(field) =>
-            match decode_device_data_timestamp(field) {
-              Ok(decoded) => timestamp = decoded
-              Err(error) => return Err(error)
-            }
-          Err(error) => return Err(error)
-        }
-      (_, _) =>
-        match reader.skip(wire_type) {
-          Ok(_) => ()
-          Err(error) => return Err(error)
-        }
-    }
-  }
-  Ok(HeadPoseRecord::{ data, timestamp, })
 }
 
 ///|
-pub fn encode_controller_input_state(value : ControllerInputState) -> Bytes {
-  let writer = ProtoWriter::new()
-  if value.primary_click {
-    writer.write_bool(1, true)
-  }
-  if value.secondary_click {
-    writer.write_bool(2, true)
-  }
-  if value.thumbstick_click {
-    writer.write_bool(3, true)
-  }
-  if value.menu_click {
-    writer.write_bool(4, true)
-  }
-  if value.thumbstick_x != 0.0 {
-    writer.write_float(5, value.thumbstick_x)
-  }
-  if value.thumbstick_y != 0.0 {
-    writer.write_float(6, value.thumbstick_y)
-  }
-  if value.squeeze_value != 0.0 {
-    writer.write_float(7, value.squeeze_value)
-  }
-  if value.trigger_value != 0.0 {
-    writer.write_float(8, value.trigger_value)
-  }
-  writer.finish()
-}
-
-///|
-pub fn decode_controller_input_state(
-  bytes : Bytes,
-) -> Result[ControllerInputState, String] {
-  let reader = ProtoReader::new(bytes)
-  let mut primary_click = false
-  let mut secondary_click = false
-  let mut thumbstick_click = false
-  let mut menu_click = false
-  let mut thumbstick_x : Float = 0.0
-  let mut thumbstick_y : Float = 0.0
-  let mut squeeze_value : Float = 0.0
-  let mut trigger_value : Float = 0.0
-  while reader.position < reader.bytes.length() {
-    let (field_number, wire_type) = match reader.read_key() {
-      Ok(key) => key
-      Err(error) => return Err(error)
-    }
-    match (field_number, wire_type) {
-      (1, 0) =>
-        match reader.read_bool() {
-          Ok(field) => primary_click = field
-          Err(error) => return Err(error)
-        }
-      (2, 0) =>
-        match reader.read_bool() {
-          Ok(field) => secondary_click = field
-          Err(error) => return Err(error)
-        }
-      (3, 0) =>
-        match reader.read_bool() {
-          Ok(field) => thumbstick_click = field
-          Err(error) => return Err(error)
-        }
-      (4, 0) =>
-        match reader.read_bool() {
-          Ok(field) => menu_click = field
-          Err(error) => return Err(error)
-        }
-      (5, 5) =>
-        match reader.read_float() {
-          Ok(field) => thumbstick_x = field
-          Err(error) => return Err(error)
-        }
-      (6, 5) =>
-        match reader.read_float() {
-          Ok(field) => thumbstick_y = field
-          Err(error) => return Err(error)
-        }
-      (7, 5) =>
-        match reader.read_float() {
-          Ok(field) => squeeze_value = field
-          Err(error) => return Err(error)
-        }
-      (8, 5) =>
-        match reader.read_float() {
-          Ok(field) => trigger_value = field
-          Err(error) => return Err(error)
-        }
-      (_, _) =>
-        match reader.skip(wire_type) {
-          Ok(_) => ()
-          Err(error) => return Err(error)
-        }
-    }
-  }
-  Ok(ControllerInputState::{
-    primary_click,
-    secondary_click,
-    thumbstick_click,
-    menu_click,
-    thumbstick_x,
-    thumbstick_y,
-    squeeze_value,
-    trigger_value,
-  })
-}
-
-///|
-fn encode_controller_pose(value : ControllerPose) -> Bytes {
-  let writer = ProtoWriter::new()
-  writer.write_message(1, encode_pose(value.pose))
-  if value.is_valid {
-    writer.write_bool(2, true)
-  }
-  writer.finish()
-}
-
-///|
-fn decode_controller_pose(bytes : Bytes) -> Result[ControllerPose, String] {
-  let reader = ProtoReader::new(bytes)
-  let mut pose = Pose::{
-    position: Point::{ x: 0.0, y: 0.0, z: 0.0, },
-    orientation: Quaternion::{ x: 0.0, y: 0.0, z: 0.0, w: 1.0, },
-  }
-  let mut is_valid = false
-  while reader.position < reader.bytes.length() {
-    let (field_number, wire_type) = match reader.read_key() {
-      Ok(key) => key
-      Err(error) => return Err(error)
-    }
-    match (field_number, wire_type) {
-      (1, 2) =>
-        match reader.read_bytes() {
-          Ok(field) =>
-            match decode_pose(field) {
-              Ok(decoded) => pose = decoded
-              Err(error) => return Err(error)
-            }
-          Err(error) => return Err(error)
-        }
-      (2, 0) =>
-        match reader.read_bool() {
-          Ok(field) => is_valid = field
-          Err(error) => return Err(error)
-        }
-      (_, _) =>
-        match reader.skip(wire_type) {
-          Ok(_) => ()
-          Err(error) => return Err(error)
-        }
-    }
-  }
-  Ok(ControllerPose::{ pose, is_valid, })
-}
-
-///|
-pub fn encode_controller_snapshot(value : ControllerSnapshot) -> Bytes {
-  let writer = ProtoWriter::new()
-  writer.write_message(1, encode_controller_pose(value.grip_pose))
-  writer.write_message(2, encode_controller_pose(value.aim_pose))
-  writer.write_message(3, encode_controller_input_state(value.inputs))
-  writer.finish()
-}
-
-///|
-pub fn decode_controller_snapshot(
-  bytes : Bytes,
-) -> Result[ControllerSnapshot, String] {
-  let reader = ProtoReader::new(bytes)
-  let mut grip_pose = ControllerPose::{
-    pose: Pose::{
-      position: Point::{ x: 0.0, y: 0.0, z: 0.0, },
-      orientation: Quaternion::{ x: 0.0, y: 0.0, z: 0.0, w: 1.0, },
-    },
-    is_valid: false,
-  }
-  let mut aim_pose = grip_pose
-  let mut inputs = ControllerInputState::{
+fn default_controller_input_state() -> ControllerInputState {
+  ControllerInputState::{
     primary_click: false,
     secondary_click: false,
     thumbstick_click: false,
@@ -1203,494 +514,35 @@ pub fn decode_controller_snapshot(
     squeeze_value: 0.0,
     trigger_value: 0.0,
   }
-  while reader.position < reader.bytes.length() {
-    let (field_number, wire_type) = match reader.read_key() {
-      Ok(key) => key
-      Err(error) => return Err(error)
-    }
-    match (field_number, wire_type) {
-      (1, 2) =>
-        match reader.read_bytes() {
-          Ok(field) =>
-            match decode_controller_pose(field) {
-              Ok(decoded) => grip_pose = decoded
-              Err(error) => return Err(error)
-            }
-          Err(error) => return Err(error)
-        }
-      (2, 2) =>
-        match reader.read_bytes() {
-          Ok(field) =>
-            match decode_controller_pose(field) {
-              Ok(decoded) => aim_pose = decoded
-              Err(error) => return Err(error)
-            }
-          Err(error) => return Err(error)
-        }
-      (3, 2) =>
-        match reader.read_bytes() {
-          Ok(field) =>
-            match decode_controller_input_state(field) {
-              Ok(decoded) => inputs = decoded
-              Err(error) => return Err(error)
-            }
-          Err(error) => return Err(error)
-        }
-      (_, _) =>
-        match reader.skip(wire_type) {
-          Ok(_) => ()
-          Err(error) => return Err(error)
-        }
-    }
-  }
-  Ok(ControllerSnapshot::{ grip_pose, aim_pose, inputs, })
 }
 
 ///|
-pub fn encode_controller_snapshot_record(
-  value : ControllerSnapshotRecord,
-) -> Bytes {
-  let writer = ProtoWriter::new()
-  writer.write_message(1, encode_controller_snapshot(value.data))
-  writer.write_message(2, encode_device_data_timestamp(value.timestamp))
-  writer.finish()
+fn default_controller_pose() -> ControllerPose {
+  ControllerPose::{ pose: default_pose(), is_valid: false, }
 }
 
 ///|
-pub fn decode_controller_snapshot_record(
-  bytes : Bytes,
-) -> Result[ControllerSnapshotRecord, String] {
-  let reader = ProtoReader::new(bytes)
-  let mut data = ControllerSnapshot::{
-    grip_pose: ControllerPose::{
-      pose: Pose::{
-        position: Point::{ x: 0.0, y: 0.0, z: 0.0, },
-        orientation: Quaternion::{ x: 0.0, y: 0.0, z: 0.0, w: 1.0, },
-      },
-      is_valid: false,
-    },
-    aim_pose: ControllerPose::{
-      pose: Pose::{
-        position: Point::{ x: 0.0, y: 0.0, z: 0.0, },
-        orientation: Quaternion::{ x: 0.0, y: 0.0, z: 0.0, w: 1.0, },
-      },
-      is_valid: false,
-    },
-    inputs: ControllerInputState::{
-      primary_click: false,
-      secondary_click: false,
-      thumbstick_click: false,
-      menu_click: false,
-      thumbstick_x: 0.0,
-      thumbstick_y: 0.0,
-      squeeze_value: 0.0,
-      trigger_value: 0.0,
-    },
+fn default_controller_snapshot() -> ControllerSnapshot {
+  ControllerSnapshot::{
+    grip_pose: default_controller_pose(),
+    aim_pose: default_controller_pose(),
+    inputs: default_controller_input_state(),
   }
-  let mut timestamp = DeviceDataTimestamp::{
-    available_time_local_common_clock: 0L,
-    sample_time_local_common_clock: 0L,
-    sample_time_raw_device_clock: 0L,
-  }
-  while reader.position < reader.bytes.length() {
-    let (field_number, wire_type) = match reader.read_key() {
-      Ok(key) => key
-      Err(error) => return Err(error)
-    }
-    match (field_number, wire_type) {
-      (1, 2) =>
-        match reader.read_bytes() {
-          Ok(field) =>
-            match decode_controller_snapshot(field) {
-              Ok(decoded) => data = decoded
-              Err(error) => return Err(error)
-            }
-          Err(error) => return Err(error)
-        }
-      (2, 2) =>
-        match reader.read_bytes() {
-          Ok(field) =>
-            match decode_device_data_timestamp(field) {
-              Ok(decoded) => timestamp = decoded
-              Err(error) => return Err(error)
-            }
-          Err(error) => return Err(error)
-        }
-      (_, _) =>
-        match reader.skip(wire_type) {
-          Ok(_) => ()
-          Err(error) => return Err(error)
-        }
-    }
-  }
-  Ok(ControllerSnapshotRecord::{ data, timestamp, })
 }
 
 ///|
-fn encode_hand_joint_pose(value : HandJointPose) -> Bytes {
-  let writer = ProtoWriter::new()
-  writer.write_message(1, encode_pose(value.pose))
-  if value.is_valid {
-    writer.write_bool(2, true)
-  }
-  if value.radius != 0.0 {
-    writer.write_float(3, value.radius)
-  }
-  writer.finish()
+fn default_head_pose() -> HeadPose {
+  HeadPose::{ pose: default_pose(), is_valid: false, is_tracked: false, }
 }
 
 ///|
-fn decode_hand_joint_pose(bytes : Bytes) -> Result[HandJointPose, String] {
-  let reader = ProtoReader::new(bytes)
-  let mut pose = Pose::{
-    position: Point::{ x: 0.0, y: 0.0, z: 0.0, },
-    orientation: Quaternion::{ x: 0.0, y: 0.0, z: 0.0, w: 1.0, },
-  }
-  let mut is_valid = false
-  let mut radius : Float = 0.0
-  while reader.position < reader.bytes.length() {
-    let (field_number, wire_type) = match reader.read_key() {
-      Ok(key) => key
-      Err(error) => return Err(error)
-    }
-    match (field_number, wire_type) {
-      (1, 2) =>
-        match reader.read_bytes() {
-          Ok(field) =>
-            match decode_pose(field) {
-              Ok(decoded) => pose = decoded
-              Err(error) => return Err(error)
-            }
-          Err(error) => return Err(error)
-        }
-      (2, 0) =>
-        match reader.read_bool() {
-          Ok(field) => is_valid = field
-          Err(error) => return Err(error)
-        }
-      (3, 5) =>
-        match reader.read_float() {
-          Ok(field) => radius = field
-          Err(error) => return Err(error)
-        }
-      (_, _) =>
-        match reader.skip(wire_type) {
-          Ok(_) => ()
-          Err(error) => return Err(error)
-        }
-    }
-  }
-  Ok(HandJointPose::{ pose, is_valid, radius, })
+fn default_hand_pose() -> HandPose {
+  HandPose::{ joints: HandJoints::{ poses: [], }, }
 }
 
 ///|
-fn encode_hand_joints(value : HandJoints) -> Bytes {
-  let writer = ProtoWriter::new()
-  for pose in value.poses {
-    writer.write_message(1, encode_hand_joint_pose(pose))
-  }
-  writer.finish()
-}
-
-///|
-fn decode_hand_joints(bytes : Bytes) -> Result[HandJoints, String] {
-  let reader = ProtoReader::new(bytes)
-  let poses : Array[HandJointPose] = []
-  while reader.position < reader.bytes.length() {
-    let (field_number, wire_type) = match reader.read_key() {
-      Ok(key) => key
-      Err(error) => return Err(error)
-    }
-    match (field_number, wire_type) {
-      (1, 2) =>
-        match reader.read_bytes() {
-          Ok(field) =>
-            match decode_hand_joint_pose(field) {
-              Ok(decoded) => poses.push(decoded)
-              Err(error) => return Err(error)
-            }
-          Err(error) => return Err(error)
-        }
-      (_, _) =>
-        match reader.skip(wire_type) {
-          Ok(_) => ()
-          Err(error) => return Err(error)
-        }
-    }
-  }
-  Ok(HandJoints::{ poses, })
-}
-
-///|
-pub fn encode_hand_pose(value : HandPose) -> Bytes {
-  let writer = ProtoWriter::new()
-  writer.write_message(1, encode_hand_joints(value.joints))
-  writer.finish()
-}
-
-///|
-pub fn decode_hand_pose(bytes : Bytes) -> Result[HandPose, String] {
-  let reader = ProtoReader::new(bytes)
-  let mut joints = HandJoints::{ poses: [], }
-  while reader.position < reader.bytes.length() {
-    let (field_number, wire_type) = match reader.read_key() {
-      Ok(key) => key
-      Err(error) => return Err(error)
-    }
-    match (field_number, wire_type) {
-      (1, 2) =>
-        match reader.read_bytes() {
-          Ok(field) =>
-            match decode_hand_joints(field) {
-              Ok(decoded) => joints = decoded
-              Err(error) => return Err(error)
-            }
-          Err(error) => return Err(error)
-        }
-      (_, _) =>
-        match reader.skip(wire_type) {
-          Ok(_) => ()
-          Err(error) => return Err(error)
-        }
-    }
-  }
-  Ok(HandPose::{ joints, })
-}
-
-///|
-pub fn encode_hand_pose_record(value : HandPoseRecord) -> Bytes {
-  let writer = ProtoWriter::new()
-  writer.write_message(1, encode_hand_pose(value.data))
-  writer.write_message(2, encode_device_data_timestamp(value.timestamp))
-  writer.finish()
-}
-
-///|
-pub fn decode_hand_pose_record(bytes : Bytes) -> Result[HandPoseRecord, String] {
-  let reader = ProtoReader::new(bytes)
-  let mut data = HandPose::{ joints: HandJoints::{ poses: [], }, }
-  let mut timestamp = DeviceDataTimestamp::{
-    available_time_local_common_clock: 0L,
-    sample_time_local_common_clock: 0L,
-    sample_time_raw_device_clock: 0L,
-  }
-  while reader.position < reader.bytes.length() {
-    let (field_number, wire_type) = match reader.read_key() {
-      Ok(key) => key
-      Err(error) => return Err(error)
-    }
-    match (field_number, wire_type) {
-      (1, 2) =>
-        match reader.read_bytes() {
-          Ok(field) =>
-            match decode_hand_pose(field) {
-              Ok(decoded) => data = decoded
-              Err(error) => return Err(error)
-            }
-          Err(error) => return Err(error)
-        }
-      (2, 2) =>
-        match reader.read_bytes() {
-          Ok(field) =>
-            match decode_device_data_timestamp(field) {
-              Ok(decoded) => timestamp = decoded
-              Err(error) => return Err(error)
-            }
-          Err(error) => return Err(error)
-        }
-      (_, _) =>
-        match reader.skip(wire_type) {
-          Ok(_) => ()
-          Err(error) => return Err(error)
-        }
-    }
-  }
-  Ok(HandPoseRecord::{ data, timestamp, })
-}
-
-///|
-fn encode_joint_state(value : JointState) -> Bytes {
-  let writer = ProtoWriter::new()
-  if value.name != "" {
-    writer.write_string(1, value.name)
-  }
-  if value.position != 0.0 {
-    writer.write_float(2, value.position)
-  }
-  if value.velocity != 0.0 {
-    writer.write_float(3, value.velocity)
-  }
-  if value.effort != 0.0 {
-    writer.write_float(4, value.effort)
-  }
-  if value.valid == false {
-    writer.write_bool(5, false)
-  }
-  writer.finish()
-}
-
-///|
-fn decode_joint_state(bytes : Bytes) -> Result[JointState, String] {
-  let reader = ProtoReader::new(bytes)
-  let mut name = ""
-  let mut position : Float = 0.0
-  let mut velocity : Float = 0.0
-  let mut effort : Float = 0.0
-  let mut valid = true
-  while reader.position < reader.bytes.length() {
-    let (field_number, wire_type) = match reader.read_key() {
-      Ok(key) => key
-      Err(error) => return Err(error)
-    }
-    match (field_number, wire_type) {
-      (1, 2) =>
-        match reader.read_string() {
-          Ok(field) => name = field
-          Err(error) => return Err(error)
-        }
-      (2, 5) =>
-        match reader.read_float() {
-          Ok(field) => position = field
-          Err(error) => return Err(error)
-        }
-      (3, 5) =>
-        match reader.read_float() {
-          Ok(field) => velocity = field
-          Err(error) => return Err(error)
-        }
-      (4, 5) =>
-        match reader.read_float() {
-          Ok(field) => effort = field
-          Err(error) => return Err(error)
-        }
-      (5, 0) =>
-        match reader.read_bool() {
-          Ok(field) => valid = field
-          Err(error) => return Err(error)
-        }
-      (_, _) =>
-        match reader.skip(wire_type) {
-          Ok(_) => ()
-          Err(error) => return Err(error)
-        }
-    }
-  }
-  Ok(JointState::{ name, position, velocity, effort, valid, })
-}
-
-///|
-pub fn encode_joint_state_output(value : JointStateOutput) -> Bytes {
-  let writer = ProtoWriter::new()
-  for joint in value.joints {
-    writer.write_message(1, encode_joint_state(joint))
-  }
-  if value.device_id != "" {
-    writer.write_string(2, value.device_id)
-  }
-  if value.has_velocity {
-    writer.write_bool(3, true)
-  }
-  if value.has_effort {
-    writer.write_bool(4, true)
-  }
-  match value.ee_pose {
-    Some(pose) => writer.write_message(5, encode_pose(pose))
-    None => ()
-  }
-  if value.ee_pose_valid {
-    writer.write_bool(6, true)
-  }
-  writer.finish()
-}
-
-///|
-pub fn decode_joint_state_output(
-  bytes : Bytes,
-) -> Result[JointStateOutput, String] {
-  let reader = ProtoReader::new(bytes)
-  let joints : Array[JointState] = []
-  let mut device_id = ""
-  let mut has_velocity = false
-  let mut has_effort = false
-  let mut ee_pose : Pose? = None
-  let mut ee_pose_valid = false
-  while reader.position < reader.bytes.length() {
-    let (field_number, wire_type) = match reader.read_key() {
-      Ok(key) => key
-      Err(error) => return Err(error)
-    }
-    match (field_number, wire_type) {
-      (1, 2) =>
-        match reader.read_bytes() {
-          Ok(field) =>
-            match decode_joint_state(field) {
-              Ok(decoded) => joints.push(decoded)
-              Err(error) => return Err(error)
-            }
-          Err(error) => return Err(error)
-        }
-      (2, 2) =>
-        match reader.read_string() {
-          Ok(field) => device_id = field
-          Err(error) => return Err(error)
-        }
-      (3, 0) =>
-        match reader.read_bool() {
-          Ok(field) => has_velocity = field
-          Err(error) => return Err(error)
-        }
-      (4, 0) =>
-        match reader.read_bool() {
-          Ok(field) => has_effort = field
-          Err(error) => return Err(error)
-        }
-      (5, 2) =>
-        match reader.read_bytes() {
-          Ok(field) =>
-            match decode_pose(field) {
-              Ok(decoded) => ee_pose = Some(decoded)
-              Err(error) => return Err(error)
-            }
-          Err(error) => return Err(error)
-        }
-      (6, 0) =>
-        match reader.read_bool() {
-          Ok(field) => ee_pose_valid = field
-          Err(error) => return Err(error)
-        }
-      (_, _) =>
-        match reader.skip(wire_type) {
-          Ok(_) => ()
-          Err(error) => return Err(error)
-        }
-    }
-  }
-  Ok(JointStateOutput::{
-    joints,
-    device_id,
-    has_velocity,
-    has_effort,
-    ee_pose,
-    ee_pose_valid,
-  })
-}
-
-///|
-pub fn encode_joint_state_output_record(
-  value : JointStateOutputRecord,
-) -> Bytes {
-  let writer = ProtoWriter::new()
-  writer.write_message(1, encode_joint_state_output(value.data))
-  writer.write_message(2, encode_device_data_timestamp(value.timestamp))
-  writer.finish()
-}
-
-///|
-pub fn decode_joint_state_output_record(
-  bytes : Bytes,
-) -> Result[JointStateOutputRecord, String] {
-  let reader = ProtoReader::new(bytes)
-  let mut data = JointStateOutput::{
+fn default_joint_state_output() -> JointStateOutput {
+  JointStateOutput::{
     joints: [],
     device_id: "",
     has_velocity: false,
@@ -1698,41 +550,662 @@ pub fn decode_joint_state_output_record(
     ee_pose: None,
     ee_pose_valid: false,
   }
-  let mut timestamp = DeviceDataTimestamp::{
-    available_time_local_common_clock: 0L,
-    sample_time_local_common_clock: 0L,
-    sample_time_raw_device_clock: 0L,
+}
+
+///|
+fn to_wire_encoding(value : Encoding) -> @wire.Encoding {
+  match value {
+    Unspecified => @wire.Encoding::ENCODING_UNSPECIFIED
+    Protobuf => @wire.Encoding::ENCODING_PROTOBUF
+    Json => @wire.Encoding::ENCODING_JSON
+    Jpeg => @wire.Encoding::ENCODING_JPEG
+    Webp => @wire.Encoding::ENCODING_WEBP
   }
-  while reader.position < reader.bytes.length() {
-    let (field_number, wire_type) = match reader.read_key() {
-      Ok(key) => key
-      Err(error) => return Err(error)
-    }
-    match (field_number, wire_type) {
-      (1, 2) =>
-        match reader.read_bytes() {
-          Ok(field) =>
-            match decode_joint_state_output(field) {
-              Ok(decoded) => data = decoded
-              Err(error) => return Err(error)
-            }
-          Err(error) => return Err(error)
-        }
-      (2, 2) =>
-        match reader.read_bytes() {
-          Ok(field) =>
-            match decode_device_data_timestamp(field) {
-              Ok(decoded) => timestamp = decoded
-              Err(error) => return Err(error)
-            }
-          Err(error) => return Err(error)
-        }
-      (_, _) =>
-        match reader.skip(wire_type) {
-          Ok(_) => ()
-          Err(error) => return Err(error)
-        }
-    }
+}
+
+///|
+fn from_wire_encoding(value : @wire.Encoding) -> Encoding {
+  match value {
+    @wire.Encoding::ENCODING_PROTOBUF => Protobuf
+    @wire.Encoding::ENCODING_JSON => Json
+    @wire.Encoding::ENCODING_JPEG => Jpeg
+    @wire.Encoding::ENCODING_WEBP => Webp
+    _ => Unspecified
   }
-  Ok(JointStateOutputRecord::{ data, timestamp, })
+}
+
+///|
+fn to_wire_frame_kind(value : FrameKind) -> @wire.FrameKind {
+  match value {
+    Unspecified => @wire.FrameKind::FRAME_KIND_UNSPECIFIED
+    Publish => @wire.FrameKind::FRAME_KIND_PUBLISH
+    Subscribe => @wire.FrameKind::FRAME_KIND_SUBSCRIBE
+    Unsubscribe => @wire.FrameKind::FRAME_KIND_UNSUBSCRIBE
+    Data => @wire.FrameKind::FRAME_KIND_DATA
+    Error => @wire.FrameKind::FRAME_KIND_ERROR
+  }
+}
+
+///|
+fn from_wire_frame_kind(value : @wire.FrameKind) -> FrameKind {
+  match value {
+    @wire.FrameKind::FRAME_KIND_PUBLISH => Publish
+    @wire.FrameKind::FRAME_KIND_SUBSCRIBE => Subscribe
+    @wire.FrameKind::FRAME_KIND_UNSUBSCRIBE => Unsubscribe
+    @wire.FrameKind::FRAME_KIND_DATA => Data
+    @wire.FrameKind::FRAME_KIND_ERROR => Error
+    _ => Unspecified
+  }
+}
+
+///|
+fn to_wire_point(value : Point) -> @wire.Point {
+  @wire.Point::{ x: value.x, y: value.y, z: value.z, }
+}
+
+///|
+fn from_wire_point(value : @wire.Point) -> Point {
+  Point::{ x: value.x, y: value.y, z: value.z, }
+}
+
+///|
+fn to_wire_quaternion(value : Quaternion) -> @wire.Quaternion {
+  @wire.Quaternion::{ x: value.x, y: value.y, z: value.z, w: value.w, }
+}
+
+///|
+fn from_wire_quaternion(value : @wire.Quaternion) -> Quaternion {
+  Quaternion::{ x: value.x, y: value.y, z: value.z, w: value.w, }
+}
+
+///|
+fn to_wire_pose(value : Pose) -> @wire.Pose {
+  @wire.Pose::{
+    position: Some(to_wire_point(value.position)),
+    orientation: Some(to_wire_quaternion(value.orientation)),
+  }
+}
+
+///|
+fn from_wire_pose(value : @wire.Pose) -> Pose {
+  let position = match value.position {
+    Some(value) => from_wire_point(value)
+    None => default_point()
+  }
+  let orientation = match value.orientation {
+    Some(value) => from_wire_quaternion(value)
+    None => default_quaternion()
+  }
+  Pose::{ position, orientation, }
+}
+
+///|
+fn to_wire_timestamp(value : DeviceDataTimestamp) -> @wire.DeviceDataTimestamp {
+  @wire.DeviceDataTimestamp::{
+    available_time_local_common_clock: value.available_time_local_common_clock,
+    sample_time_local_common_clock: value.sample_time_local_common_clock,
+    sample_time_raw_device_clock: value.sample_time_raw_device_clock,
+  }
+}
+
+///|
+fn from_wire_timestamp(
+  value : @wire.DeviceDataTimestamp,
+) -> DeviceDataTimestamp {
+  DeviceDataTimestamp::{
+    available_time_local_common_clock: value.available_time_local_common_clock,
+    sample_time_local_common_clock: value.sample_time_local_common_clock,
+    sample_time_raw_device_clock: value.sample_time_raw_device_clock,
+  }
+}
+
+///|
+fn to_wire_envelope(value : Envelope) -> @wire.Envelope {
+  @wire.Envelope::{
+    schema_id: value.schema_id,
+    schema_version: value.schema_version,
+    sequence: value.sequence,
+    source_time_ns: value.source_time_ns,
+    source_id: value.source_id,
+    frame_id: value.frame_id,
+    encoding: to_wire_encoding(value.encoding),
+    payload: value.payload,
+  }
+}
+
+///|
+fn from_wire_envelope(value : @wire.Envelope) -> Envelope {
+  Envelope::{
+    schema_id: value.schema_id,
+    schema_version: value.schema_version,
+    sequence: value.sequence,
+    source_time_ns: value.source_time_ns,
+    source_id: value.source_id,
+    frame_id: value.frame_id,
+    encoding: from_wire_encoding(value.encoding),
+    payload: value.payload,
+  }
+}
+
+///|
+fn to_wire_frame(value : Frame) -> @wire.Frame {
+  @wire.Frame::{
+    kind: to_wire_frame_kind(value.kind),
+    topic: value.topic,
+    envelope: value.envelope.map(to_wire_envelope),
+    error: value.error,
+  }
+}
+
+///|
+fn from_wire_frame(value : @wire.Frame) -> Frame {
+  Frame::{
+    kind: from_wire_frame_kind(value.kind),
+    topic: value.topic,
+    envelope: value.envelope.map(from_wire_envelope),
+    error: value.error,
+  }
+}
+
+///|
+fn to_wire_head_pose(value : HeadPose) -> @wire.HeadPose {
+  @wire.HeadPose::{
+    pose: Some(to_wire_pose(value.pose)),
+    is_valid: value.is_valid,
+    is_tracked: value.is_tracked,
+  }
+}
+
+///|
+fn from_wire_head_pose(value : @wire.HeadPose) -> HeadPose {
+  HeadPose::{
+    pose: value.pose.map(from_wire_pose).unwrap_or(default_pose()),
+    is_valid: value.is_valid,
+    is_tracked: value.is_tracked,
+  }
+}
+
+///|
+fn to_wire_head_pose_record(value : HeadPoseRecord) -> @wire.HeadPoseRecord {
+  @wire.HeadPoseRecord::{
+    data: Some(to_wire_head_pose(value.data)),
+    timestamp: Some(to_wire_timestamp(value.timestamp)),
+  }
+}
+
+///|
+fn from_wire_head_pose_record(value : @wire.HeadPoseRecord) -> HeadPoseRecord {
+  HeadPoseRecord::{
+    data: value.data.map(from_wire_head_pose).unwrap_or(default_head_pose()),
+    timestamp: value.timestamp
+    .map(from_wire_timestamp)
+    .unwrap_or(default_timestamp()),
+  }
+}
+
+///|
+fn to_wire_controller_input_state(
+  value : ControllerInputState,
+) -> @wire.ControllerInputState {
+  @wire.ControllerInputState::{
+    primary_click: value.primary_click,
+    secondary_click: value.secondary_click,
+    thumbstick_click: value.thumbstick_click,
+    menu_click: value.menu_click,
+    thumbstick_x: value.thumbstick_x,
+    thumbstick_y: value.thumbstick_y,
+    squeeze_value: value.squeeze_value,
+    trigger_value: value.trigger_value,
+  }
+}
+
+///|
+fn from_wire_controller_input_state(
+  value : @wire.ControllerInputState,
+) -> ControllerInputState {
+  ControllerInputState::{
+    primary_click: value.primary_click,
+    secondary_click: value.secondary_click,
+    thumbstick_click: value.thumbstick_click,
+    menu_click: value.menu_click,
+    thumbstick_x: value.thumbstick_x,
+    thumbstick_y: value.thumbstick_y,
+    squeeze_value: value.squeeze_value,
+    trigger_value: value.trigger_value,
+  }
+}
+
+///|
+fn to_wire_controller_pose(value : ControllerPose) -> @wire.ControllerPose {
+  @wire.ControllerPose::{
+    pose: Some(to_wire_pose(value.pose)),
+    is_valid: value.is_valid,
+  }
+}
+
+///|
+fn from_wire_controller_pose(value : @wire.ControllerPose) -> ControllerPose {
+  ControllerPose::{
+    pose: value.pose.map(from_wire_pose).unwrap_or(default_pose()),
+    is_valid: value.is_valid,
+  }
+}
+
+///|
+fn to_wire_controller_snapshot(
+  value : ControllerSnapshot,
+) -> @wire.ControllerSnapshot {
+  @wire.ControllerSnapshot::{
+    grip_pose: Some(to_wire_controller_pose(value.grip_pose)),
+    aim_pose: Some(to_wire_controller_pose(value.aim_pose)),
+    inputs: Some(to_wire_controller_input_state(value.inputs)),
+  }
+}
+
+///|
+fn from_wire_controller_snapshot(
+  value : @wire.ControllerSnapshot,
+) -> ControllerSnapshot {
+  ControllerSnapshot::{
+    grip_pose: value.grip_pose
+    .map(from_wire_controller_pose)
+    .unwrap_or(default_controller_pose()),
+    aim_pose: value.aim_pose
+    .map(from_wire_controller_pose)
+    .unwrap_or(default_controller_pose()),
+    inputs: value.inputs
+    .map(from_wire_controller_input_state)
+    .unwrap_or(default_controller_input_state()),
+  }
+}
+
+///|
+fn to_wire_controller_snapshot_record(
+  value : ControllerSnapshotRecord,
+) -> @wire.ControllerSnapshotRecord {
+  @wire.ControllerSnapshotRecord::{
+    data: Some(to_wire_controller_snapshot(value.data)),
+    timestamp: Some(to_wire_timestamp(value.timestamp)),
+  }
+}
+
+///|
+fn from_wire_controller_snapshot_record(
+  value : @wire.ControllerSnapshotRecord,
+) -> ControllerSnapshotRecord {
+  ControllerSnapshotRecord::{
+    data: value.data
+    .map(from_wire_controller_snapshot)
+    .unwrap_or(default_controller_snapshot()),
+    timestamp: value.timestamp
+    .map(from_wire_timestamp)
+    .unwrap_or(default_timestamp()),
+  }
+}
+
+///|
+fn to_wire_hand_joint_pose(value : HandJointPose) -> @wire.HandJointPose {
+  @wire.HandJointPose::{
+    pose: Some(to_wire_pose(value.pose)),
+    is_valid: value.is_valid,
+    radius: value.radius,
+  }
+}
+
+///|
+fn from_wire_hand_joint_pose(value : @wire.HandJointPose) -> HandJointPose {
+  HandJointPose::{
+    pose: value.pose.map(from_wire_pose).unwrap_or(default_pose()),
+    is_valid: value.is_valid,
+    radius: value.radius,
+  }
+}
+
+///|
+fn to_wire_hand_joints(value : HandJoints) -> @wire.HandJoints {
+  @wire.HandJoints::{ poses: value.poses.map(to_wire_hand_joint_pose), }
+}
+
+///|
+fn from_wire_hand_joints(value : @wire.HandJoints) -> HandJoints {
+  HandJoints::{ poses: value.poses.map(from_wire_hand_joint_pose), }
+}
+
+///|
+fn to_wire_hand_pose(value : HandPose) -> @wire.HandPose {
+  @wire.HandPose::{ joints: Some(to_wire_hand_joints(value.joints)), }
+}
+
+///|
+fn from_wire_hand_pose(value : @wire.HandPose) -> HandPose {
+  HandPose::{
+    joints: value.joints
+    .map(from_wire_hand_joints)
+    .unwrap_or(HandJoints::{ poses: [], }),
+  }
+}
+
+///|
+fn to_wire_hand_pose_record(value : HandPoseRecord) -> @wire.HandPoseRecord {
+  @wire.HandPoseRecord::{
+    data: Some(to_wire_hand_pose(value.data)),
+    timestamp: Some(to_wire_timestamp(value.timestamp)),
+  }
+}
+
+///|
+fn from_wire_hand_pose_record(value : @wire.HandPoseRecord) -> HandPoseRecord {
+  HandPoseRecord::{
+    data: value.data.map(from_wire_hand_pose).unwrap_or(default_hand_pose()),
+    timestamp: value.timestamp
+    .map(from_wire_timestamp)
+    .unwrap_or(default_timestamp()),
+  }
+}
+
+///|
+fn to_wire_joint_state(value : JointState) -> @wire.JointState {
+  @wire.JointState::{
+    name: value.name,
+    position: value.position,
+    velocity: value.velocity,
+    effort: value.effort,
+    valid: if value.valid {
+      None
+    } else {
+      Some(false)
+    },
+  }
+}
+
+///|
+fn from_wire_joint_state(value : @wire.JointState) -> JointState {
+  JointState::{
+    name: value.name,
+    position: value.position,
+    velocity: value.velocity,
+    effort: value.effort,
+    valid: value.valid.unwrap_or(true),
+  }
+}
+
+///|
+fn to_wire_joint_state_output(
+  value : JointStateOutput,
+) -> @wire.JointStateOutput {
+  @wire.JointStateOutput::{
+    joints: value.joints.map(to_wire_joint_state),
+    device_id: value.device_id,
+    has_velocity: value.has_velocity,
+    has_effort: value.has_effort,
+    ee_pose: value.ee_pose.map(to_wire_pose),
+    ee_pose_valid: value.ee_pose_valid,
+  }
+}
+
+///|
+fn from_wire_joint_state_output(
+  value : @wire.JointStateOutput,
+) -> JointStateOutput {
+  JointStateOutput::{
+    joints: value.joints.map(from_wire_joint_state),
+    device_id: value.device_id,
+    has_velocity: value.has_velocity,
+    has_effort: value.has_effort,
+    ee_pose: value.ee_pose.map(from_wire_pose),
+    ee_pose_valid: value.ee_pose_valid,
+  }
+}
+
+///|
+fn to_wire_joint_state_output_record(
+  value : JointStateOutputRecord,
+) -> @wire.JointStateOutputRecord {
+  @wire.JointStateOutputRecord::{
+    data: Some(to_wire_joint_state_output(value.data)),
+    timestamp: Some(to_wire_timestamp(value.timestamp)),
+  }
+}
+
+///|
+fn from_wire_joint_state_output_record(
+  value : @wire.JointStateOutputRecord,
+) -> JointStateOutputRecord {
+  JointStateOutputRecord::{
+    data: value.data
+    .map(from_wire_joint_state_output)
+    .unwrap_or(default_joint_state_output()),
+    timestamp: value.timestamp
+    .map(from_wire_timestamp)
+    .unwrap_or(default_timestamp()),
+  }
+}
+
+///|
+fn[T : @protobuf.Write] encode_wire(value : T) -> Bytes {
+  let writer = @buffer.Buffer()
+  try! @protobuf.Write::write(value, writer)
+  writer.to_bytes()
+}
+
+///|
+fn[T : @protobuf.Read] decode_wire(bytes : Bytes) -> Result[T, String] {
+  try {
+    let reader = @protobuf.BytesReader::from_bytes(bytes)
+    let value : T = @protobuf.Read::read(reader)
+    Ok(value)
+  } catch {
+    error => Err(error.to_string())
+  }
+}
+
+///|
+pub fn encode_frame(value : Frame) -> Bytes {
+  encode_wire(to_wire_frame(value))
+}
+
+///|
+pub fn decode_frame(bytes : Bytes) -> Result[Frame, String] {
+  match decode_wire(bytes) {
+    Ok(value) => Ok(from_wire_frame(value))
+    Err(error) => Err(error)
+  }
+}
+
+///|
+pub fn encode_envelope(value : Envelope) -> Bytes {
+  encode_wire(to_wire_envelope(value))
+}
+
+///|
+pub fn decode_envelope(bytes : Bytes) -> Result[Envelope, String] {
+  match decode_wire(bytes) {
+    Ok(value) => Ok(from_wire_envelope(value))
+    Err(error) => Err(error)
+  }
+}
+
+///|
+pub fn encode_point(value : Point) -> Bytes {
+  encode_wire(to_wire_point(value))
+}
+
+///|
+pub fn decode_point(bytes : Bytes) -> Result[Point, String] {
+  match decode_wire(bytes) {
+    Ok(value) => Ok(from_wire_point(value))
+    Err(error) => Err(error)
+  }
+}
+
+///|
+pub fn encode_quaternion(value : Quaternion) -> Bytes {
+  encode_wire(to_wire_quaternion(value))
+}
+
+///|
+pub fn decode_quaternion(bytes : Bytes) -> Result[Quaternion, String] {
+  match decode_wire(bytes) {
+    Ok(value) => Ok(from_wire_quaternion(value))
+    Err(error) => Err(error)
+  }
+}
+
+///|
+pub fn encode_pose(value : Pose) -> Bytes {
+  encode_wire(to_wire_pose(value))
+}
+
+///|
+pub fn decode_pose(bytes : Bytes) -> Result[Pose, String] {
+  match decode_wire(bytes) {
+    Ok(value) => Ok(from_wire_pose(value))
+    Err(error) => Err(error)
+  }
+}
+
+///|
+pub fn encode_device_data_timestamp(value : DeviceDataTimestamp) -> Bytes {
+  encode_wire(to_wire_timestamp(value))
+}
+
+///|
+pub fn decode_device_data_timestamp(
+  bytes : Bytes,
+) -> Result[DeviceDataTimestamp, String] {
+  match decode_wire(bytes) {
+    Ok(value) => Ok(from_wire_timestamp(value))
+    Err(error) => Err(error)
+  }
+}
+
+///|
+pub fn encode_head_pose(value : HeadPose) -> Bytes {
+  encode_wire(to_wire_head_pose(value))
+}
+
+///|
+pub fn decode_head_pose(bytes : Bytes) -> Result[HeadPose, String] {
+  match decode_wire(bytes) {
+    Ok(value) => Ok(from_wire_head_pose(value))
+    Err(error) => Err(error)
+  }
+}
+
+///|
+pub fn encode_head_pose_record(value : HeadPoseRecord) -> Bytes {
+  encode_wire(to_wire_head_pose_record(value))
+}
+
+///|
+pub fn decode_head_pose_record(bytes : Bytes) -> Result[HeadPoseRecord, String] {
+  match decode_wire(bytes) {
+    Ok(value) => Ok(from_wire_head_pose_record(value))
+    Err(error) => Err(error)
+  }
+}
+
+///|
+pub fn encode_controller_input_state(value : ControllerInputState) -> Bytes {
+  encode_wire(to_wire_controller_input_state(value))
+}
+
+///|
+pub fn decode_controller_input_state(
+  bytes : Bytes,
+) -> Result[ControllerInputState, String] {
+  match decode_wire(bytes) {
+    Ok(value) => Ok(from_wire_controller_input_state(value))
+    Err(error) => Err(error)
+  }
+}
+
+///|
+pub fn encode_controller_snapshot(value : ControllerSnapshot) -> Bytes {
+  encode_wire(to_wire_controller_snapshot(value))
+}
+
+///|
+pub fn decode_controller_snapshot(
+  bytes : Bytes,
+) -> Result[ControllerSnapshot, String] {
+  match decode_wire(bytes) {
+    Ok(value) => Ok(from_wire_controller_snapshot(value))
+    Err(error) => Err(error)
+  }
+}
+
+///|
+pub fn encode_controller_snapshot_record(
+  value : ControllerSnapshotRecord,
+) -> Bytes {
+  encode_wire(to_wire_controller_snapshot_record(value))
+}
+
+///|
+pub fn decode_controller_snapshot_record(
+  bytes : Bytes,
+) -> Result[ControllerSnapshotRecord, String] {
+  match decode_wire(bytes) {
+    Ok(value) => Ok(from_wire_controller_snapshot_record(value))
+    Err(error) => Err(error)
+  }
+}
+
+///|
+pub fn encode_hand_pose(value : HandPose) -> Bytes {
+  encode_wire(to_wire_hand_pose(value))
+}
+
+///|
+pub fn decode_hand_pose(bytes : Bytes) -> Result[HandPose, String] {
+  match decode_wire(bytes) {
+    Ok(value) => Ok(from_wire_hand_pose(value))
+    Err(error) => Err(error)
+  }
+}
+
+///|
+pub fn encode_hand_pose_record(value : HandPoseRecord) -> Bytes {
+  encode_wire(to_wire_hand_pose_record(value))
+}
+
+///|
+pub fn decode_hand_pose_record(bytes : Bytes) -> Result[HandPoseRecord, String] {
+  match decode_wire(bytes) {
+    Ok(value) => Ok(from_wire_hand_pose_record(value))
+    Err(error) => Err(error)
+  }
+}
+
+///|
+pub fn encode_joint_state_output(value : JointStateOutput) -> Bytes {
+  encode_wire(to_wire_joint_state_output(value))
+}
+
+///|
+pub fn decode_joint_state_output(
+  bytes : Bytes,
+) -> Result[JointStateOutput, String] {
+  match decode_wire(bytes) {
+    Ok(value) => Ok(from_wire_joint_state_output(value))
+    Err(error) => Err(error)
+  }
+}
+
+///|
+pub fn encode_joint_state_output_record(
+  value : JointStateOutputRecord,
+) -> Bytes {
+  encode_wire(to_wire_joint_state_output_record(value))
+}
+
+///|
+pub fn decode_joint_state_output_record(
+  bytes : Bytes,
+) -> Result[JointStateOutputRecord, String] {
+  match decode_wire(bytes) {
+    Ok(value) => Ok(from_wire_joint_state_output_record(value))
+    Err(error) => Err(error)
+  }
 }

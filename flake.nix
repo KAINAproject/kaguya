@@ -25,6 +25,7 @@
               pkgs.nodejs-slim_24
               pkgs.pnpm
               pkgs.android-tools
+              pkgs.protobuf
             ] ++ pkgs.lib.optional pkgs.stdenv.hostPlatform.isLinux pkgs.chromium;
 
             shellHook = pkgs.lib.optionalString pkgs.stdenv.hostPlatform.isLinux ''
