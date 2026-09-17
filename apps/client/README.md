@@ -5,8 +5,9 @@ Kaguya の XR クライアントです。MoonBit から `mizchi/three-mbt` 経�
 ## Zenoh transport
 
 ブラウザからの Zenoh 接続には `@eclipse-zenoh/zenoh-ts` を使います。これは
-`zenohd` に `remote_api` plugin を有効化し、その WebSocket endpoint に接続する
-方式です。アプリケーション側の低レベル API は
+`zenoh-bridge-remote-api` の WebSocket endpoint に接続する方式です。この bridge は
+通常の Zenoh router と `remote_api` plugin をひとつの実行ファイルにまとめています。
+アプリケーション側の低レベル API は
 [`src/zenoh_transport.ts`](src/zenoh_transport.ts) にあります。
 
 ```ts
@@ -20,26 +21,28 @@ const subscription = await transport.subscribe(keyExpr, ({ payload }) => {
 動作確認だけなら、locator を URL query に指定してクライアントを起動できます。
 
 ```text
-https://<client-host>:5173/?zenoh=ws://<zenohd-host>:10000
+https://<client-host>:5173/?zenoh=ws://<bridge-host>:10000
 ```
 
 接続後の publish/subscribe は `src/zenoh_transport.ts` の `ZenohTransport` を
 利用します。アプリの起動時に locator がない場合は Zenoh 接続を行いません。
 
-このリポジトリには開発用の [`zenohd.json5`](../../zenohd.json5) もあります。
-`zenohd` と `zenoh-plugin-remote-api` をインストール済みなら、リポジトリルートで
-次のように起動できます。
+Nix 環境では、リポジトリルートで次のように bridge を起動できます。
 
 ```sh
-zenohd -c zenohd.json5
+nix run .#zenoh-bridge-remote-api -- \
+  --mode peer \
+  --listen tcp/0.0.0.0:7447 \
+  --ws-port 0.0.0.0:10000
 ```
 
-この設定は認証なしで LAN に WebSocket を公開する開発用設定です。インターネット
-側へポートを公開しないでください。本番または HTTPS クライアントから使う場合は
-remote-api plugin の TLS 設定を追加し、`wss://` locator を使います。
+この設定は認証なしで LAN に Zenoh と WebSocket を公開する開発用設定です。インター
+ネット側へポートを公開しないでください。本番または HTTPS クライアントから使う
+場合は bridge の `--cert` / `--key` を設定し、`wss://` locator を使います。
 
-`zenohd` はサーバーと同一である必要はありません。クライアントから到達できる
-任意の LAN 上の `zenohd` を locator に指定できます。現在の開発用クライアントは
+bridge はサーバーと同一である必要はありません。クライアントから到達できる任意の
+LAN 上の bridge を locator に指定できます。制御 PC と bridge とアプリケーション
+サーバーは、必要に応じて同じマシンにも別マシンにも配置できます。現在の開発用クライアントは
 WebXR のため HTTPS で起動するので、実機ブラウザからは HTTPS/WSS の組み合わせを
 使う構成を推奨します。`ws://` は混在コンテンツ制限に注意してください。
 

@@ -1,5 +1,6 @@
 import { defineConfig } from "vite"
 import basicSsl from "@vitejs/plugin-basic-ssl"
+import wasm from "vite-plugin-wasm"
 
 const kaguyaRuntime = new URL(
   "./.moonbit-build/js/release/build/apps/client/src/src.js",
@@ -7,7 +8,10 @@ const kaguyaRuntime = new URL(
 ).pathname
 
 export default defineConfig({
-  plugins: [basicSsl()],
+  plugins: [basicSsl(), wasm()],
+  build: {
+    target: "esnext",
+  },
   resolve: {
     alias: {
       "@kaguya/runtime": kaguyaRuntime,
