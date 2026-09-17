@@ -57,6 +57,26 @@ fn ProtoWriter::write_uint64(
 }
 
 ///|
+fn ProtoWriter::write_bool(
+  self : ProtoWriter,
+  field_number : Int,
+  value : Bool,
+) -> Unit {
+  self.write_key(field_number, WIRE_VARINT)
+  self.write_varint(if value { 1UL } else { 0UL })
+}
+
+///|
+fn ProtoWriter::write_int64(
+  self : ProtoWriter,
+  field_number : Int,
+  value : Int64,
+) -> Unit {
+  self.write_key(field_number, WIRE_VARINT)
+  self.write_varint(value.reinterpret_as_uint64())
+}
+
+///|
 fn ProtoWriter::write_float(
   self : ProtoWriter,
   field_number : Int,
@@ -69,19 +89,6 @@ fn ProtoWriter::write_float(
 ///|
 fn ProtoWriter::write_raw_float(self : ProtoWriter, value : Float) -> Unit {
   self.buffer.write_uint_le(value.reinterpret_as_uint())
-}
-
-///|
-fn ProtoWriter::write_packed_floats(
-  self : ProtoWriter,
-  field_number : Int,
-  values : Array[Float],
-) -> Unit {
-  let values_writer = ProtoWriter::new()
-  for value in values {
-    values_writer.write_raw_float(value)
-  }
-  self.write_bytes(field_number, values_writer.finish())
 }
 
 ///|
@@ -189,6 +196,22 @@ fn ProtoReader::read_uint64(self : ProtoReader) -> Result[UInt64, String] {
 }
 
 ///|
+fn ProtoReader::read_bool(self : ProtoReader) -> Result[Bool, String] {
+  match self.read_varint() {
+    Ok(value) => Ok(value != 0UL)
+    Err(error) => Err(error)
+  }
+}
+
+///|
+fn ProtoReader::read_int64(self : ProtoReader) -> Result[Int64, String] {
+  match self.read_varint() {
+    Ok(value) => Ok(value.reinterpret_as_int64())
+    Err(error) => Err(error)
+  }
+}
+
+///|
 fn ProtoReader::read_fixed32(self : ProtoReader) -> Result[UInt, String] {
   if self.position + 4 > self.bytes.length() {
     return Err("unexpected end of protobuf fixed32")
@@ -207,28 +230,6 @@ fn ProtoReader::read_float(self : ProtoReader) -> Result[Float, String] {
     Ok(value) => Ok(Float::reinterpret_from_uint(value))
     Err(error) => Err(error)
   }
-}
-
-///|
-fn ProtoReader::read_packed_floats(
-  self : ProtoReader,
-) -> Result[Array[Float], String] {
-  let bytes = match self.read_bytes() {
-    Ok(value) => value
-    Err(error) => return Err(error)
-  }
-  if bytes.length() % 4 != 0 {
-    return Err("packed protobuf float field has an invalid length")
-  }
-  let reader = ProtoReader::new(bytes)
-  let values : Array[Float] = []
-  while reader.position < reader.bytes.length() {
-    match reader.read_float() {
-      Ok(value) => values.push(value)
-      Err(error) => return Err(error)
-    }
-  }
-  Ok(values)
 }
 
 ///|

@@ -13,16 +13,17 @@ publish/data のときだけ `Envelope` を内包します。transport はこの
 現在の codec は次を扱います。
 
 - `Envelope`
-- `HmdPose`
-- `ControllerState`
-- `HandLandmarks`
-- `JointState`
+- `HeadPose` / `HeadPoseRecord`
+- `ControllerSnapshot` / `ControllerSnapshotRecord`
+- `HandPose` / `HandPoseRecord`
+- `JointStateOutput` / `JointStateOutputRecord`
+- `DeviceDataTimestamp`
 
 Topic は `kaguya/v1/{robot_id}/...` をルートにします。
 
-- `input/controller`
-- `input/hmd_pose`
-- `input/hand_landmarks`
+- `input/controller_snapshot`
+- `input/head_pose`
+- `input/hand_pose`
 - `output/joint_state`
 - `output/rgb`
 - `state/{name}`、`event/{name}`、`debug/{name}`

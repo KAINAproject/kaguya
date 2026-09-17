@@ -3,8 +3,9 @@ syntax = "proto3";
 package kaguya.v1;
 
 // This file is the wire-format source of truth.
-// The first MoonBit implementation is intentionally hand-written and only
-// covers the messages needed by the initial communication vertical slice.
+// Device payloads follow the names and shape of IsaacTeleop's core FBS
+// schemas. Record messages keep the payload and device-clock timestamps
+// together; Frame and Envelope are Kaguya's transport envelope.
 
 enum Encoding {
   ENCODING_UNSPECIFIED = 0;
@@ -41,7 +42,7 @@ message Frame {
   string error = 4;
 }
 
-message Vec3 {
+message Point {
   float x = 1;
   float y = 2;
   float z = 3;
@@ -55,37 +56,125 @@ message Quaternion {
 }
 
 message Pose {
-  Vec3 position = 1;
+  Point position = 1;
   Quaternion orientation = 2;
-  string reference_frame = 3;
 }
 
-message HmdPose {
+message DeviceDataTimestamp {
+  int64 available_time_local_common_clock = 1;
+  int64 sample_time_local_common_clock = 2;
+  int64 sample_time_raw_device_clock = 3;
+}
+
+message HeadPose {
   Pose pose = 1;
+  bool is_valid = 2;
+  bool is_tracked = 3;
 }
 
-message ControllerState {
-  string handedness = 1;
-  uint32 buttons = 2;
-  repeated float axes = 3;
-  Pose pose = 4;
+message HeadPoseRecord {
+  HeadPose data = 1;
+  DeviceDataTimestamp timestamp = 2;
 }
 
-message Landmark {
-  float x = 1;
-  float y = 2;
-  float z = 3;
-  float confidence = 4;
+message ControllerInputState {
+  bool primary_click = 1;
+  bool secondary_click = 2;
+  bool thumbstick_click = 3;
+  bool menu_click = 4;
+  float thumbstick_x = 5;
+  float thumbstick_y = 6;
+  float squeeze_value = 7;
+  float trigger_value = 8;
 }
 
-message HandLandmarks {
-  string handedness = 1;
-  repeated Landmark landmarks = 2;
+message ControllerPose {
+  Pose pose = 1;
+  bool is_valid = 2;
+}
+
+message ControllerSnapshot {
+  ControllerPose grip_pose = 1;
+  ControllerPose aim_pose = 2;
+  ControllerInputState inputs = 3;
+}
+
+message ControllerSnapshotRecord {
+  ControllerSnapshot data = 1;
+  DeviceDataTimestamp timestamp = 2;
+}
+
+enum HandJoint {
+  HAND_JOINT_PALM = 0;
+  HAND_JOINT_WRIST = 1;
+  HAND_JOINT_THUMB_METACARPAL = 2;
+  HAND_JOINT_THUMB_PROXIMAL = 3;
+  HAND_JOINT_THUMB_DISTAL = 4;
+  HAND_JOINT_THUMB_TIP = 5;
+  HAND_JOINT_INDEX_METACARPAL = 6;
+  HAND_JOINT_INDEX_PROXIMAL = 7;
+  HAND_JOINT_INDEX_INTERMEDIATE = 8;
+  HAND_JOINT_INDEX_DISTAL = 9;
+  HAND_JOINT_INDEX_TIP = 10;
+  HAND_JOINT_MIDDLE_METACARPAL = 11;
+  HAND_JOINT_MIDDLE_PROXIMAL = 12;
+  HAND_JOINT_MIDDLE_INTERMEDIATE = 13;
+  HAND_JOINT_MIDDLE_DISTAL = 14;
+  HAND_JOINT_MIDDLE_TIP = 15;
+  HAND_JOINT_RING_METACARPAL = 16;
+  HAND_JOINT_RING_PROXIMAL = 17;
+  HAND_JOINT_RING_INTERMEDIATE = 18;
+  HAND_JOINT_RING_DISTAL = 19;
+  HAND_JOINT_RING_TIP = 20;
+  HAND_JOINT_LITTLE_METACARPAL = 21;
+  HAND_JOINT_LITTLE_PROXIMAL = 22;
+  HAND_JOINT_LITTLE_INTERMEDIATE = 23;
+  HAND_JOINT_LITTLE_DISTAL = 24;
+  HAND_JOINT_LITTLE_TIP = 25;
+  HAND_JOINT_NUM_JOINTS = 26;
+}
+
+message HandJointPose {
+  Pose pose = 1;
+  bool is_valid = 2;
+  float radius = 3;
+}
+
+message HandJoints {
+  // Protobuf has no fixed-size vector; this must contain NUM_JOINTS entries
+  // in the HandJoint enum order.
+  repeated HandJointPose poses = 1;
+}
+
+message HandPose {
+  HandJoints joints = 1;
+}
+
+message HandPoseRecord {
+  HandPose data = 1;
+  DeviceDataTimestamp timestamp = 2;
 }
 
 message JointState {
-  repeated float positions = 1;
-  repeated float velocities = 2;
-  repeated float efforts = 3;
-  uint64 source_time_ns = 4;
+  string name = 1;
+  float position = 2;
+  float velocity = 3;
+  float effort = 4;
+  // IsaacTeleop's FBS default is true. The MoonBit codec preserves that
+  // default when this field is absent.
+  optional bool valid = 5;
+}
+
+message JointStateOutput {
+  repeated JointState joints = 1;
+  string device_id = 2;
+  bool has_velocity = 3;
+  bool has_effort = 4;
+  Pose ee_pose = 5;
+  bool ee_pose_valid = 6;
+}
+
+message JointStateOutputRecord {
+  JointStateOutput data = 1;
+  DeviceDataTimestamp timestamp = 2;
 }
