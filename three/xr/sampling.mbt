@@ -14,9 +14,16 @@ pub type InputState
 pub type HandSample
 
 ///|
+/// Number of joints returned by `hand_sample`.
+///
+/// WebXR exposes 25 joints. The first entry is a synthetic palm entry derived
+/// from the wrist so consumers can use the 26-joint Kaguya hand layout.
+pub const HAND_JOINT_COUNT : Int = 26
+
+///|
 extern "js" fn WebXRManager::ffi_current_head_pose(
   self : WebXRManager,
-) -> Pose? =
+) -> @core.Any =
   #| manager => {
   #|   const frame = manager.getFrame()
   #|   const referenceSpace = manager.getReferenceSpace()
@@ -42,11 +49,16 @@ extern "js" fn WebXRManager::ffi_current_head_pose(
 ///|
 /// Returns the viewer pose from the XR frame currently being processed by Three.js.
 pub fn WebXRManager::current_head_pose(self : WebXRManager) -> Pose? {
-  self.ffi_current_head_pose()
+  let value : @core.Any = self.ffi_current_head_pose()
+  if @core.is_nullish(value) {
+    None
+  } else {
+    Some(value.cast())
+  }
 }
 
 ///|
-extern "js" fn ffi_pose_from_object(object : @three_js.Object3D) -> Pose? =
+extern "js" fn ffi_pose_from_object(object : @three_js.Object3D) -> @core.Any =
   #| object => {
   #|   if (!object.visible) return null
   #|   object.updateWorldMatrix(true, false)
@@ -66,7 +78,12 @@ extern "js" fn ffi_pose_from_object(object : @three_js.Object3D) -> Pose? =
 ///|
 /// Returns the current world pose of an XR space represented by a Three.js object.
 pub fn pose_from_object(object : @three_js.Object3D) -> Pose? {
-  ffi_pose_from_object(object)
+  let value : @core.Any = ffi_pose_from_object(object)
+  if @core.is_nullish(value) {
+    None
+  } else {
+    Some(value.cast())
+  }
 }
 
 ///|
@@ -100,7 +117,7 @@ pub extern "js" fn Pose::orientation_w(self : Pose) -> Float =
 ///|
 extern "js" fn XRInputSource::ffi_input_state(
   self : XRInputSource,
-) -> InputState? =
+) -> @core.Any =
   #| inputSource => {
   #|   const gamepad = inputSource?.gamepad
   #|   if (!gamepad) return null
@@ -108,9 +125,9 @@ extern "js" fn XRInputSource::ffi_input_state(
   #|   const axis = index => gamepad.axes?.[index] ?? 0
   #|   return {
   #|     primary_click: button(0)?.pressed === true,
-  #|     secondary_click: false,
+  #|     secondary_click: button(4)?.pressed === true,
   #|     thumbstick_click: button(3)?.pressed === true,
-  #|     menu_click: false,
+  #|     menu_click: button(5)?.pressed === true,
   #|     thumbstick_x: axis(2),
   #|     thumbstick_y: axis(3),
   #|     squeeze_value: button(1)?.value ?? 0,
@@ -124,7 +141,12 @@ extern "js" fn XRInputSource::ffi_has_hand(self : XRInputSource) -> Bool =
 
 ///|
 pub fn XRInputSource::input_state(self : XRInputSource) -> InputState? {
-  self.ffi_input_state()
+  let value : @core.Any = self.ffi_input_state()
+  if @core.is_nullish(value) {
+    None
+  } else {
+    Some(value.cast())
+  }
 }
 
 ///|
@@ -132,6 +154,11 @@ pub fn XRInputSource::input_state(self : XRInputSource) -> InputState? {
 pub fn XRInputSource::has_hand(self : XRInputSource) -> Bool {
   self.ffi_has_hand()
 }
+
+///|
+/// Returns whether Three.js' hand tracker currently detects a pinch gesture.
+pub extern "js" fn hand_is_pinching(hand : @three_js.Group) -> Bool =
+  #| hand => hand.inputState?.pinching === true
 
 ///|
 pub extern "js" fn InputState::primary_click(self : InputState) -> Bool =
@@ -166,12 +193,34 @@ pub extern "js" fn InputState::trigger_value(self : InputState) -> Float =
   #| state => state.trigger_value
 
 ///|
-extern "js" fn ffi_hand_sample(hand : @three_js.Group) -> HandSample? =
+extern "js" fn ffi_hand_sample(hand : @three_js.Group) -> @core.Any =
   #| hand => {
   #|   if (!hand.visible || !hand.joints) return null
-  #|   const names = [
-  #|     "palm",
-  #|     "wrist",
+  #|   const readJoint = joint => {
+  #|     if (!joint || !joint.visible) return null
+  #|     joint.updateWorldMatrix(true, false)
+  #|     const position = joint.getWorldPosition(joint.position.clone())
+  #|     const orientation = joint.getWorldQuaternion(joint.quaternion.clone())
+  #|     return {
+  #|       pose: {
+  #|         position: { x: position.x, y: position.y, z: position.z },
+  #|         orientation: {
+  #|           x: orientation.x,
+  #|           y: orientation.y,
+  #|           z: orientation.z,
+  #|           w: orientation.w,
+  #|         },
+  #|       },
+  #|       radius: joint.jointRadius ?? 0,
+  #|     }
+  #|   }
+  #|   const joint = name => readJoint(hand.joints[name])
+  #|   // WebXR has no palm joint. Prefer a runtime-provided one, otherwise
+  #|   // derive the protocol's palm entry from the wrist.
+  #|   const palm = joint("palm") ?? joint("wrist")
+  #|   const joints = [
+  #|     palm,
+  #|     joint("wrist"),
   #|     "thumb-metacarpal",
   #|     "thumb-phalanx-proximal",
   #|     "thumb-phalanx-distal",
@@ -196,26 +245,7 @@ extern "js" fn ffi_hand_sample(hand : @three_js.Group) -> HandSample? =
   #|     "pinky-finger-phalanx-intermediate",
   #|     "pinky-finger-phalanx-distal",
   #|     "pinky-finger-tip",
-  #|   ]
-  #|   const joints = names.map(name => {
-  #|     const joint = hand.joints[name]
-  #|     if (!joint || !joint.visible) return null
-  #|     joint.updateWorldMatrix(true, false)
-  #|     const position = joint.getWorldPosition(joint.position.clone())
-  #|     const orientation = joint.getWorldQuaternion(joint.quaternion.clone())
-  #|     return {
-  #|       pose: {
-  #|         position: { x: position.x, y: position.y, z: position.z },
-  #|         orientation: {
-  #|           x: orientation.x,
-  #|           y: orientation.y,
-  #|           z: orientation.z,
-  #|           w: orientation.w,
-  #|         },
-  #|       },
-  #|       radius: joint.jointRadius ?? 0,
-  #|     }
-  #|   })
+  #|   ].map(value => typeof value === "string" ? joint(value) : value)
   #|   if (!joints.some(joint => joint !== null)) return null
   #|   return { joints }
   #| }
@@ -223,20 +253,34 @@ extern "js" fn ffi_hand_sample(hand : @three_js.Group) -> HandSample? =
 ///|
 /// Returns the currently tracked hand joints in the protocol's joint order.
 pub fn hand_sample(hand : @three_js.Group) -> HandSample? {
-  ffi_hand_sample(hand)
+  let value : @core.Any = ffi_hand_sample(hand)
+  if @core.is_nullish(value) {
+    None
+  } else {
+    Some(value.cast())
+  }
 }
 
 ///|
 extern "js" fn HandSample::ffi_joint_pose(
   self : HandSample,
   index : Int,
-) -> Pose? =
+) -> @core.Any =
   #| (sample, index) => sample.joints?.[index]?.pose ?? null
 
 ///|
 pub fn HandSample::joint_pose(self : HandSample, index : Int) -> Pose? {
-  self.ffi_joint_pose(index)
+  let value : @core.Any = self.ffi_joint_pose(index)
+  if @core.is_nullish(value) {
+    None
+  } else {
+    Some(value.cast())
+  }
 }
+
+///|
+pub extern "js" fn HandSample::joint_count(self : HandSample) -> Int =
+  #| sample => sample.joints?.length ?? 0
 
 ///|
 pub extern "js" fn HandSample::joint_radius(

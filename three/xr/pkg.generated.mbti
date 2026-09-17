@@ -7,15 +7,31 @@ import {
 }
 
 // Values
+pub const HAND_JOINT_COUNT : Int = 26
+
+pub const HAND_TRACKING : String = "hand-tracking"
+
+pub const IMMERSIVE_AR : String = "immersive-ar"
+
+pub const IMMERSIVE_VR : String = "immersive-vr"
+
+pub const LOCAL_FLOOR : String = "local-floor"
+
 pub fn frame_time_to_sample_time_ns(Double) -> Int64
 
 pub fn frame_time_to_source_time_ns(Double) -> UInt64
+
+pub fn hand_is_pinching(@three.Group) -> Bool
 
 pub fn hand_sample(@three.Group) -> HandSample?
 
 pub fn is_available() -> Bool
 
+pub fn is_immersive_ar_session_supported() -> @js_async.Promise[Bool]
+
 pub fn is_session_supported() -> @js_async.Promise[Bool]
+
+pub fn is_session_supported_for(String) -> @js_async.Promise[Bool]
 
 pub fn manager(@three.WebGLRenderer) -> WebXRManager
 
@@ -23,19 +39,40 @@ pub fn on_controller_connected(@three.Group, (String, XRInputSource) -> Unit) ->
 
 pub fn on_controller_disconnected(@three.Group, () -> Unit) -> @three.EventSubscription
 
+pub fn on_hand_connected(@three.Group, (String, XRInputSource) -> Unit) -> @three.EventSubscription
+
+pub fn on_hand_disconnected(@three.Group, () -> Unit) -> @three.EventSubscription
+
+pub fn on_pinch_end(@three.Group, (String) -> Unit) -> @three.EventSubscription
+
+pub fn on_pinch_start(@three.Group, (String) -> Unit) -> @three.EventSubscription
+
+pub fn on_select(@three.Group, (String) -> Unit) -> @three.EventSubscription
+
 pub fn on_select_end(@three.Group, (String) -> Unit) -> @three.EventSubscription
 
 pub fn on_select_start(@three.Group, (String) -> Unit) -> @three.EventSubscription
 
+pub fn on_squeeze(@three.Group, (String) -> Unit) -> @three.EventSubscription
+
+pub fn on_squeeze_end(@three.Group, (String) -> Unit) -> @three.EventSubscription
+
+pub fn on_squeeze_start(@three.Group, (String) -> Unit) -> @three.EventSubscription
+
 pub fn pose_from_object(@three.Object3D) -> Pose?
 
+pub fn request_immersive_ar_session() -> @js_async.Promise[XRSession]
+
 pub fn request_immersive_vr_session() -> @js_async.Promise[XRSession]
+
+pub fn request_session(String, FixedArray[String], FixedArray[String]) -> @js_async.Promise[XRSession]
 
 // Errors
 
 // Types and methods
 #external
 pub type HandSample
+pub fn HandSample::joint_count(Self) -> Int
 pub fn HandSample::joint_pose(Self, Int) -> Pose?
 pub fn HandSample::joint_radius(Self, Int) -> Float
 
@@ -84,6 +121,7 @@ pub type XRSession
 pub type XRSystem
 pub fn XRSystem::is_session_supported(Self, String) -> @js_async.Promise[Bool]
 pub fn XRSystem::request_immersive_vr_session(Self) -> @js_async.Promise[XRSession]
+pub fn XRSystem::request_session(Self, String, FixedArray[String], FixedArray[String]) -> @js_async.Promise[XRSession]
 
 // Type aliases
 

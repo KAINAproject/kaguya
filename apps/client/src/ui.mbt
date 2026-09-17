@@ -58,7 +58,7 @@ fn update_interaction(
       } else if controller == "right" {
         "右コントローラー"
       } else {
-        "コントローラー —"
+        "入力デバイス —"
       }
       element.setTextContent(controller_label)
     }
