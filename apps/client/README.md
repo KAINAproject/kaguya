@@ -27,7 +27,18 @@ https://<client-host>:5173/?zenoh=ws://<bridge-host>:10000
 接続後の publish/subscribe は `src/zenoh_transport.ts` の `ZenohTransport` を
 利用します。アプリの起動時に locator がない場合は Zenoh 接続を行いません。
 
-Nix 環境では、リポジトリルートで次のように bridge を起動できます。
+Nix 環境では、リポジトリルートの `pnpm dev` が Vite と bridge を同時に起動します。
+`direnv` を使っていない場合は、先に `nix develop` に入ってください。
+
+bridge の bind address やポートを変更する場合は、次の環境変数を設定できます。
+
+```sh
+ZENOH_BRIDGE_LISTEN=tcp/0.0.0.0:7447 \
+ZENOH_BRIDGE_WS_PORT=0.0.0.0:10000 \
+pnpm dev
+```
+
+bridge だけを手動で起動する場合は、次のコマンドを使えます。
 
 ```sh
 nix run .#zenoh-bridge-remote-api -- \
@@ -59,7 +70,7 @@ Kaguya 自身が WebGL/WebGPU renderer を実装する構成ではありませ�
 MoonBit が PATH にない場合は、先にリポジトリルートで `nix develop` に入ってください。
 
 ```sh
-# リポジトリルートで実行
+# リポジトリルートで実行。Vite と Zenoh bridge を起動する
 pnpm install
 pnpm dev
 ```

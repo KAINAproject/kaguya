@@ -9,7 +9,7 @@
     "ensure:types": "test -x .moonbit-tools/mbt2ts || pnpm run setup:types",
     "build:types": ".moonbit-tools/mbt2ts decl src/pkg.generated.mbti .moonbit-build/js/release/build/apps/client/src/src.d.ts",
     "predev": "pnpm run ensure:types && pnpm run build:moonbit && pnpm run build:types",
-    "dev": "vite --host",
+    "dev": "sh scripts/dev.sh",
     "prebuild": "pnpm run ensure:types && pnpm run build:moonbit && pnpm run build:types",
     "typecheck": "tsc --noEmit",
     "build": "pnpm run typecheck && vite build",
