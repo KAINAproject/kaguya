@@ -1,4 +1,5 @@
 import {
+  "KAINAproject/kaguya/packages/shared/kaguya/v1" @wire,
   "moonbitlang/core/buffer",
-  "moonbitlang/core/encoding/utf8",
+  "moonbitlang/protobuf",
 }

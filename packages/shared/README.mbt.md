@@ -3,8 +3,12 @@
 このパッケージは、通信方式に依存しない Kaguya のプロトコル定義を保持します。
 
 - `kaguya.proto` が wire format の正本です。
-- `protocol.mbt` は MoonBit 側のドメイン型と codec の公開 API です。
-- `protobuf.mbt` は初期プロトコルに必要な protobuf wire type の手書き実装です。
+- `kaguya/v1/top.mbt` は公式 `protoc-gen-mbt` から生成した wire 型と codec です。
+- `protocol.mbt` は既存のドメイン型を wire 型へ変換する公開 API です。
+
+生成コードを更新する場合は、protoc と MoonBit toolchain を用意した上で、リポジトリの
+ルートから `./scripts/generate-protobuf.sh` を実行してください。generator は
+`moonbitlang/protoc-gen-mbt@0.2.0`、runtime は `moonbitlang/protobuf@0.1.3` に固定しています。
 
 WebSocket の binary message には `Frame` を使います。`Frame` は topic と操作種別を持ち、
 publish/data のときだけ `Envelope` を内包します。transport はこの package の bytes API

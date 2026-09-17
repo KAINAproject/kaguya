@@ -30,4 +30,5 @@ import {
   "mizchi/three@0.1.3",
   "mizchi/js_browser@0.13.0",
   "mizchi/js_core@0.13.0",
+  "moonbitlang/protobuf@0.1.3",
 }
