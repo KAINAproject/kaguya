@@ -9,7 +9,7 @@
     "ensure:types": "test -x .moonbit-tools/mbt2ts || pnpm run setup:types",
     "build:types": ".moonbit-tools/mbt2ts decl src/pkg.generated.mbti .moonbit-build/js/release/build/apps/client/src/src.d.ts",
     "predev": "pnpm run ensure:types && pnpm run build:moonbit && pnpm run build:types",
-    "dev": "vite --host",
+    "dev": "sh scripts/dev.sh",
     "prebuild": "pnpm run ensure:types && pnpm run build:moonbit && pnpm run build:types",
     "typecheck": "tsc --noEmit",
     "build": "pnpm run typecheck && vite build",
@@ -21,9 +21,11 @@
     "@playwright/test": "^1.63.0",
     "@vitejs/plugin-basic-ssl": "^2.3.0",
     "typescript": "^5.9.3",
-    "vite": "^8.2.2"
+    "vite": "^8.2.2",
+    "vite-plugin-wasm": "^3.4.1"
   },
   "dependencies": {
+    "@eclipse-zenoh/zenoh-ts": "1.10.1",
     "@mizchi/three-mbt": "link:../../.mooncakes/mizchi/three/js",
     "three": "0.185.1"
   }

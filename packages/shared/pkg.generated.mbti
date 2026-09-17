@@ -1,0 +1,135 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "KAINAproject/kaguya/packages/shared"
+
+import {
+  "moonbitlang/core/debug",
+}
+
+// Values
+pub const TOPIC_ROOT : String = "kaguya/v1"
+
+pub fn controller_input(String) -> String
+
+pub fn debug(String, String) -> String
+
+pub fn decode_controller_state(Bytes) -> Result[ControllerState, String]
+
+pub fn decode_envelope(Bytes) -> Result[Envelope, String]
+
+pub fn decode_hand_landmarks(Bytes) -> Result[HandLandmarks, String]
+
+pub fn decode_hmd_pose(Bytes) -> Result[HmdPose, String]
+
+pub fn decode_joint_state(Bytes) -> Result[JointState, String]
+
+pub fn encode_controller_state(ControllerState) -> Bytes
+
+pub fn encode_envelope(Envelope) -> Bytes
+
+pub fn encode_hand_landmarks(HandLandmarks) -> Bytes
+
+pub fn encode_hmd_pose(HmdPose) -> Bytes
+
+pub fn encode_joint_state(JointState) -> Bytes
+
+pub fn event(String, String) -> String
+
+pub fn hand_landmarks_input(String) -> String
+
+pub fn hmd_pose_input(String) -> String
+
+pub fn input(String) -> String
+
+pub fn joint_state_output(String) -> String
+
+pub fn output(String) -> String
+
+pub fn rgb_output(String) -> String
+
+pub fn state(String, String) -> String
+
+pub fn topic(String, String) -> String
+
+// Errors
+
+// Types and methods
+pub struct ControllerState {
+  handedness : String
+  buttons : UInt
+  axes : Array[Float]
+  pose : Pose?
+} derive(Eq, @debug.Debug)
+pub fn ControllerState::new(String, UInt, Array[Float], Pose?) -> Self
+
+pub enum Encoding {
+  Unspecified
+  Protobuf
+  Json
+  Jpeg
+  Webp
+} derive(Eq, @debug.Debug)
+
+pub struct Envelope {
+  schema_id : String
+  schema_version : UInt
+  sequence : UInt64
+  source_time_ns : UInt64
+  source_id : String
+  frame_id : String
+  encoding : Encoding
+  payload : Bytes
+} derive(Eq, @debug.Debug)
+pub fn Envelope::new(String, UInt, UInt64, UInt64, String, String, Encoding, Bytes) -> Self
+
+pub struct HandLandmarks {
+  handedness : String
+  landmarks : Array[Landmark]
+} derive(Eq, @debug.Debug)
+pub fn HandLandmarks::new(String, Array[Landmark]) -> Self
+
+pub struct HmdPose {
+  pose : Pose
+} derive(Eq, @debug.Debug)
+pub fn HmdPose::new(Pose) -> Self
+
+pub struct JointState {
+  positions : Array[Float]
+  velocities : Array[Float]
+  efforts : Array[Float]
+  source_time_ns : UInt64
+} derive(Eq, @debug.Debug)
+pub fn JointState::new(Array[Float], Array[Float], Array[Float], UInt64) -> Self
+
+pub struct Landmark {
+  x : Float
+  y : Float
+  z : Float
+  confidence : Float
+} derive(Eq, @debug.Debug)
+pub fn Landmark::new(Float, Float, Float, Float) -> Self
+
+pub struct Pose {
+  position : Vec3
+  orientation : Quaternion
+  reference_frame : String
+} derive(Eq, @debug.Debug)
+pub fn Pose::new(Vec3, Quaternion, String) -> Self
+
+pub struct Quaternion {
+  x : Float
+  y : Float
+  z : Float
+  w : Float
+} derive(Eq, @debug.Debug)
+pub fn Quaternion::new(Float, Float, Float, Float) -> Self
+
+pub struct Vec3 {
+  x : Float
+  y : Float
+  z : Float
+} derive(Eq, @debug.Debug)
+pub fn Vec3::new(Float, Float, Float) -> Self
+
+// Type aliases
+
+// Traits
