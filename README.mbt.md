@@ -12,7 +12,7 @@ Kaguya currently owns:
 
 - WebXR session start and lifecycle handling
 - MoonBit bindings for Three.js `WebXRManager`
-- controller connection and select events
+- controller and hand tracking, including pinch events
 - XR interaction and humanoid-oriented application logic
 
 Three.js, accessed through `mizchi/three-mbt`, owns:

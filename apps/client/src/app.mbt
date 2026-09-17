@@ -1,4 +1,60 @@
 ///|
+fn create_hand_markers(
+  scene : @three.Scene,
+  geometry : @three.BufferGeometry,
+  material : @three.Material,
+) -> Array[@three.Mesh] {
+  let markers : Array[@three.Mesh] = []
+  let mut index = 0
+  while index < @three_xr.HAND_JOINT_COUNT {
+    let marker = @three.Mesh::Mesh(geometry, material)
+    marker.set_visible(false)
+    scene.add_child(marker.as_object3d())
+    markers.push(marker)
+    index += 1
+  }
+  markers
+}
+
+///|
+fn update_hand_markers(
+  hand : @three.Group,
+  markers : Array[@three.Mesh],
+) -> Unit {
+  match @three_xr.hand_sample(hand) {
+    Some(sample) => {
+      let mut index = 0
+      while index < markers.length() {
+        let marker = markers[index]
+        match sample.joint_pose(index) {
+          Some(pose) => {
+            marker.set_position_xyz(
+              pose.position_x().to_double(),
+              pose.position_y().to_double(),
+              pose.position_z().to_double(),
+            )
+            let radius = sample.joint_radius(index)
+            marker.set_uniform_scale(
+              (if radius > 0.0 { radius } else { 0.015 }).to_double(),
+            )
+            marker.set_visible(true)
+          }
+          None => marker.set_visible(false)
+        }
+        index += 1
+      }
+    }
+    None => {
+      let mut index = 0
+      while index < markers.length() {
+        markers[index].set_visible(false)
+        index += 1
+      }
+    }
+  }
+}
+
+///|
 async fn initialize() -> Unit {
   let button = enter_button()
   let status = status_element()
@@ -51,6 +107,12 @@ async fn initialize() -> Unit {
   scene.add_child(controller1_grip.as_object3d())
   let hand0 = manager.get_hand(0)
   let hand1 = manager.get_hand(1)
+  scene.add_child(hand0.as_object3d())
+  scene.add_child(hand1.as_object3d())
+  let hand_geometry = @three.SphereGeometry::SphereGeometry(1.0, 8, 6).as_buffer_geometry()
+  let hand_material = @three.MeshBasicMaterial::MeshBasicMaterial(0xFBBF24).as_material()
+  let hand0_markers = create_hand_markers(scene, hand_geometry, hand_material)
+  let hand1_markers = create_hand_markers(scene, hand_geometry, hand_material)
   let mut controller0_source : @three_xr.XRInputSource? = None
   let mut controller0_handedness = "none"
   let mut controller1_source : @three_xr.XRInputSource? = None
@@ -68,6 +130,7 @@ async fn initialize() -> Unit {
   }
   let mut is_targeting = false
   let mut is_grabbed = false
+  let mut is_pinched = false
   let ray_origin = @three.Vector3::Vector3(0.0, 0.0, 0.0)
   let ray_direction = @three.Vector3::Vector3(0.0, 0.0, -1.0)
   let raycaster = @three.Raycaster::Raycaster(ray_origin, ray_direction)
@@ -78,9 +141,7 @@ async fn initialize() -> Unit {
       set_state(
         "hover", handedness, "Cube を狙い中", "select で Cube を掴めます",
       )
-      status_set_message(
-        status, "XR controller connected: {handedness}", "success",
-      )
+      status_set_message(status, "XR input connected: {handedness}", "success")
     }),
   )
   ignore(
@@ -123,7 +184,7 @@ async fn initialize() -> Unit {
   )
   ignore(
     @three_xr.on_select_end(controller, fn(handedness) {
-      if is_grabbed {
+      if is_grabbed && !is_pinched {
         is_grabbed = false
         cube.set_uniform_scale(1.0)
         set_state(
@@ -133,10 +194,39 @@ async fn initialize() -> Unit {
       }
     }),
   )
+  let start_hand_grab = fn(handedness) {
+    if !is_pinched {
+      is_pinched = true
+      is_grabbed = true
+      cube.set_uniform_scale(1.2)
+      set_state(
+        "grabbed", handedness, "ピンチで操作中", "ピンチを離すと Cube を配置します",
+      )
+      status_set_message(status, "XR pinchstart ({handedness})", "success")
+    }
+  }
+  let end_hand_grab = fn(handedness) {
+    if is_pinched {
+      is_pinched = false
+      is_grabbed = false
+      cube.set_uniform_scale(1.0)
+      set_state(
+        "released", handedness, "配置完了", "Cube を配置しました",
+      )
+      status_set_message(status, "XR pinchend ({handedness})", "success")
+    }
+  }
+  ignore(@three_xr.on_pinch_start(hand0, start_hand_grab))
+  ignore(@three_xr.on_pinch_start(hand1, start_hand_grab))
+  ignore(@three_xr.on_pinch_end(hand0, end_hand_grab))
+  ignore(@three_xr.on_pinch_end(hand1, end_hand_grab))
   ignore(
     manager.on_session_end(fn() {
       button_set_label(button, "VR を開始")
       button_set_enabled(button, true)
+      is_grabbed = false
+      is_pinched = false
+      cube.set_uniform_scale(1.0)
       set_state(
         "ready", active_controller, "操作待機", "VR を開始すると Cube を操作できます",
       )
@@ -171,6 +261,8 @@ async fn initialize() -> Unit {
     } else if is_targeting {
       is_targeting = false
     }
+    update_hand_markers(hand0, hand0_markers)
+    update_hand_markers(hand1, hand1_markers)
     publish_xr_frame(
       manager, controller, controller_grip, controller0_source, controller0_handedness,
       hand0, controller1, controller1_grip, controller1_source, controller1_handedness,

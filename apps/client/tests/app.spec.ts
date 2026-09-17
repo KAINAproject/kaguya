@@ -46,3 +46,34 @@ test("WebXR support is forwarded to the three.js WebXRManager", async ({ page })
   )
   expect(pageErrors).toHaveLength(0)
 })
+
+test("WebXR session requests optional hand tracking", async ({ page }) => {
+  await page.addInitScript(() => {
+    Object.defineProperty(navigator, "xr", {
+      configurable: true,
+      value: {
+        isSessionSupported: async (mode: string) => mode === "immersive-vr",
+        requestSession: async (
+          mode: string,
+          options: {
+            optionalFeatures?: string[]
+          },
+        ) => {
+          document.documentElement.dataset.xrMode = mode
+          document.documentElement.dataset.xrOptionalFeatures =
+            options.optionalFeatures?.join(",") ?? ""
+          throw new Error("session start is not part of this smoke test")
+        },
+      },
+    })
+  })
+
+  await page.goto("/")
+  await page.locator("#enter-xr").click()
+
+  await expect(page.locator("html")).toHaveAttribute("data-xr-mode", "immersive-vr")
+  await expect(page.locator("html")).toHaveAttribute(
+    "data-xr-optional-features",
+    "local-floor,hand-tracking",
+  )
+})
