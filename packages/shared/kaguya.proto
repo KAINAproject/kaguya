@@ -1,0 +1,57 @@
+syntax = "proto3";
+
+package kaguya.v1;
+
+// This file is the wire-format source of truth.
+// The first MoonBit implementation is intentionally hand-written and only
+// covers the messages needed by the initial communication vertical slice.
+
+enum Encoding {
+  ENCODING_UNSPECIFIED = 0;
+  ENCODING_PROTOBUF = 1;
+  ENCODING_JSON = 2;
+  ENCODING_JPEG = 3;
+  ENCODING_WEBP = 4;
+}
+
+message Envelope {
+  string schema_id = 1;
+  uint32 schema_version = 2;
+  uint64 sequence = 3;
+  uint64 source_time_ns = 4;
+  string source_id = 5;
+  string frame_id = 6;
+  Encoding encoding = 7;
+  bytes payload = 8;
+}
+
+message Vec3 {
+  float x = 1;
+  float y = 2;
+  float z = 3;
+}
+
+message Quaternion {
+  float x = 1;
+  float y = 2;
+  float z = 3;
+  float w = 4;
+}
+
+message Pose {
+  Vec3 position = 1;
+  Quaternion orientation = 2;
+  string reference_frame = 3;
+}
+
+message HmdPose {
+  Pose pose = 1;
+}
+
+message JointState {
+  repeated float positions = 1;
+  repeated float velocities = 2;
+  repeated float efforts = 3;
+  uint64 source_time_ns = 4;
+}
+
