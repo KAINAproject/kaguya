@@ -4,7 +4,7 @@ import {
   kaguya_start,
   kaguya_websocket_close,
   kaguya_websocket_open,
-} from "@kaguya/runtime"
+} from "mbt:KAINAproject/kaguya/apps/client/src"
 
 async function start(): Promise<void> {
   const params = new URL(window.location.href).searchParams
