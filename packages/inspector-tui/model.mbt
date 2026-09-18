@@ -11,6 +11,8 @@ pub struct InspectorState {
   mut right_valid_joints : Int
   mut left_sequence : UInt64
   mut right_sequence : UInt64
+  mut left_joints : Array[@protocol.HandJointPose]
+  mut right_joints : Array[@protocol.HandJointPose]
   mut logs : Array[String]
 } derive(Debug)
 
@@ -25,6 +27,8 @@ pub fn InspectorState::new() -> InspectorState {
     right_valid_joints: 0,
     left_sequence: 0UL,
     right_sequence: 0UL,
+    left_joints: [],
+    right_joints: [],
     logs: [],
   }
 }
@@ -93,9 +97,11 @@ pub fn InspectorState::on_event(
       if side == "left" {
         self.left_valid_joints = valid
         self.left_sequence = hand.frame.sequence
+        self.left_joints = hand.record.data.joints.poses
       } else if side == "right" {
         self.right_valid_joints = valid
         self.right_sequence = hand.frame.sequence
+        self.right_joints = hand.record.data.joints.poses
       }
       self.push_log("hand_pose \{side} \{valid}/26 seq=\{hand.frame.sequence}")
     }

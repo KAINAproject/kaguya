@@ -1,5 +1,6 @@
 import {
   "KAINAproject/kaguya/packages/bridge-core" @bridge,
+  "KAINAproject/kaguya/packages/shared" @protocol,
   "mizchi/tui/vnode",
 }
 

@@ -3,6 +3,7 @@ package "KAINAproject/kaguya/packages/inspector-tui"
 
 import {
   "KAINAproject/kaguya/packages/bridge-core",
+  "KAINAproject/kaguya/packages/shared",
   "mizchi/signals/ui",
   "mizchi/tui/vnode",
   "moonbitlang/core/debug",
@@ -23,6 +24,8 @@ pub struct InspectorState {
   mut right_valid_joints : Int
   mut left_sequence : UInt64
   mut right_sequence : UInt64
+  mut left_joints : Array[@shared.HandJointPose]
+  mut right_joints : Array[@shared.HandJointPose]
   mut logs : Array[String]
 } derive(@debug.Debug)
 pub fn InspectorState::new() -> Self
