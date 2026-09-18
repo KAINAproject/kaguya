@@ -109,7 +109,9 @@ async fn main {
   @async.set_external_event_loop(ui)
   @async.with_task_group <| group => {
     let address = server_address()
-    group.spawn_bg() <| () => { @wsbridge.serve(address, bus) }
+    // The UI loop owns the process lifetime. Once it exits, cancel the
+    // long-running WebSocket server instead of waiting for it forever.
+    group.spawn_bg(no_wait=true) <| () => { @wsbridge.serve(address, bus) }
     while ui.is_running() {
       @async.sleep(100)
     }
