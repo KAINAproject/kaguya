@@ -1,0 +1,18 @@
+import {
+  "KAINAproject/kaguya/packages/bridge-core" @bridge,
+  "KAINAproject/kaguya/packages/inspector-tui" @inspector_ui,
+  "KAINAproject/kaguya/packages/websocket-bridge" @wsbridge,
+  "mizchi/tui",
+  "mizchi/tui/io" @tui_io,
+  "mizchi/tui/vnode",
+  "moonbitlang/async",
+  "moonbitlang/async/external_loop_integration" @external_loop,
+}
+
+supported_targets = "native"
+
+pkgtype(kind: "executable")
+
+options(
+  "native-stub": [ "tui_native.c" ],
+)

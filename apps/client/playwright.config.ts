@@ -17,6 +17,10 @@ export default defineConfig({
   },
   webServer: {
     command: "pnpm dev",
+    env: {
+      ...process.env,
+      VITE_XR_EMULATOR: "1",
+    },
     url: "https://127.0.0.1:5173",
     ignoreHTTPSErrors: true,
     reuseExistingServer: !process.env.CI,

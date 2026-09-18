@@ -1,0 +1,109 @@
+diff --git a/dist/index.mjs b/dist/index.mjs
+index a42f7fecdc010664551f975e12a409b75f19bb20..e9af61cee2a229de2b8218e1928b9e45e45a88f2 100644
+--- a/dist/index.mjs
++++ b/dist/index.mjs
+@@ -27068,6 +27068,21 @@ function moonbitPlugin(options = {}) {
+ 			}
+ 		});
+ 		let stdoutBuf = "";
++		const handleStderrLine = (line) => {
++			if (!line.trim()) return;
++			const trimmed = line.trimStart();
++			if (trimmed.startsWith("INFO ") || /^\S+\s+INFO\s/.test(line)) {
++				log(line);
++				return;
++			}
++			if (trimmed.startsWith("Finished.")) {
++				log(line);
++				return;
++			}
++			if (errorBuffer.length === 0) console.log("\n\x1B[1;31m--- MoonBit Build Errors ---\x1B[0m\n");
++			errorBuffer.push(line);
++			process.stderr.write(line + "\n");
++		};
+ 		const handleStdoutLine = (line) => {
+ 			if (!line.trim()) return;
+ 			const diag = tryParseDiagnostic(line);
+@@ -27109,10 +27124,7 @@ function moonbitPlugin(options = {}) {
+ 			while ((nl = stderrBuf.indexOf("\n")) !== -1) {
+ 				const line = stderrBuf.slice(0, nl);
+ 				stderrBuf = stderrBuf.slice(nl + 1);
+-				if (!line) continue;
+-				if (errorBuffer.length === 0) console.log("\n\x1B[1;31m--- MoonBit Build Errors ---\x1B[0m\n");
+-				errorBuffer.push(line);
+-				process.stderr.write(line + "\n");
++				handleStderrLine(line);
+ 			}
+ 		});
+ 		const flushStreamsOnClose = () => {
+@@ -27121,8 +27133,7 @@ function moonbitPlugin(options = {}) {
+ 				stdoutBuf = "";
+ 			}
+ 			if (stderrBuf) {
+-				errorBuffer.push(stderrBuf);
+-				process.stderr.write(stderrBuf + "\n");
++				handleStderrLine(stderrBuf);
+ 				stderrBuf = "";
+ 			}
+ 		};
+diff --git a/src/index.ts b/src/index.ts
+index 34fbb52133f6f240b93703fbe2aaab28db198176..3f53469ee5e7993b689d41a384e3727206e5f591 100644
+--- a/src/index.ts
++++ b/src/index.ts
+@@ -1754,6 +1754,31 @@ export default function moonbitPlugin(
+     // per-stream partial-line buffer so we only parse complete
+     // newline-terminated records (JSON diagnostics must not be split).
+     let stdoutBuf = "";
++    const handleStderrLine = (line: string) => {
++      if (!line.trim()) return;
++
++      // MoonBit writes its internal INFO logs to stderr. They are not build
++      // errors and should not populate the error buffer or error overlay.
++      const trimmed = line.trimStart();
++      if (trimmed.startsWith("INFO ") || /^\S+\s+INFO\s/.test(line)) {
++        log(line);
++        return;
++      }
++
++      // The watch command also writes its successful completion marker to
++      // stderr. It is status output, not a compiler diagnostic.
++      if (trimmed.startsWith("Finished.")) {
++        log(line);
++        return;
++      }
++
++      // Keep actual warnings and errors visible as diagnostics.
++      if (errorBuffer.length === 0) {
++        console.log("\n\x1b[1;31m--- MoonBit Build Errors ---\x1b[0m\n");
++      }
++      errorBuffer.push(line);
++      process.stderr.write(line + "\n");
++    };
+     const handleStdoutLine = (line: string) => {
+       if (!line.trim()) return;
+ 
+@@ -1812,13 +1837,7 @@ export default function moonbitPlugin(
+       while ((nl = stderrBuf.indexOf("\n")) !== -1) {
+         const line = stderrBuf.slice(0, nl);
+         stderrBuf = stderrBuf.slice(nl + 1);
+-        if (!line) continue;
+-        // Print header on first error in this session
+-        if (errorBuffer.length === 0) {
+-          console.log("\n\x1b[1;31m--- MoonBit Build Errors ---\x1b[0m\n");
+-        }
+-        errorBuffer.push(line);
+-        process.stderr.write(line + "\n");
++        handleStderrLine(line);
+       }
+     });
+ 
+@@ -1828,8 +1847,7 @@ export default function moonbitPlugin(
+         stdoutBuf = "";
+       }
+       if (stderrBuf) {
+-        errorBuffer.push(stderrBuf);
+-        process.stderr.write(stderrBuf + "\n");
++        handleStderrLine(stderrBuf);
+         stderrBuf = "";
+       }
+     };

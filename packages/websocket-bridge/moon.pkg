@@ -1,0 +1,9 @@
+import {
+  "KAINAproject/kaguya/packages/bridge-core" @bridge,
+  "moonbitlang/core/debug",
+  "moonbitlang/async/http",
+  "moonbitlang/async/socket",
+  "moonbitlang/async/websocket",
+}
+
+supported_targets = "native"

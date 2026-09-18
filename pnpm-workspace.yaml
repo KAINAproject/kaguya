@@ -3,3 +3,6 @@ packages:
 
 allowBuilds:
   esbuild: true
+
+patchedDependencies:
+  vite-plugin-moonbit@0.5.1: patches/vite-plugin-moonbit@0.5.1.patch

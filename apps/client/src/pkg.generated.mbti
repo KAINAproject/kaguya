@@ -14,6 +14,8 @@ pub fn kaguya_websocket_close() -> Unit
 
 pub fn kaguya_websocket_open(String) -> @js_async.Promise[Unit]
 
+pub fn kaguya_websocket_send_probe() -> Bool
+
 pub fn start() -> @js_async.Promise[Unit]
 
 // Errors
