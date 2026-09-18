@@ -44,6 +44,10 @@ https://<client-host>:5173/?ws=ws://<server-host>:9001/ws&wsProbe=1
 native inspector に接続する場合は、`pnpm inspector` を起動してから、ブラウザで次の URL を開きます。
 サーバー側の WebSocket endpoint は `/ws` に固定されています。
 
+開発サーバーでは `ws` query を省略すると、client は同一オリジンの `/ws` に自動接続します。
+Vite が `/ws` を `127.0.0.1:9001` の native inspector へ WebSocket proxy するため、Android
+実機では `5173` だけを reverse すれば接続できます。
+
 接続後の通信は `Frame::publish` / `Frame::subscribe` などを protobuf bytes にして送ります。
 現在の WebSocket binding は transport としての接続・送受信だけを担当し、将来の WebRTC
 DataChannel でも同じ `Frame` bytes を再利用できるようにしています。

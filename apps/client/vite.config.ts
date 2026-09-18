@@ -18,6 +18,14 @@ export default defineConfig({
       mode: "release",
     }),
   ],
+  server: {
+    proxy: {
+      "/ws": {
+        target: "ws://127.0.0.1:9001",
+        ws: true,
+      },
+    },
+  },
   build: {
     target: "esnext",
   },
