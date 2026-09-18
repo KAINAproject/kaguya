@@ -48,6 +48,20 @@ MoonBit application
 └── mizchi/three-mbt / Kaguya adapter → Three.js → WebGL / WebXR
 ```
 
+The bridge-side packages keep transport and inspection separate:
+
+```text
+packages/shared             protobuf wire protocol
+packages/bridge-core        decoded BridgeEvent + EventBus
+packages/websocket-bridge   native WebSocket → bridge-core adapter
+packages/inspector-tui      BridgeEvent observer and TUI view
+packages/websocket-mbt      browser WebSocket binding
+```
+
+`inspector-tui` displays connection state, receive metrics, joint validity
+counts, sequence numbers, and logs. It does not draw hand skeletons or
+landmarks.
+
 The [browser client](apps/client/README.md) is the main application for this repository.
 
 ## 開発

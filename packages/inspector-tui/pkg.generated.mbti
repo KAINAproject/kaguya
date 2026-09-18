@@ -1,0 +1,33 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "KAINAproject/kaguya/packages/inspector-tui"
+
+import {
+  "KAINAproject/kaguya/packages/bridge-core",
+  "mizchi/signals/ui",
+  "mizchi/tui/vnode",
+  "moonbitlang/core/debug",
+}
+
+// Values
+pub fn render(InspectorState, Int, Int) -> @ui.Node[@vnode.TuiEvent, @vnode.TuiAttrValue]
+
+// Errors
+
+// Types and methods
+pub struct InspectorState {
+  mut connected : Bool
+  mut rx_frames : UInt64
+  mut hand_frames : UInt64
+  mut decode_errors : UInt64
+  mut left_valid_joints : Int
+  mut right_valid_joints : Int
+  mut left_sequence : UInt64
+  mut right_sequence : UInt64
+  mut logs : Array[String]
+} derive(@debug.Debug)
+pub fn InspectorState::new() -> Self
+pub fn InspectorState::on_event(Self, @bridge-core.BridgeEvent) -> Unit
+
+// Type aliases
+
+// Traits

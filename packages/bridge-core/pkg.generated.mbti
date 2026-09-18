@@ -1,0 +1,63 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "KAINAproject/kaguya/packages/bridge-core"
+
+import {
+  "KAINAproject/kaguya/packages/shared",
+  "moonbitlang/core/debug",
+}
+
+// Values
+pub const HAND_POSE_SCHEMA_ID : String = "kaguya.input.hand_pose"
+
+pub fn decode_frame_event(Bytes) -> Result[BridgeEvent, String]
+
+pub fn emit((BridgeEvent) -> Unit, BridgeEvent) -> Unit
+
+pub fn publish_frame(EventBus, Bytes) -> Unit
+
+// Errors
+
+// Types and methods
+pub enum BridgeEvent {
+  Connected(String)
+  Disconnected(String)
+  FrameReceived(FrameSummary)
+  HandPoseReceived(HandPoseEvent)
+  DecodeError(String)
+} derive(@debug.Debug)
+pub fn BridgeEvent::connected(String) -> Self
+pub fn BridgeEvent::decode_error(String) -> Self
+pub fn BridgeEvent::disconnected(String) -> Self
+pub fn BridgeEvent::frame_received(FrameSummary) -> Self
+pub fn BridgeEvent::hand_pose_received(HandPoseEvent) -> Self
+
+pub struct EventBus {
+  sinks : Array[(BridgeEvent) -> Unit]
+}
+pub fn EventBus::new() -> Self
+pub fn EventBus::publish(Self, BridgeEvent) -> Unit
+pub fn EventBus::subscribe(Self, (BridgeEvent) -> Unit) -> Unit
+
+pub struct FrameSummary {
+  kind : @shared.FrameKind
+  topic : String
+  schema_id : String
+  schema_version : UInt
+  sequence : UInt64
+  source_time_ns : UInt64
+  source_id : String
+  frame_id : String
+  payload_size : Int
+} derive(Eq, @debug.Debug)
+pub fn FrameSummary::new(@shared.FrameKind, String, String, UInt, UInt64, UInt64, String, String, Int) -> Self
+
+pub struct HandPoseEvent {
+  frame : FrameSummary
+  record : @shared.HandPoseRecord
+} derive(@debug.Debug)
+pub fn HandPoseEvent::new(FrameSummary, @shared.HandPoseRecord) -> Self
+
+// Type aliases
+pub type EventSink = (BridgeEvent) -> Unit
+
+// Traits

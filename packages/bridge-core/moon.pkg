@@ -1,0 +1,3 @@
+import {
+  "KAINAproject/kaguya/packages/shared" @protocol,
+}

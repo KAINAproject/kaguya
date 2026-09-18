@@ -1,0 +1,10 @@
+import {
+  "KAINAproject/kaguya/packages/bridge-core" @bridge,
+  "mizchi/tui/vnode",
+}
+
+import {
+  "KAINAproject/kaguya/packages/shared" @protocol,
+} for "wbtest"
+
+supported_targets = "js+native"
