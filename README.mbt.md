@@ -77,3 +77,19 @@ pnpm dev
 現在の `pnpm dev` はブラウザアプリを起動します。pnpm workspace を使っているため、依存関係のインストールとコマンドはリポジトリルートから実行できます。
 
 `mbt2ts` は `pnpm dev` または `pnpm build` の実行時に必要な場合だけ `.moonbit-tools/` へ自動インストールされます。
+
+## Bridge Inspector TUI
+
+ネイティブ側で WebSocket の protobuf frame を確認する TUI は、次のコマンドで起動できます。
+
+```sh
+moon run --target native ./apps/inspector
+```
+
+デフォルトでは `127.0.0.1:9001` で WebSocket を待ち受けます。待受先を変更する場合はアドレスを引数に渡します。
+
+```sh
+moon run --target native ./apps/inspector -- 0.0.0.0:9001
+```
+
+TUI は `q`、`Ctrl-C`、または `Esc` で終了します。画面は約1秒ごとに更新され、ログ、受信 frame 数、hand pose 数、decode error 数、左右 hand の valid joint 数と sequence を表示します。
