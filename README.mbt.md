@@ -83,7 +83,7 @@ pnpm dev
 ネイティブ側で WebSocket の protobuf frame を確認する TUI は、次のコマンドで起動できます。
 
 ```sh
-moon run --target native ./apps/inspector
+pnpm inspector
 ```
 
 デフォルトでは `127.0.0.1:9001` で WebSocket を待ち受けます。待受先を変更する場合はアドレスを引数に渡します。

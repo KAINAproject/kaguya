@@ -4,6 +4,7 @@
   "packageManager": "pnpm@11.25.0",
   "scripts": {
     "dev": "pnpm --filter @kaguya/client run dev",
+    "inspector": "moon run --target native ./apps/inspector",
     "build": "pnpm --filter @kaguya/client run build",
     "test:e2e": "pnpm --filter @kaguya/client run test:e2e",
     "adb:reverse": "adb reverse tcp:5173 tcp:5173"
