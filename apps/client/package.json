@@ -20,10 +20,12 @@
   "devDependencies": {
     "@playwright/test": "^1.63.0",
     "@vitejs/plugin-basic-ssl": "^2.3.0",
+    "iwer": "2.3.0",
     "typescript": "^5.9.3",
     "vite": "^8.2.2",
     "vite-plugin-moonbit": "^0.5.1",
-    "vite-plugin-wasm": "^3.4.1"
+    "vite-plugin-wasm": "^3.4.1",
+    "ws": "8.18.3"
   },
   "dependencies": {
     "@kaguya/websocket-mbt": "link:../../packages/websocket-mbt/js",

@@ -50,6 +50,25 @@ fn send_protocol_frame(frame : @protocol.Frame) -> Bool {
 }
 
 ///|
+/// Sends one deterministic protobuf frame for transport smoke tests.
+#export_name("kaguya_websocket_send_probe")
+pub fn kaguya_websocket_send_probe() -> Bool {
+  let envelope = @protocol.Envelope::new(
+    "kaguya.test",
+    1U,
+    1UL,
+    0UL,
+    "kaguya-test",
+    "local-floor",
+    @protocol.Encoding::protobuf(),
+    b"probe",
+  )
+  send_protocol_frame(
+    @protocol.Frame::publish("kaguya/v1/atlas/debug/probe", envelope),
+  )
+}
+
+///|
 fn close_websocket() -> Unit {
   match active_websocket.val {
     Some(connection) => {

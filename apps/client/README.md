@@ -34,6 +34,13 @@ async fn open_example(url : String) -> Unit {
 https://<client-host>:5173/?ws=ws://<server-host>:9001/ws&robot=atlas
 ```
 
+transport の疎通だけを確認する場合は、`wsProbe=1` を追加すると接続直後に
+固定の protobuf `Frame::publish` を 1 件送信できます。
+
+```text
+https://<client-host>:5173/?ws=ws://<server-host>:9001/ws&wsProbe=1
+```
+
 native inspector に接続する場合は、`pnpm inspector` を起動してから、ブラウザで次の URL を開きます。
 サーバー側の WebSocket endpoint は `/ws` に固定されています。
 
@@ -98,5 +105,7 @@ pnpm test:e2e
 
 `tsc --noEmit` による型チェック、MoonBit の JS build、Vite の production build を実行します。
 `test:e2e` は Vite を起動して、Canvas の表示、Three.js 初期化状態、ページエラーの有無を Chromium で確認します。
+テスト実行時だけ IWER を注入して WebXR runtime を用意し、別のテストではローカル WebSocket server で
+probe の protobuf `Frame` / `Envelope` を decode して検証します。通常の `pnpm dev` では IWER は注入されません。
 
 NixOS では `nix develop` に入ると、devShell が提供する Nix の Chromium を Playwright が使用します。Ubuntu の依存を入れる `playwright install --with-deps` は不要です。
