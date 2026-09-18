@@ -31,8 +31,11 @@ async fn open_example(url : String) -> Unit {
 動作確認だけなら、WebSocket URL を `ws` query に指定してクライアントを起動できます。
 
 ```text
-https://<client-host>:5173/?ws=ws://<server-host>:10000/ws&robot=atlas
+https://<client-host>:5173/?ws=ws://<server-host>:9001/ws&robot=atlas
 ```
+
+native inspector に接続する場合は、`pnpm inspector` を起動してから、ブラウザで次の URL を開きます。
+サーバー側の WebSocket endpoint は `/ws` に固定されています。
 
 接続後の通信は `Frame::publish` / `Frame::subscribe` などを protobuf bytes にして送ります。
 現在の WebSocket binding は transport としての接続・送受信だけを担当し、将来の WebRTC

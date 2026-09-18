@@ -6,6 +6,8 @@
 - 接続、切断、decode error を `BridgeEvent` として通知する
 - Inspector や特定の外部 connector には依存しない
 
+WebSocket endpoint は `/ws` です。`/ws` 以外の HTTP path は `404 Not Found` になります。
+
 ```moonbit no-check
 let bus = @bridge.EventBus::new()
 bus.subscribe(fn(event) { /* inspector / robot connector */ })

@@ -87,6 +87,11 @@ pnpm inspector
 ```
 
 デフォルトでは `127.0.0.1:9001` で WebSocket を待ち受けます。待受先を変更する場合はアドレスを引数に渡します。
+WebSocket endpoint は `/ws` です。client は例えば次の URL で接続できます。
+
+```text
+https://<client-host>:5173/?ws=ws://127.0.0.1:9001/ws&robot=atlas
+```
 
 ```sh
 moon run --target native ./apps/inspector -- 0.0.0.0:9001

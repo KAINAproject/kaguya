@@ -1,4 +1,12 @@
 ///|
+pub const WEBSOCKET_PATH : String = "/ws"
+
+///|
+fn is_websocket_path(path : String) -> Bool {
+  path == WEBSOCKET_PATH
+}
+
+///|
 async fn handle_connection(
   request : @http.Request,
   connection : @http.ServerConnection,
@@ -41,9 +49,25 @@ async fn handle_connection(
 }
 
 ///|
+async fn handle_request(
+  request : @http.Request,
+  connection : @http.ServerConnection,
+  bus : @bridge.EventBus,
+) -> Unit {
+  if is_websocket_path(request.path) {
+    handle_connection(request, connection, bus)
+  } else {
+    connection
+    ..send_response(404, "Not Found")
+    ..write("WebSocket endpoint is \{WEBSOCKET_PATH}\n")
+    .end_response()
+  }
+}
+
+///|
 pub async fn serve(address : String, bus : @bridge.EventBus) -> Unit {
   let server = @http.Server(@socket.Addr::parse(address))
   server.run_forever((request, _, connection) => {
-    handle_connection(request, connection, bus)
+    handle_request(request, connection, bus)
   })
 }
