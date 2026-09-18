@@ -6,6 +6,9 @@ import wasm from "vite-plugin-wasm"
 const moonbitRoot = new URL("../..", import.meta.url).pathname
 
 export default defineConfig({
+  resolve: {
+    dedupe: ["three"],
+  },
   plugins: [
     basicSsl(),
     wasm(),
