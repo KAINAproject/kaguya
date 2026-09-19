@@ -2,6 +2,9 @@
 extern "C" fn noop_wakeup() -> Unit = "kaguya_tui_noop_wakeup"
 
 ///|
+const RENDER_INTERVAL_MS : Int64 = 100L
+
+///|
 struct TuiLoop {
   state : @inspector_ui.InspectorState
   app : @vnode.VNodeApp
@@ -28,7 +31,7 @@ fn TuiLoop::new(state : @inspector_ui.InspectorState) -> TuiLoop {
     width,
     height,
     running: true,
-    next_render_at: @async.now() + 1000L,
+    next_render_at: @async.now() + RENDER_INTERVAL_MS,
   }
   ui.render()
   ui
@@ -78,7 +81,7 @@ pub impl @external_loop.ExternalEventLoop for TuiLoop with fn poll(
   let now = @async.now()
   if now >= self.next_render_at {
     self.render()
-    self.next_render_at = now + 1000L
+    self.next_render_at = now + RENDER_INTERVAL_MS
   }
 }
 
