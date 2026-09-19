@@ -11,8 +11,10 @@ pub type Connection
 pub fn Connection::buffered_amount(Self) -> Int
 pub fn Connection::close(Self) -> Unit
 pub fn Connection::is_open(Self) -> Bool
+pub fn Connection::new(String, (Bytes) -> Unit) -> Self
 pub async fn Connection::open(String, (Bytes) -> Unit) -> Self
 pub fn Connection::send(Self, Bytes) -> Unit
+pub async fn Connection::wait_until_open(Self) -> Unit
 
 // Type aliases
 

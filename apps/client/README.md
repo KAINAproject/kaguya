@@ -49,8 +49,9 @@ Vite が `/ws` を `127.0.0.1:9001` の native inspector へ WebSocket proxy す
 実機では `5173` だけを reverse すれば接続できます。
 
 接続後の通信は `Frame::publish` / `Frame::subscribe` などを protobuf bytes にして送ります。
-現在の WebSocket binding は transport としての接続・送受信だけを担当し、将来の WebRTC
-DataChannel でも同じ `Frame` bytes を再利用できるようにしています。
+現在の WebSocket binding は transport としての接続 lifecycle・送受信を担当し、bridge の
+再起動後も指数 backoff で再接続します。将来の WebRTC DataChannel でも同じ `Frame`
+bytes を再利用できるようにしています。
 
 `ws` query で接続した状態で XR セッションを開始すると、client は Three.js の XR frame
 loop から次の input topic をリアルタイム publish します。

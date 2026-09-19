@@ -186,3 +186,47 @@ test("WebSocket probe sends a protobuf Frame", async ({ page }) => {
     await new Promise<void>((resolve) => server.close(() => resolve()))
   }
 })
+
+test("WebSocket reconnects after the bridge disconnects", async ({ page }) => {
+  const server = new WebSocketServer({ port: 0, path: "/ws" })
+  await new Promise<void>((resolve) => server.once("listening", resolve))
+
+  const address = server.address()
+  if (address == null || typeof address === "string") {
+    throw new Error("WebSocket test server did not expose a TCP port")
+  }
+
+  const firstConnection = new Promise<import("ws").WebSocket>((resolve) => {
+    server.once("connection", (socket) => resolve(socket))
+  })
+
+  let replacement: WebSocketServer | undefined
+  try {
+    await page.goto(`/?ws=ws://127.0.0.1:${address.port}/ws`)
+    const socket = await firstConnection
+
+    const disconnected = new Promise<void>((resolve) => {
+      socket.once("close", () => resolve())
+    })
+    socket.terminate()
+    await disconnected
+
+    await new Promise<void>((resolve, reject) => {
+      server.close((error) => (error == null ? resolve() : reject(error)))
+    })
+
+    replacement = new WebSocketServer({ port: address.port, path: "/ws" })
+    const reconnected = new Promise<void>((resolve, reject) => {
+      replacement?.once("connection", () => resolve())
+      replacement?.once("error", reject)
+    })
+    await new Promise<void>((resolve) => replacement?.once("listening", resolve))
+    await reconnected
+  } finally {
+    for (const socket of server.clients) socket.terminate()
+    if (replacement != null) {
+      for (const socket of replacement.clients) socket.terminate()
+      await new Promise<void>((resolve) => replacement?.close(() => resolve()))
+    }
+  }
+})
