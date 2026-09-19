@@ -30,8 +30,19 @@ pub fn decode_frame_event(bytes : Bytes) -> Result[BridgeEvent, String] {
         None => Ok(BridgeEvent::FrameReceived(empty_frame_summary(frame)))
         Some(envelope) => {
           let summary = frame_summary(frame, envelope)
-          if envelope.encoding == @protocol.Encoding::protobuf() &&
-            envelope.schema_id == HAND_POSE_SCHEMA_ID {
+          if envelope.encoding != @protocol.Encoding::protobuf() {
+            Ok(BridgeEvent::FrameReceived(summary))
+          } else if envelope.schema_id == HEAD_POSE_SCHEMA_ID {
+            match @protocol.decode_head_pose_record(envelope.payload) {
+              Ok(record) =>
+                Ok(
+                  BridgeEvent::HeadPoseReceived(
+                    HeadPoseEvent::new(summary, record),
+                  ),
+                )
+              Err(error) => Err("head pose decode failed: " + error)
+            }
+          } else if envelope.schema_id == HAND_POSE_SCHEMA_ID {
             match @protocol.decode_hand_pose_record(envelope.payload) {
               Ok(record) =>
                 Ok(
@@ -40,6 +51,16 @@ pub fn decode_frame_event(bytes : Bytes) -> Result[BridgeEvent, String] {
                   ),
                 )
               Err(error) => Err("hand pose decode failed: " + error)
+            }
+          } else if envelope.schema_id == BATTERY_STATUS_SCHEMA_ID {
+            match @protocol.decode_battery_status_record(envelope.payload) {
+              Ok(record) =>
+                Ok(
+                  BridgeEvent::BatteryStatusReceived(
+                    BatteryStatusEvent::new(summary, record),
+                  ),
+                )
+              Err(error) => Err("battery status decode failed: " + error)
             }
           } else {
             Ok(BridgeEvent::FrameReceived(summary))

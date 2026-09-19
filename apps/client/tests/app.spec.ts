@@ -263,3 +263,53 @@ test("WebSocket reconnects after the bridge disconnects", async ({ page }) => {
     }
   }
 })
+
+test("XR stream publishes head pose and battery status", async ({ page }) => {
+  const server = new WebSocketServer({ port: 0, path: "/ws" })
+  const topics = new Set<string>()
+  server.on("connection", (socket) => {
+    socket.on("message", (data) => {
+      const frame = readMessage(asBuffer(data))
+      const topic = frame.get(2)
+      if (topic instanceof Uint8Array) {
+        topics.add(Buffer.from(topic).toString("utf8"))
+      }
+    })
+  })
+  await new Promise<void>((resolve) => server.once("listening", resolve))
+
+  const address = server.address()
+  if (address == null || typeof address === "string") {
+    throw new Error("WebSocket test server did not expose a TCP port")
+  }
+
+  await page.addInitScript(() => {
+    Object.defineProperty(navigator, "getBattery", {
+      configurable: true,
+      value: async () => ({
+        level: 0.75,
+        charging: true,
+        addEventListener: () => {},
+      }),
+    })
+  })
+
+  try {
+    await page.goto(`/?ws=ws://127.0.0.1:${address.port}/ws`)
+    await page.locator("#enter-xr").click()
+
+    await expect
+      .poll(() => topics.has("kaguya/v1/atlas/input/head_pose"), {
+        timeout: 10_000,
+      })
+      .toBe(true)
+    await expect
+      .poll(() => topics.has("kaguya/v1/atlas/input/battery_status"), {
+        timeout: 10_000,
+      })
+      .toBe(true)
+  } finally {
+    for (const socket of server.clients) socket.terminate()
+    await new Promise<void>((resolve) => server.close(() => resolve()))
+  }
+})

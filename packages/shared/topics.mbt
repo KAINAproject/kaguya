@@ -22,6 +22,11 @@ pub fn head_pose_input(robot_id : String) -> String {
 }
 
 ///|
+pub fn battery_status_input(robot_id : String) -> String {
+  topic(robot_id, "input/battery_status")
+}
+
+///|
 pub fn hand_pose_input(robot_id : String) -> String {
   topic(robot_id, "input/hand_pose")
 }

@@ -18,8 +18,14 @@ pub fn render(InspectorState, Int, Int) -> @ui.Node[@vnode.TuiEvent, @vnode.TuiA
 pub struct InspectorState {
   mut connected : Bool
   mut rx_frames : UInt64
+  mut head_pose_frames : UInt64
   mut hand_frames : UInt64
+  mut battery_frames : UInt64
   mut decode_errors : UInt64
+  mut head_pose : @shared.HeadPose?
+  mut head_pose_sequence : UInt64
+  mut battery_status : @shared.BatteryStatus?
+  mut battery_sequence : UInt64
   mut left_valid_joints : Int
   mut right_valid_joints : Int
   mut left_sequence : UInt64

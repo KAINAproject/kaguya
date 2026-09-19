@@ -19,6 +19,9 @@ const XR_REFERENCE_FRAME : String = "local-floor"
 const HEAD_POSE_SCHEMA_ID : String = "kaguya.input.head_pose"
 
 ///|
+const BATTERY_STATUS_SCHEMA_ID : String = "kaguya.input.battery_status"
+
+///|
 const CONTROLLER_SNAPSHOT_SCHEMA_ID : String = "kaguya.input.controller_snapshot"
 
 ///|
@@ -26,6 +29,9 @@ const HAND_POSE_SCHEMA_ID : String = "kaguya.input.hand_pose"
 
 ///|
 let xr_sequence : Ref[UInt64] = Ref(0UL)
+
+///|
+let last_battery_publish_time : Ref[Double?] = Ref(None)
 
 ///|
 fn next_xr_sequence() -> UInt64 {
@@ -134,6 +140,40 @@ fn publish_head_pose(manager : @three_xr.WebXRManager, time : Double) -> Unit {
       )
     }
     None => ()
+  }
+}
+
+///|
+fn publish_battery_status(time : Double) -> Unit {
+  match current_battery_status() {
+    None => ()
+    Some(status) => {
+      let should_publish = match last_battery_publish_time.val {
+        Some(last_time) => time - last_time >= 1000.0
+        None => true
+      }
+      if should_publish {
+        let data = @protocol.BatteryStatus::new(
+          status.level(),
+          status.is_charging(),
+          true,
+        )
+        let record = @protocol.BatteryStatusRecord::new(
+          data,
+          sample_timestamp(time),
+        )
+        ignore(
+          publish_payload(
+            @protocol.battery_status_input(xr_robot_id.val),
+            BATTERY_STATUS_SCHEMA_ID,
+            "browser:battery",
+            time,
+            @protocol.encode_battery_status_record(record),
+          ),
+        )
+        last_battery_publish_time.val = Some(time)
+      }
+    }
   }
 }
 
@@ -249,6 +289,7 @@ fn publish_xr_frame(
     return
   }
   publish_head_pose(manager, time)
+  publish_battery_status(time)
   publish_controller_snapshot(controller0, grip0, source0, handedness0, time)
   publish_controller_snapshot(controller1, grip1, source1, handedness1, time)
   publish_hand_pose(hand0, handedness0, time)

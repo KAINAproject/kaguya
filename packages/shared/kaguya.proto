@@ -77,6 +77,17 @@ message HeadPoseRecord {
   DeviceDataTimestamp timestamp = 2;
 }
 
+message BatteryStatus {
+  float level = 1;
+  bool is_charging = 2;
+  bool is_valid = 3;
+}
+
+message BatteryStatusRecord {
+  BatteryStatus data = 1;
+  DeviceDataTimestamp timestamp = 2;
+}
+
 message ControllerInputState {
   bool primary_click = 1;
   bool secondary_click = 2;

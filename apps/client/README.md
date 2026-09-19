@@ -57,10 +57,14 @@ bytes を再利用できるようにしています。
 loop から次の input topic をリアルタイム publish します。
 
 - `kaguya/v1/atlas/input/head_pose`
+- `kaguya/v1/atlas/input/battery_status`
 - `kaguya/v1/atlas/input/controller_snapshot`
 - `kaguya/v1/atlas/input/hand_pose`
 
-各 envelope の `encoding` は `Protobuf` で、payload は対応する `*Record` です。手 tracking
+各 envelope の `encoding` は `Protobuf` で、payload は対応する `*Record` です。バッテリーは
+ブラウザの Battery Status API が利用できる場合だけ、約1秒ごとに `battery_status` として
+送信します。これはブラウザが報告するシステムバッテリーであり、外部 HMD を接続した
+デスクトップ環境では HMD の残量とは限りません。手 tracking
 は `"hand-tracking"` が利用できる環境で有効になり、対応する手について WebXR の 25
 関節と、手首から導出した palm を合わせた 26 関節を `hand_pose` に含めます。Three.js
 の `pinchstart` / `pinchend` も Cube 操作に利用します。WebSocket の送信キューが 512

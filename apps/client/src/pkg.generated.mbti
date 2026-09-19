@@ -23,6 +23,10 @@ pub fn start() -> @js_async.Promise[Unit]
 // Errors
 
 // Types and methods
+#external
+pub type BatteryStatus
+pub fn BatteryStatus::is_charging(Self) -> Bool
+pub fn BatteryStatus::level(Self) -> Float
 
 // Type aliases
 

@@ -18,6 +18,7 @@ publish/data のときだけ `Envelope` を内包します。transport はこの
 
 - `Envelope`
 - `HeadPose` / `HeadPoseRecord`
+- `BatteryStatus` / `BatteryStatusRecord`
 - `ControllerSnapshot` / `ControllerSnapshotRecord`
 - `HandPose` / `HandPoseRecord`
 - `JointStateOutput` / `JointStateOutputRecord`
@@ -27,6 +28,7 @@ Topic は `kaguya/v1/{robot_id}/...` をルートにします。
 
 - `input/controller_snapshot`
 - `input/head_pose`
+- `input/battery_status`
 - `input/hand_pose`
 - `output/joint_state`
 - `output/rgb`

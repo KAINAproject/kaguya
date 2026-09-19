@@ -71,3 +71,81 @@ test "inspector state keeps the latest hand joints" {
   assert_true(state.left_joints[0].is_valid)
   assert_eq(state.left_sequence, 3UL)
 }
+
+///|
+test "inspector state keeps head pose and battery status" {
+  let state = InspectorState::new()
+  let pose = @protocol.Pose::new(
+    @protocol.Point::new(1.0, 2.0, 3.0),
+    @protocol.Quaternion::new(0.0, 0.0, 0.0, 1.0),
+  )
+  let head = @protocol.HeadPoseRecord::new(
+    @protocol.HeadPose::new(pose, true, true),
+    @protocol.DeviceDataTimestamp::new(1L, 1L, 0L),
+  )
+  let battery = @protocol.BatteryStatusRecord::new(
+    @protocol.BatteryStatus::new(0.5, true, true),
+    @protocol.DeviceDataTimestamp::new(1L, 1L, 0L),
+  )
+  let frame = @protocol.Frame::publish(
+    "kaguya/v1/atlas/input/head_pose",
+    @protocol.Envelope::new(
+      "kaguya.input.head_pose",
+      1U,
+      4UL,
+      5UL,
+      "webxr:head",
+      "local-floor",
+      @protocol.Encoding::protobuf(),
+      b"",
+    ),
+  )
+  state.on_event(
+    @bridge.BridgeEvent::head_pose_received(
+      @bridge.HeadPoseEvent::new(
+        @bridge.FrameSummary::new(
+          frame.kind(),
+          frame.topic(),
+          "kaguya.input.head_pose",
+          1U,
+          4UL,
+          5UL,
+          "webxr:head",
+          "local-floor",
+          0,
+        ),
+        head,
+      ),
+    ),
+  )
+  state.on_event(
+    @bridge.BridgeEvent::battery_status_received(
+      @bridge.BatteryStatusEvent::new(
+        @bridge.FrameSummary::new(
+          frame.kind(),
+          "kaguya/v1/atlas/input/battery_status",
+          "kaguya.input.battery_status",
+          1U,
+          5UL,
+          6UL,
+          "browser:battery",
+          "local-floor",
+          0,
+        ),
+        battery,
+      ),
+    ),
+  )
+  assert_eq(state.head_pose_frames, 1UL)
+  assert_eq(state.head_pose_sequence, 4UL)
+  assert_eq(state.battery_frames, 1UL)
+  assert_eq(state.battery_sequence, 5UL)
+  match state.head_pose {
+    Some(value) => assert_eq(value.pose.position.x, 1.0)
+    None => fail("head pose must be stored")
+  }
+  match state.battery_status {
+    Some(value) => assert_eq(value.level, 0.5)
+    None => fail("battery status must be stored")
+  }
+}

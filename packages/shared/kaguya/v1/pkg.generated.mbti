@@ -11,6 +11,29 @@ import {
 // Errors
 
 // Types and methods
+pub(all) struct BatteryStatus {
+  mut level : Float
+  mut is_charging : Bool
+  mut is_valid : Bool
+} derive(Eq, @debug.Debug)
+#alias(new, deprecated)
+pub fn BatteryStatus::BatteryStatus(Float, Bool, Bool) -> Self
+pub impl Default for BatteryStatus
+pub impl @protobuf.Read for BatteryStatus
+pub impl @protobuf.Sized for BatteryStatus
+pub impl @protobuf.Write for BatteryStatus
+
+pub(all) struct BatteryStatusRecord {
+  mut data : BatteryStatus?
+  mut timestamp : DeviceDataTimestamp?
+} derive(Eq, @debug.Debug)
+#alias(new, deprecated)
+pub fn BatteryStatusRecord::BatteryStatusRecord(data? : BatteryStatus, timestamp? : DeviceDataTimestamp) -> Self
+pub impl Default for BatteryStatusRecord
+pub impl @protobuf.Read for BatteryStatusRecord
+pub impl @protobuf.Sized for BatteryStatusRecord
+pub impl @protobuf.Write for BatteryStatusRecord
+
 pub(all) struct ControllerInputState {
   mut primary_click : Bool
   mut secondary_click : Bool

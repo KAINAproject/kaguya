@@ -113,6 +113,20 @@ test "head pose record round trip" {
 }
 
 ///|
+test "battery status record round trip" {
+  let original = BatteryStatusRecord::{
+    data: BatteryStatus::{ level: 0.73, is_charging: true, is_valid: true, },
+    timestamp: sample_timestamp(),
+  }
+  let decoded = match
+    decode_battery_status_record(encode_battery_status_record(original)) {
+    Ok(value) => value
+    Err(error) => fail(error)
+  }
+  assert_eq(decoded, original)
+}
+
+///|
 test "controller snapshot record round trip" {
   let controller_pose = ControllerPose::{ pose: sample_pose(), is_valid: true, }
   let original = ControllerSnapshotRecord::{

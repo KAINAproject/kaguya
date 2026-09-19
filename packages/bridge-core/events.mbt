@@ -2,6 +2,12 @@
 pub const HAND_POSE_SCHEMA_ID : String = "kaguya.input.hand_pose"
 
 ///|
+pub const HEAD_POSE_SCHEMA_ID : String = "kaguya.input.head_pose"
+
+///|
+pub const BATTERY_STATUS_SCHEMA_ID : String = "kaguya.input.battery_status"
+
+///|
 pub struct FrameSummary {
   kind : @protocol.FrameKind
   topic : String
@@ -21,11 +27,25 @@ pub struct HandPoseEvent {
 } derive(Debug)
 
 ///|
+pub struct HeadPoseEvent {
+  frame : FrameSummary
+  record : @protocol.HeadPoseRecord
+} derive(Debug)
+
+///|
+pub struct BatteryStatusEvent {
+  frame : FrameSummary
+  record : @protocol.BatteryStatusRecord
+} derive(Debug)
+
+///|
 pub enum BridgeEvent {
   Connected(String)
   Disconnected(String)
   FrameReceived(FrameSummary)
+  HeadPoseReceived(HeadPoseEvent)
   HandPoseReceived(HandPoseEvent)
+  BatteryStatusReceived(BatteryStatusEvent)
   DecodeError(String)
 } derive(Debug)
 
@@ -47,6 +67,18 @@ pub fn BridgeEvent::frame_received(frame : FrameSummary) -> BridgeEvent {
 ///|
 pub fn BridgeEvent::hand_pose_received(event : HandPoseEvent) -> BridgeEvent {
   HandPoseReceived(event)
+}
+
+///|
+pub fn BridgeEvent::head_pose_received(event : HeadPoseEvent) -> BridgeEvent {
+  HeadPoseReceived(event)
+}
+
+///|
+pub fn BridgeEvent::battery_status_received(
+  event : BatteryStatusEvent,
+) -> BridgeEvent {
+  BatteryStatusReceived(event)
 }
 
 ///|
@@ -84,6 +116,22 @@ pub fn HandPoseEvent::new(
   frame : FrameSummary,
   record : @protocol.HandPoseRecord,
 ) -> HandPoseEvent {
+  { frame, record, }
+}
+
+///|
+pub fn HeadPoseEvent::new(
+  frame : FrameSummary,
+  record : @protocol.HeadPoseRecord,
+) -> HeadPoseEvent {
+  { frame, record, }
+}
+
+///|
+pub fn BatteryStatusEvent::new(
+  frame : FrameSummary,
+  record : @protocol.BatteryStatusRecord,
+) -> BatteryStatusEvent {
   { frame, record, }
 }
 
