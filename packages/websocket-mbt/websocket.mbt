@@ -5,10 +5,32 @@ pub type Connection
 
 ///|
 #module("@kaguya/websocket-mbt/websocket")
-extern "js" fn Connection::ffi_open(
+extern "js" fn Connection::ffi_new(
   url : String,
   on_message : (Bytes) -> Unit,
-) -> @js_async.Promise[Connection] = "websocketOpen"
+) -> Connection = "websocketCreate"
+
+///|
+/// Creates a connection and starts its reconnecting lifecycle.
+pub fn Connection::new(
+  url : String,
+  on_message : (Bytes) -> Unit,
+) -> Connection {
+  Connection::ffi_new(url, on_message)
+}
+
+///|
+#module("@kaguya/websocket-mbt/websocket")
+extern "js" fn Connection::ffi_wait_until_open(
+  self : Connection,
+) -> @js_async.Promise[Unit] = "websocketWaitUntilOpen"
+
+///|
+/// Waits until this connection is open. The connection keeps retrying after a
+/// failed or closed socket until `close` is called.
+pub async fn Connection::wait_until_open(self : Connection) -> Unit {
+  self.ffi_wait_until_open().wait()
+}
 
 ///|
 /// Opens a WebSocket and waits until its connection is established.
@@ -16,7 +38,9 @@ pub async fn Connection::open(
   url : String,
   on_message : (Bytes) -> Unit,
 ) -> Connection {
-  Connection::ffi_open(url, on_message).wait()
+  let connection = Connection::new(url, on_message)
+  connection.wait_until_open()
+  connection
 }
 
 ///|

@@ -18,7 +18,11 @@ async function start(): Promise<void> {
   await installXrEmulator()
   await kaguya_start()
 
-  const url = params.get("ws")
+  const url =
+    params.get("ws") ??
+    (import.meta.env.DEV
+      ? `${window.location.protocol === "https:" ? "wss:" : "ws:"}//${window.location.host}/ws`
+      : null)
   if (url == null || url === "") return
 
   try {

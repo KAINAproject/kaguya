@@ -14,8 +14,9 @@ fn handle_websocket_frame(bytes : Bytes) -> Unit {
 
 ///|
 async fn open_websocket(url : String) -> Unit {
-  let connection = @websocket.Connection::open(url, handle_websocket_frame)
+  let connection = @websocket.Connection::new(url, handle_websocket_frame)
   active_websocket.val = Some(connection)
+  connection.wait_until_open()
 }
 
 ///|
