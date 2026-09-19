@@ -2,6 +2,7 @@ import "./style.css"
 import { installXrEmulator } from "./xr_emulator"
 import {
   kaguya_set_xr_robot_id,
+  kaguya_set_xr_mode,
   kaguya_start,
   kaguya_websocket_send_probe,
   kaguya_websocket_close,
@@ -14,8 +15,10 @@ async function start(): Promise<void> {
   if (robotId != null && robotId !== "") {
     kaguya_set_xr_robot_id(robotId)
   }
+  const sessionMode = params.get("xr") === "ar" ? "immersive-ar" : "immersive-vr"
+  kaguya_set_xr_mode(sessionMode === "immersive-ar" ? "ar" : "vr")
 
-  await installXrEmulator()
+  await installXrEmulator(sessionMode)
   await kaguya_start()
 
   const url =

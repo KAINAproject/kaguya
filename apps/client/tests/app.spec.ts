@@ -137,6 +137,39 @@ test("WebXR session requests optional hand tracking", async ({ page }) => {
   )
 })
 
+test("passthrough mode requests an immersive AR session", async ({ page }) => {
+  await page.addInitScript(() => {
+    Object.defineProperty(navigator, "xr", {
+      configurable: true,
+      value: {
+        isSessionSupported: async (mode: string) => mode === "immersive-ar",
+        requestSession: async (
+          mode: string,
+          options: {
+            optionalFeatures?: string[]
+          },
+        ) => {
+          document.documentElement.dataset.xrMode = mode
+          document.documentElement.dataset.xrOptionalFeatures =
+            options.optionalFeatures?.join(",") ?? ""
+          throw new Error("session start is not part of this smoke test")
+        },
+      },
+    })
+  })
+
+  await page.goto("/?xr=ar")
+  await expect(page.locator("#enter-xr")).toHaveText("パススルー を開始")
+  await expect(page.locator("#enter-xr")).toBeEnabled()
+  await page.locator("#enter-xr").click()
+
+  await expect(page.locator("html")).toHaveAttribute("data-xr-mode", "immersive-ar")
+  await expect(page.locator("html")).toHaveAttribute(
+    "data-xr-optional-features",
+    "local-floor,hand-tracking",
+  )
+})
+
 test("IWER provides the test-only WebXR runtime", async ({ page }) => {
   await page.goto("/")
 
