@@ -10,9 +10,15 @@ pub const NUM_JOINTS : Int = 26
 
 pub const TOPIC_ROOT : String = "kaguya/v1"
 
+pub fn battery_status_input(String) -> String
+
 pub fn controller_snapshot_input(String) -> String
 
 pub fn debug(String, String) -> String
+
+pub fn decode_battery_status(Bytes) -> Result[BatteryStatus, String]
+
+pub fn decode_battery_status_record(Bytes) -> Result[BatteryStatusRecord, String]
 
 pub fn decode_controller_input_state(Bytes) -> Result[ControllerInputState, String]
 
@@ -43,6 +49,10 @@ pub fn decode_point(Bytes) -> Result[Point, String]
 pub fn decode_pose(Bytes) -> Result[Pose, String]
 
 pub fn decode_quaternion(Bytes) -> Result[Quaternion, String]
+
+pub fn encode_battery_status(BatteryStatus) -> Bytes
+
+pub fn encode_battery_status_record(BatteryStatusRecord) -> Bytes
 
 pub fn encode_controller_input_state(ControllerInputState) -> Bytes
 
@@ -95,6 +105,19 @@ pub fn topic(String, String) -> String
 // Errors
 
 // Types and methods
+pub struct BatteryStatus {
+  level : Float
+  is_charging : Bool
+  is_valid : Bool
+} derive(Eq, @debug.Debug)
+pub fn BatteryStatus::new(Float, Bool, Bool) -> Self
+
+pub struct BatteryStatusRecord {
+  data : BatteryStatus
+  timestamp : DeviceDataTimestamp
+} derive(Eq, @debug.Debug)
+pub fn BatteryStatusRecord::new(BatteryStatus, DeviceDataTimestamp) -> Self
+
 pub struct ControllerInputState {
   primary_click : Bool
   secondary_click : Bool

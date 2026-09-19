@@ -5,6 +5,10 @@ test "topics use the stable namespace" {
     controller_snapshot_input("atlas"),
     "kaguya/v1/atlas/input/controller_snapshot",
   )
+  assert_eq(
+    battery_status_input("atlas"),
+    "kaguya/v1/atlas/input/battery_status",
+  )
   assert_eq(rgb_output("atlas"), "kaguya/v1/atlas/output/rgb")
   assert_eq(
     event("atlas", "episode_started"),

@@ -5,8 +5,14 @@ const MAX_LOG_LINES : Int = 12
 pub struct InspectorState {
   mut connected : Bool
   mut rx_frames : UInt64
+  mut head_pose_frames : UInt64
   mut hand_frames : UInt64
+  mut battery_frames : UInt64
   mut decode_errors : UInt64
+  mut head_pose : @protocol.HeadPose?
+  mut head_pose_sequence : UInt64
+  mut battery_status : @protocol.BatteryStatus?
+  mut battery_sequence : UInt64
   mut left_valid_joints : Int
   mut right_valid_joints : Int
   mut left_sequence : UInt64
@@ -21,8 +27,14 @@ pub fn InspectorState::new() -> InspectorState {
   {
     connected: false,
     rx_frames: 0UL,
+    head_pose_frames: 0UL,
     hand_frames: 0UL,
+    battery_frames: 0UL,
     decode_errors: 0UL,
+    head_pose: None,
+    head_pose_sequence: 0UL,
+    battery_status: None,
+    battery_sequence: 0UL,
     left_valid_joints: 0,
     right_valid_joints: 0,
     left_sequence: 0UL,
@@ -89,6 +101,13 @@ pub fn InspectorState::on_event(
         "frame \{frame.topic} seq=\{frame.sequence} bytes=\{frame.payload_size}",
       )
     }
+    @bridge.BridgeEvent::HeadPoseReceived(head) => {
+      self.rx_frames += 1UL
+      self.head_pose_frames += 1UL
+      self.head_pose = Some(head.record.data)
+      self.head_pose_sequence = head.frame.sequence
+      self.push_log("head_pose seq=\{head.frame.sequence}")
+    }
     @bridge.BridgeEvent::HandPoseReceived(hand) => {
       self.rx_frames += 1UL
       self.hand_frames += 1UL
@@ -104,6 +123,13 @@ pub fn InspectorState::on_event(
         self.right_joints = hand.record.data.joints.poses
       }
       self.push_log("hand_pose \{side} \{valid}/26 seq=\{hand.frame.sequence}")
+    }
+    @bridge.BridgeEvent::BatteryStatusReceived(battery) => {
+      self.rx_frames += 1UL
+      self.battery_frames += 1UL
+      self.battery_status = Some(battery.record.data)
+      self.battery_sequence = battery.frame.sequence
+      self.push_log("battery_status seq=\{battery.frame.sequence}")
     }
     @bridge.BridgeEvent::DecodeError(error) => {
       self.decode_errors += 1UL

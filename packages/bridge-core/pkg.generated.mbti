@@ -7,7 +7,11 @@ import {
 }
 
 // Values
+pub const BATTERY_STATUS_SCHEMA_ID : String = "kaguya.input.battery_status"
+
 pub const HAND_POSE_SCHEMA_ID : String = "kaguya.input.hand_pose"
+
+pub const HEAD_POSE_SCHEMA_ID : String = "kaguya.input.head_pose"
 
 pub fn decode_frame_event(Bytes) -> Result[BridgeEvent, String]
 
@@ -18,18 +22,28 @@ pub fn publish_frame(EventBus, Bytes) -> Unit
 // Errors
 
 // Types and methods
+pub struct BatteryStatusEvent {
+  frame : FrameSummary
+  record : @shared.BatteryStatusRecord
+} derive(@debug.Debug)
+pub fn BatteryStatusEvent::new(FrameSummary, @shared.BatteryStatusRecord) -> Self
+
 pub enum BridgeEvent {
   Connected(String)
   Disconnected(String)
   FrameReceived(FrameSummary)
+  HeadPoseReceived(HeadPoseEvent)
   HandPoseReceived(HandPoseEvent)
+  BatteryStatusReceived(BatteryStatusEvent)
   DecodeError(String)
 } derive(@debug.Debug)
+pub fn BridgeEvent::battery_status_received(BatteryStatusEvent) -> Self
 pub fn BridgeEvent::connected(String) -> Self
 pub fn BridgeEvent::decode_error(String) -> Self
 pub fn BridgeEvent::disconnected(String) -> Self
 pub fn BridgeEvent::frame_received(FrameSummary) -> Self
 pub fn BridgeEvent::hand_pose_received(HandPoseEvent) -> Self
+pub fn BridgeEvent::head_pose_received(HeadPoseEvent) -> Self
 
 pub struct EventBus {
   sinks : Array[(BridgeEvent) -> Unit]
@@ -56,6 +70,12 @@ pub struct HandPoseEvent {
   record : @shared.HandPoseRecord
 } derive(@debug.Debug)
 pub fn HandPoseEvent::new(FrameSummary, @shared.HandPoseRecord) -> Self
+
+pub struct HeadPoseEvent {
+  frame : FrameSummary
+  record : @shared.HeadPoseRecord
+} derive(@debug.Debug)
+pub fn HeadPoseEvent::new(FrameSummary, @shared.HeadPoseRecord) -> Self
 
 // Type aliases
 pub type EventSink = (BridgeEvent) -> Unit

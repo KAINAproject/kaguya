@@ -97,4 +97,4 @@ https://<client-host>:5173/?ws=ws://127.0.0.1:9001/ws&robot=atlas
 moon run --target native ./apps/inspector -- 0.0.0.0:9001
 ```
 
-TUI は `q`、`Ctrl-C`、または `Esc` で終了します。画面は約1秒ごとに更新され、ログ、受信 frame 数、hand pose 数、decode error 数、左右 hand の valid joint 数と sequence を表示します。
+TUI は `q`、`Ctrl-C`、または `Esc` で終了します。画面は約1秒ごとに更新され、ログ、受信 frame 数、HMD pose、ブラウザから報告されたバッテリー、hand pose 数、decode error 数、左右 hand の valid joint 数と sequence を表示します。

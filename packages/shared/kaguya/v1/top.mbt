@@ -877,6 +877,147 @@ pub impl @lib.Write for HeadPoseRecord with fn write(
 }
 
 ///|
+pub(all) struct BatteryStatus {
+  mut level : Float
+  mut is_charging : Bool
+  mut is_valid : Bool
+} derive(Eq, Debug)
+
+///|
+pub impl @lib.Sized for BatteryStatus with fn size_of(self) {
+  let mut size = 0U
+  if self.level != Default::default() {
+    size += @lib.size_of_field(1U, 4U)
+  }
+  if self.is_charging != Default::default() {
+    size += @lib.size_of_field(2U, @lib.size_of(self.is_charging))
+  }
+  if self.is_valid != Default::default() {
+    size += @lib.size_of_field(3U, @lib.size_of(self.is_valid))
+  }
+  size
+}
+
+///|
+pub impl Default for BatteryStatus with fn default() -> BatteryStatus {
+  BatteryStatus::{
+    level: Default::default(),
+    is_charging: Default::default(),
+    is_valid: Default::default(),
+  }
+}
+
+///|
+#alias(new, deprecated)
+pub fn BatteryStatus::BatteryStatus(
+  level : Float,
+  is_charging : Bool,
+  is_valid : Bool,
+) -> BatteryStatus {
+  BatteryStatus::{ level, is_charging, is_valid, }
+}
+
+///|
+pub impl @lib.Read for BatteryStatus with fn read_with_limit(
+  reader : @lib.LimitedReader[&@lib.Reader],
+) -> BatteryStatus raise {
+  let msg : BatteryStatus = Default::default()
+  while (reader |> @lib.read_next_message_field()) is Some((field_number, wire)) {
+    match (field_number, wire) {
+      (1, _) => msg.level = reader |> @lib.read_float()
+      (2, _) => msg.is_charging = reader |> @lib.read_bool()
+      (3, _) => msg.is_valid = reader |> @lib.read_bool()
+      _ => reader |> @lib.skip_message_field_by_number(field_number, wire)
+    }
+  }
+  msg
+}
+
+///|
+pub impl @lib.Write for BatteryStatus with fn write(
+  self : BatteryStatus,
+  writer : &@lib.Writer,
+) -> Unit raise {
+  if self.level != Default::default() {
+    writer |> @lib.write_varint(13UL)
+    writer |> @lib.write_float(self.level)
+  }
+  if self.is_charging != Default::default() {
+    writer |> @lib.write_varint(16UL)
+    writer |> @lib.write_bool(self.is_charging)
+  }
+  if self.is_valid != Default::default() {
+    writer |> @lib.write_varint(24UL)
+    writer |> @lib.write_bool(self.is_valid)
+  }
+}
+
+///|
+pub(all) struct BatteryStatusRecord {
+  mut data : BatteryStatus?
+  mut timestamp : DeviceDataTimestamp?
+} derive(Eq, Debug)
+
+///|
+pub impl @lib.Sized for BatteryStatusRecord with fn size_of(self) {
+  let mut size = 0U
+  if self.data is Some(v) {
+    size += @lib.size_of_length_delimited_field(1U, @lib.size_of(v))
+  }
+  if self.timestamp is Some(v) {
+    size += @lib.size_of_length_delimited_field(2U, @lib.size_of(v))
+  }
+  size
+}
+
+///|
+pub impl Default for BatteryStatusRecord with fn default() -> BatteryStatusRecord {
+  BatteryStatusRecord::{ data: None, timestamp: None, }
+}
+
+///|
+#alias(new, deprecated)
+pub fn BatteryStatusRecord::BatteryStatusRecord(
+  data? : BatteryStatus,
+  timestamp? : DeviceDataTimestamp,
+) -> BatteryStatusRecord {
+  BatteryStatusRecord::{ data, timestamp, }
+}
+
+///|
+pub impl @lib.Read for BatteryStatusRecord with fn read_with_limit(
+  reader : @lib.LimitedReader[&@lib.Reader],
+) -> BatteryStatusRecord raise {
+  let msg : BatteryStatusRecord = Default::default()
+  while (reader |> @lib.read_next_message_field()) is Some((field_number, wire)) {
+    match (field_number, wire) {
+      (1, @lib.WIRE_TYPE_LENGTH_DELIMITED) =>
+        msg.data = (reader |> @lib.read_message() : BatteryStatus) |> Some
+      (2, @lib.WIRE_TYPE_LENGTH_DELIMITED) =>
+        msg.timestamp = (reader |> @lib.read_message() : DeviceDataTimestamp)
+          |> Some
+      _ => reader |> @lib.skip_message_field_by_number(field_number, wire)
+    }
+  }
+  msg
+}
+
+///|
+pub impl @lib.Write for BatteryStatusRecord with fn write(
+  self : BatteryStatusRecord,
+  writer : &@lib.Writer,
+) -> Unit raise {
+  if self.data is Some(v) {
+    writer |> @lib.write_varint(10UL)
+    writer |> @lib.write_message(v)
+  }
+  if self.timestamp is Some(v) {
+    writer |> @lib.write_varint(18UL)
+    writer |> @lib.write_message(v)
+  }
+}
+
+///|
 pub(all) struct ControllerInputState {
   mut primary_click : Bool
   mut secondary_click : Bool

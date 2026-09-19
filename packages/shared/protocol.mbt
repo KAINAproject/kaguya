@@ -84,6 +84,19 @@ pub struct HeadPoseRecord {
 } derive(Eq, Debug)
 
 ///|
+pub struct BatteryStatus {
+  level : Float
+  is_charging : Bool
+  is_valid : Bool
+} derive(Eq, Debug)
+
+///|
+pub struct BatteryStatusRecord {
+  data : BatteryStatus
+  timestamp : DeviceDataTimestamp
+} derive(Eq, Debug)
+
+///|
 pub struct ControllerInputState {
   primary_click : Bool
   secondary_click : Bool
@@ -381,6 +394,23 @@ pub fn HeadPoseRecord::new(
 }
 
 ///|
+pub fn BatteryStatus::new(
+  level : Float,
+  is_charging : Bool,
+  is_valid : Bool,
+) -> BatteryStatus {
+  { level, is_charging, is_valid, }
+}
+
+///|
+pub fn BatteryStatusRecord::new(
+  data : BatteryStatus,
+  timestamp : DeviceDataTimestamp,
+) -> BatteryStatusRecord {
+  { data, timestamp, }
+}
+
+///|
 pub fn ControllerInputState::new(
   primary_click : Bool,
   secondary_click : Bool,
@@ -538,6 +568,11 @@ fn default_controller_snapshot() -> ControllerSnapshot {
 ///|
 fn default_head_pose() -> HeadPose {
   HeadPose::{ pose: default_pose(), is_valid: false, is_tracked: false, }
+}
+
+///|
+fn default_battery_status() -> BatteryStatus {
+  BatteryStatus::{ level: 0.0, is_charging: false, is_valid: false, }
 }
 
 ///|
@@ -742,6 +777,48 @@ fn to_wire_head_pose_record(value : HeadPoseRecord) -> @wire.HeadPoseRecord {
 fn from_wire_head_pose_record(value : @wire.HeadPoseRecord) -> HeadPoseRecord {
   HeadPoseRecord::{
     data: value.data.map(from_wire_head_pose).unwrap_or(default_head_pose()),
+    timestamp: value.timestamp
+    .map(from_wire_timestamp)
+    .unwrap_or(default_timestamp()),
+  }
+}
+
+///|
+fn to_wire_battery_status(value : BatteryStatus) -> @wire.BatteryStatus {
+  @wire.BatteryStatus::{
+    level: value.level,
+    is_charging: value.is_charging,
+    is_valid: value.is_valid,
+  }
+}
+
+///|
+fn from_wire_battery_status(value : @wire.BatteryStatus) -> BatteryStatus {
+  BatteryStatus::{
+    level: value.level,
+    is_charging: value.is_charging,
+    is_valid: value.is_valid,
+  }
+}
+
+///|
+fn to_wire_battery_status_record(
+  value : BatteryStatusRecord,
+) -> @wire.BatteryStatusRecord {
+  @wire.BatteryStatusRecord::{
+    data: Some(to_wire_battery_status(value.data)),
+    timestamp: Some(to_wire_timestamp(value.timestamp)),
+  }
+}
+
+///|
+fn from_wire_battery_status_record(
+  value : @wire.BatteryStatusRecord,
+) -> BatteryStatusRecord {
+  BatteryStatusRecord::{
+    data: value.data
+    .map(from_wire_battery_status)
+    .unwrap_or(default_battery_status()),
     timestamp: value.timestamp
     .map(from_wire_timestamp)
     .unwrap_or(default_timestamp()),
@@ -1106,6 +1183,34 @@ pub fn encode_head_pose_record(value : HeadPoseRecord) -> Bytes {
 pub fn decode_head_pose_record(bytes : Bytes) -> Result[HeadPoseRecord, String] {
   match decode_wire(bytes) {
     Ok(value) => Ok(from_wire_head_pose_record(value))
+    Err(error) => Err(error)
+  }
+}
+
+///|
+pub fn encode_battery_status(value : BatteryStatus) -> Bytes {
+  encode_wire(to_wire_battery_status(value))
+}
+
+///|
+pub fn decode_battery_status(bytes : Bytes) -> Result[BatteryStatus, String] {
+  match decode_wire(bytes) {
+    Ok(value) => Ok(from_wire_battery_status(value))
+    Err(error) => Err(error)
+  }
+}
+
+///|
+pub fn encode_battery_status_record(value : BatteryStatusRecord) -> Bytes {
+  encode_wire(to_wire_battery_status_record(value))
+}
+
+///|
+pub fn decode_battery_status_record(
+  bytes : Bytes,
+) -> Result[BatteryStatusRecord, String] {
+  match decode_wire(bytes) {
+    Ok(value) => Ok(from_wire_battery_status_record(value))
     Err(error) => Err(error)
   }
 }

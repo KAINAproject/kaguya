@@ -63,6 +63,64 @@ fn format_coordinate(value : Float) -> String {
 }
 
 ///|
+fn format_pose_point(point : @protocol.Point) -> String {
+  "(\{format_coordinate(point.x)}, \{format_coordinate(point.y)}, \{format_coordinate(point.z)})"
+}
+
+///|
+fn format_pose_quaternion(quaternion : @protocol.Quaternion) -> String {
+  "(\{format_coordinate(quaternion.x)}, \{format_coordinate(quaternion.y)}, \{format_coordinate(quaternion.z)}, \{format_coordinate(quaternion.w)})"
+}
+
+///|
+fn head_pose_view(state : InspectorState) -> @vnode.TuiNode {
+  let lines : Array[@vnode.TuiNode] = [
+    @vnode.text("HMD pose", fg="yellow", bold=true),
+    @vnode.text("sequence: \{state.head_pose_sequence}"),
+  ]
+  match state.head_pose {
+    None => {
+      lines.push(@vnode.text("position: n/a"))
+      lines.push(@vnode.text("orientation: n/a"))
+      lines.push(@vnode.text("tracked: n/a"))
+    }
+    Some(head) => {
+      lines.push(
+        @vnode.text("position: \{format_pose_point(head.pose.position)}"),
+      )
+      lines.push(
+        @vnode.text(
+          "orientation: \{format_pose_quaternion(head.pose.orientation)}",
+        ),
+      )
+      let tracked = if head.is_tracked { "yes" } else { "no" }
+      lines.push(@vnode.text("tracked: \{tracked}"))
+    }
+  }
+  @vnode.column(border="rounded", border_color="yellow", padding=1.0, lines)
+}
+
+///|
+fn battery_view(state : InspectorState) -> @vnode.TuiNode {
+  let lines : Array[@vnode.TuiNode] = [
+    @vnode.text("Battery", fg="yellow", bold=true),
+    @vnode.text("sequence: \{state.battery_sequence}"),
+  ]
+  match state.battery_status {
+    None => lines.push(@vnode.text("level: n/a"))
+    Some(status) if !status.is_valid =>
+      lines.push(@vnode.text("level: unavailable"))
+    Some(status) => {
+      let level = (status.level * 100.0).round().to_int()
+      let charging = if status.is_charging { "charging" } else { "on battery" }
+      lines.push(@vnode.text("level: \{level}% (\{charging})"))
+    }
+  }
+  lines.push(@vnode.text("source: browser battery"))
+  @vnode.column(border="rounded", border_color="yellow", padding=1.0, lines)
+}
+
+///|
 fn format_joint_line(index : Int, joint : @protocol.HandJointPose?) -> String {
   let missing = "  n/a  "
   match joint {
@@ -125,10 +183,13 @@ pub fn render(
           state.right_sequence,
           state.right_joints,
         ),
+        @vnode.column(gap=1.0, [head_pose_view(state), battery_view(state)]),
         @vnode.column(border="rounded", border_color="magenta", padding=1.0, [
           @vnode.text("Metrics", fg="magenta", bold=true),
           @vnode.text("rx frames: \{state.rx_frames}"),
+          @vnode.text("head pose frames: \{state.head_pose_frames}"),
           @vnode.text("hand frames: \{state.hand_frames}"),
+          @vnode.text("battery frames: \{state.battery_frames}"),
           @vnode.text("decode errors: \{state.decode_errors}"),
         ]),
       ]),
