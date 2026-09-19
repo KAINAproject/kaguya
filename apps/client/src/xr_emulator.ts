@@ -8,20 +8,20 @@ type BrowserXrSystem = {
   isSessionSupported?: (mode: string) => Promise<boolean>
 }
 
-async function hasUsableWebXr(): Promise<boolean> {
+async function hasUsableWebXr(mode: string): Promise<boolean> {
   const xr = (navigator as Navigator & { xr?: BrowserXrSystem }).xr
   if (xr == null || typeof xr.isSessionSupported !== "function") return false
 
   try {
-    return await xr.isSessionSupported("immersive-vr")
+    return await xr.isSessionSupported(mode)
   } catch {
     return false
   }
 }
 
-export async function installXrEmulator(): Promise<void> {
+export async function installXrEmulator(mode = "immersive-vr"): Promise<void> {
   if (!import.meta.env.DEV || import.meta.env.VITE_XR_EMULATOR !== "1") return
-  if (await hasUsableWebXr()) return
+  if (await hasUsableWebXr(mode)) return
 
   const { XRDevice, metaQuest3 } = await import("iwer")
   const device = new XRDevice(metaQuest3)

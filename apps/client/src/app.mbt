@@ -68,13 +68,27 @@ async fn initialize() -> Unit {
     }
   }
   let width = canvas_size()
+  let passthrough = xr_is_passthrough()
+  let xr_label = xr_mode_label()
+  let session_mode = if passthrough {
+    @three_xr.IMMERSIVE_AR
+  } else {
+    @three_xr.IMMERSIVE_VR
+  }
   let renderer = @three.WebGLRenderer::with_canvas(
     canvas,
     antialias=false,
-    alpha=false,
+    alpha=passthrough,
   )
   renderer.set_size(width, width * 9 / 16, update_style=false)
-  renderer.set_clear_color(@three.Color::from_hex(0x0D1428), 1.0)
+  renderer.set_clear_color(
+    @three.Color::from_hex(0x0D1428),
+    if passthrough {
+      0.0
+    } else {
+      1.0
+    },
+  )
 
   let scene = @three.Scene::Scene()
   let camera = @three.PerspectiveCamera::PerspectiveCamera(
@@ -222,13 +236,16 @@ async fn initialize() -> Unit {
   ignore(@three_xr.on_pinch_end(hand1, end_hand_grab))
   ignore(
     manager.on_session_end(fn() {
-      button_set_label(button, "VR を開始")
+      button_set_label(button, "\{xr_label} を開始")
       button_set_enabled(button, true)
       is_grabbed = false
       is_pinched = false
       cube.set_uniform_scale(1.0)
       set_state(
-        "ready", active_controller, "操作待機", "VR を開始すると Cube を操作できます",
+        "ready",
+        active_controller,
+        "操作待機",
+        "\{xr_label} を開始すると Cube を操作できます",
       )
       status_set_message(status, "WebXR session ended", "info")
     }),
@@ -271,7 +288,10 @@ async fn initialize() -> Unit {
     renderer.render(scene, camera.as_camera())
   })
   set_state(
-    "ready", "none", "準備完了", "VR を開始すると Cube を操作できます",
+    "ready",
+    "none",
+    "準備完了",
+    "\{xr_label} を開始すると Cube を操作できます",
   )
   if !@three_xr.is_available() {
     button_set_label(button, "WebXR は利用できません")
@@ -279,22 +299,26 @@ async fn initialize() -> Unit {
     return
   }
   try {
-    let supported = @three_xr.is_session_supported().wait()
+    let supported = @three_xr.is_session_supported_for(session_mode).wait()
     if supported {
-      button_set_label(button, "VR を開始")
+      button_set_label(button, "\{xr_label} を開始")
       button_set_enabled(button, true)
       button_on_click(button, fn() {
         ignore(
-          @js_async.Promise::from_async(() => enter_xr(button, manager, status)),
+          @js_async.Promise::from_async(() => {
+            enter_xr(button, manager, status, passthrough)
+          }),
         )
       })
       status_set_message(
         status, "three.js WebGLRenderer initialized", "success",
       )
     } else {
-      button_set_label(button, "VR は利用できません")
+      button_set_label(button, "\{xr_label} は利用できません")
       status_set_message(
-        status, "immersive-vr は利用できません", "error",
+        status,
+        "\{session_mode} は利用できません",
+        "error",
       )
     }
   } catch {
